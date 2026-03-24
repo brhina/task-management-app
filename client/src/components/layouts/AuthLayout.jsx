@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useMemo, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
 
@@ -8,16 +8,16 @@ function AuthLayout({ children }) {
     const location = useLocation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    const handleLogout = () => {
+    const handleLogout = useCallback(() => {
         clearUser();
         navigate('/login');
-    };
+    }, [clearUser, navigate]);
 
-    const isActive = (path) => {
+    const isActive = useCallback((path) => {
         return location.pathname === path;
-    };
+    }, [location.pathname]);
 
-    const getNavLinks = () => {
+    const getNavLinks = useMemo(() => {
         if (!user) return [];
 
         if (user.role === 'Admin') {
@@ -34,7 +34,7 @@ function AuthLayout({ children }) {
                 { name: 'My Tasks', path: '/user/my-tasks' },
             ];
         }
-    };
+    }, [user]);
 
     // For public pages (login/signup), just render children without navigation
     if (!user) {
@@ -52,7 +52,7 @@ function AuthLayout({ children }) {
                                 <h1 className="text-xl font-bold text-white">Task Manager</h1>
                             </Link>
                             <div className="hidden md:ml-6 md:flex md:space-x-8">
-                                {getNavLinks().map((link) => (
+                                {getNavLinks.map((link) => (
                                     <Link
                                         key={link.path}
                                         to={link.path}
@@ -75,13 +75,16 @@ function AuthLayout({ children }) {
                                     <button
                                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                                         className="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                        aria-label="User menu"
+                                        aria-expanded={isMenuOpen}
+                                        aria-haspopup="true"
                                     >
                                         <div className="flex items-center space-x-3">
                                             {user.profileImageUrl && (
                                                 <img
                                                     className="h-8 w-8 rounded-full"
                                                     src={user.profileImageUrl}
-                                                    alt={user.name}
+                                                    alt={`${user.name}'s profile`}
                                                 />
                                             )}
                                             <div className="hidden md:block">
@@ -96,7 +99,11 @@ function AuthLayout({ children }) {
                                 </div>
 
                                 {isMenuOpen && (
-                                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                    <div 
+                                        className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+                                        role="menu"
+                                        aria-orientation="vertical"
+                                    >
                                         <div className="px-4 py-2 text-sm text-white border-b border-gray-100">
                                             <div className="font-medium">{user.name}</div>
                                             <div className="text-white">{user.email}</div>
@@ -105,12 +112,14 @@ function AuthLayout({ children }) {
                                             to="/user/profile"
                                             className="block w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-400"
                                             onClick={() => setIsMenuOpen(false)}
+                                            role="menuitem"
                                         >
                                             Profile Settings
                                         </Link>
                                         <button
                                             onClick={handleLogout}
                                             className="block w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-400"
+                                            role="menuitem"
                                         >
                                             Sign out
                                         </button>
@@ -123,6 +132,8 @@ function AuthLayout({ children }) {
                                 <button
                                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                                     className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                                    aria-label="Toggle menu"
+                                    aria-expanded={isMenuOpen}
                                 >
                                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -137,7 +148,7 @@ function AuthLayout({ children }) {
                 {isMenuOpen && (
                     <div className="md:hidden">
                         <div className="pt-2 pb-3 space-y-1">
-                            {getNavLinks().map((link) => (
+                            {getNavLinks.map((link) => (
                                 <Link
                                     key={link.path}
                                     to={link.path}

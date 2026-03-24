@@ -1,10 +1,14 @@
-import React, { useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useContext, useMemo } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { UserContext } from './context/UserContext';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import LoadingSpinner from './components/common/LoadingSpinner';
+import { ROLES } from './constants/roles';
 
 // Auth pages
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
+import Landing from './pages/public/Landing';
 
 // Admin pages
 import Dashboard from './pages/admin/Dashboard';
@@ -26,35 +30,100 @@ import UserProvider from './context/UserContext';
 // Private Route Component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useContext(UserContext);
+  const location = useLocation();
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <LoadingSpinner size="md" text="Loading..." />
       </div>
     );
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
+    // Redirect to appropriate dashboard based on role instead of "/" to avoid loops
+    const redirectTo = user.role === ROLES.ADMIN ? '/admin/dashboard' : '/user/dashboard';
+    return <Navigate to={redirectTo} replace />;
   }
 
   return children;
 };
 
 // Admin Route Component
-const AdminRoute = ({ children }) => {
-  return <PrivateRoute allowedRoles={['Admin']}>{children}</PrivateRoute>;
+const AdminRouteWrapper = ({ children }) => {
+  return <PrivateRoute allowedRoles={[ROLES.ADMIN]}>{children}</PrivateRoute>;
 };
 
 // User Route Component
-const UserRoute = ({ children }) => {
-  return <PrivateRoute allowedRoles={['Admin', 'Member']}>{children}</PrivateRoute>;
+const UserRouteWrapper = ({ children }) => {
+  return <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.MEMBER]}>{children}</PrivateRoute>;
 };
+
+// Custom comparison function for user objects
+const userEqual = (prevProps, nextProps) => {
+  const prevUser = prevProps.user;
+  const nextUser = nextProps.user;
+  
+  // Both null/undefined - equal
+  if (!prevUser && !nextUser) return true;
+  // One is null, other is not - not equal
+  if (!prevUser || !nextUser) return false;
+  // Compare key fields
+  return prevUser._id === nextUser._id && 
+         prevUser.role === nextUser.role &&
+         prevUser.email === nextUser.email;
+};
+
+// Route components to prevent re-creation on every render
+const LoginRoute = React.memo(({ user }) => {
+  if (user) {
+    return <Navigate to={user.role === ROLES.ADMIN ? '/admin/dashboard' : '/user/dashboard'} replace />;
+  }
+  return <Login />;
+}, userEqual);
+
+const SignUpRoute = React.memo(({ user }) => {
+  if (user) {
+    return <Navigate to={user.role === ROLES.ADMIN ? '/admin/dashboard' : '/user/dashboard'} replace />;
+  }
+  return <SignUp />;
+}, userEqual);
+
+const HomeRoute = React.memo(({ user }) => {
+  if (user) {
+    return user.role === ROLES.ADMIN ? 
+      <Navigate to="/admin/dashboard" replace /> : 
+      <Navigate to="/user/dashboard" replace />;
+  }
+  return <Landing />;
+}, userEqual);
+
+const AdminRedirectRoute = React.memo(({ user }) => {
+  if (user && user.role === ROLES.ADMIN) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+  return <Navigate to="/login" replace />;
+}, userEqual);
+
+const UserRedirectRoute = React.memo(({ user }) => {
+  if (user) {
+    return <Navigate to="/user/dashboard" replace />;
+  }
+  return <Navigate to="/login" replace />;
+}, userEqual);
+
+const CatchAllRoute = React.memo(({ user }) => {
+  if (user) {
+    return user.role === ROLES.ADMIN ? 
+      <Navigate to="/admin/dashboard" replace /> : 
+      <Navigate to="/user/dashboard" replace />;
+  }
+  return <Navigate to="/login" replace />;
+}, userEqual);
 
 function App() {
   const { user } = useContext(UserContext);
@@ -63,122 +132,96 @@ function App() {
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route path="/login" element={
-          user ? <Navigate to={user.role === 'Admin' ? '/admin/dashboard' : '/user/dashboard'} replace /> : <Login />
-        } />
-        <Route path="/signup" element={
-          user ? <Navigate to={user.role === 'Admin' ? '/admin/dashboard' : '/user/dashboard'} replace /> : <SignUp />
-        } />
+        <Route path="/" element={<HomeRoute user={user} />} />
+        <Route path="/login" element={<LoginRoute user={user} />} />
+        <Route path="/signup" element={<SignUpRoute user={user} />} />
 
         {/* Admin Routes */}
         <Route path="/admin/dashboard" element={
-          <AdminRoute>
+          <AdminRouteWrapper>
             <AuthLayout>
               <Dashboard />
             </AuthLayout>
-          </AdminRoute>
+          </AdminRouteWrapper>
         } />
         <Route path="/admin/create-task" element={
-          <AdminRoute>
+          <AdminRouteWrapper>
             <AuthLayout>
               <CreateTask />
             </AuthLayout>
-          </AdminRoute>
+          </AdminRouteWrapper>
         } />
         <Route path="/admin/manage-tasks" element={
-          <AdminRoute>
+          <AdminRouteWrapper>
             <AuthLayout>
               <ManageTasks />
             </AuthLayout>
-          </AdminRoute>
+          </AdminRouteWrapper>
         } />
         <Route path="/admin/manage-users" element={
-          <AdminRoute>
+          <AdminRouteWrapper>
             <AuthLayout>
               <ManageUsers />
             </AuthLayout>
-          </AdminRoute>
+          </AdminRouteWrapper>
         } />
         <Route path="/admin/reports" element={
-          <AdminRoute>
+          <AdminRouteWrapper>
             <AuthLayout>
               <Reports />
             </AuthLayout>
-          </AdminRoute>
+          </AdminRouteWrapper>
         } />
 
         {/* User Routes */}
         <Route path="/user/dashboard" element={
-          <UserRoute>
+          <UserRouteWrapper>
             <AuthLayout>
               <UserDashboard />
             </AuthLayout>
-          </UserRoute>
+          </UserRouteWrapper>
         } />
         <Route path="/user/my-tasks" element={
-          <UserRoute>
+          <UserRouteWrapper>
             <AuthLayout>
               <MyTasks />
             </AuthLayout>
-          </UserRoute>
+          </UserRouteWrapper>
         } />
         <Route path="/user/task/:id" element={
-          <UserRoute>
+          <UserRouteWrapper>
             <AuthLayout>
               <ViewTaskDetails />
             </AuthLayout>
-          </UserRoute>
+          </UserRouteWrapper>
         } />
         <Route path="/user/profile" element={
-          <UserRoute>
+          <UserRouteWrapper>
             <AuthLayout>
               <ProfileUpdate />
             </AuthLayout>
-          </UserRoute>
+          </UserRouteWrapper>
         } />
 
         {/* Default redirects */}
-        <Route path="/" element={
-          user ? (
-            user.role === 'Admin' ? 
-              <Navigate to="/admin/dashboard" replace /> : 
-              <Navigate to="/user/dashboard" replace />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        } />
-        <Route path="/admin" element={
-          user && user.role === 'Admin' ? 
-            <Navigate to="/admin/dashboard" replace /> : 
-            <Navigate to="/login" replace />
-        } />
-        <Route path="/user" element={
-          user ? 
-            <Navigate to="/user/dashboard" replace /> : 
-            <Navigate to="/login" replace />
-        } />
+        <Route path="/admin" element={<AdminRedirectRoute user={user} />} />
+        <Route path="/user" element={<UserRedirectRoute user={user} />} />
 
         {/* Catch all route */}
-        <Route path="*" element={
-          user ? (
-            user.role === 'Admin' ? 
-              <Navigate to="/admin/dashboard" replace /> : 
-              <Navigate to="/user/dashboard" replace />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        } />
+        <Route path="*" element={<CatchAllRoute user={user} />} />
       </Routes>
     </Router>
   );
 }
 
-// Wrap the App with UserProvider
+// Wrap the App with UserProvider and ErrorBoundary
 function AppWithProvider() {
   return (
-    <UserProvider>
-      <App />
-    </UserProvider>
+    <ErrorBoundary>
+      <UserProvider>
+        <App />
+      </UserProvider>
+    </ErrorBoundary>
   );
 }
 

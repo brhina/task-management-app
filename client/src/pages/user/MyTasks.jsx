@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
+import { getStatusColor, getPriorityColor, TASK_STATUS } from '../../constants/taskStatus';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 function MyTasks() {
     const { user } = useContext(UserContext);
@@ -15,24 +17,25 @@ function MyTasks() {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusSummary, setStatusSummary] = useState({});
 
-    useEffect(() => {
-        fetchTasks();
-    }, [statusFilter]);
-
-    const fetchTasks = async () => {
+    const fetchTasks = useCallback(async () => {
         try {
             setLoading(true);
+            setError('');
             const params = statusFilter ? { status: statusFilter } : {};
             const response = await api.get(apiPaths.TASKS.GET_ALL_TASKS, { params });
             setTasks(response.data.data.tasks);
             setStatusSummary(response.data.data.statusSummary);
         } catch (error) {
             console.error('Error fetching tasks:', error);
-            setError('Failed to load tasks');
+            setError(error.response?.data?.message || 'Failed to load tasks');
         } finally {
             setLoading(false);
         }
-    };
+    }, [statusFilter]);
+
+    useEffect(() => {
+        fetchTasks();
+    }, [fetchTasks]);
 
     const handleStatusUpdate = async (taskId, newStatus) => {
         try {
@@ -52,23 +55,6 @@ function MyTasks() {
         return matchesSearch;
     });
 
-    const getPriorityColor = (priority) => {
-        switch (priority) {
-            case 'High': return 'bg-red-100 text-red-800';
-            case 'Medium': return 'bg-yellow-100 text-yellow-800';
-            case 'Low': return 'bg-green-100 text-green-800';
-            default: return 'bg-gray-100 text-gray-800';
-        }
-    };
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'Pending': return 'bg-yellow-100 text-yellow-800';
-            case 'In Progress': return 'bg-blue-100 text-blue-800';
-            case 'Completed': return 'bg-green-100 text-green-800';
-            default: return 'bg-gray-100 text-gray-800';
-        }
-    };
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -181,9 +167,9 @@ function MyTasks() {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             >
                                 <option value="">All Statuses</option>
-                                <option value="Pending">Pending</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Completed">Completed</option>
+                                <option value={TASK_STATUS.PENDING}>{TASK_STATUS.PENDING}</option>
+                                <option value={TASK_STATUS.IN_PROGRESS}>{TASK_STATUS.IN_PROGRESS}</option>
+                                <option value={TASK_STATUS.COMPLETED}>{TASK_STATUS.COMPLETED}</option>
                             </select>
                         </div>
                         <div className="flex items-end">
@@ -201,8 +187,7 @@ function MyTasks() {
                 <div className="bg-gray-200 rounded-lg shadow border-b-2 border-blue-600">
                     {loading ? (
                         <div className="p-8 text-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                            <p className="mt-4 text-gray-600">Loading tasks...</p>
+                            <LoadingSpinner size="md" text="Loading tasks..." />
                         </div>
                     ) : filteredTasks.length === 0 ? (
                         <div className="p-8 text-center">
@@ -258,9 +243,9 @@ function MyTasks() {
                                                         onChange={(e) => handleStatusUpdate(task._id, e.target.value)}
                                                         className="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                                                     >
-                                                        <option value="Pending">Pending</option>
-                                                        <option value="In Progress">In Progress</option>
-                                                        <option value="Completed">Completed</option>
+                                                        <option value={TASK_STATUS.PENDING}>{TASK_STATUS.PENDING}</option>
+                                                        <option value={TASK_STATUS.IN_PROGRESS}>{TASK_STATUS.IN_PROGRESS}</option>
+                                                        <option value={TASK_STATUS.COMPLETED}>{TASK_STATUS.COMPLETED}</option>
                                                     </select>
                                                 </div>
                                                 <Link

@@ -30,18 +30,26 @@ api.interceptors.response.use(
         return response;
     },
     (error) => {
-        // handle common errors
-        if (error.response) {
-            if (error.response.status === 401) {
+        // Keep this handler side-effect free from throws: a thrown interceptor
+        // masks the real failure (often seen as reading 'status' of undefined).
+        try {
+            const status = error?.response?.status;
+            if (status === 401) {
                 localStorage.removeItem('token');
                 window.location.href = '/login';
+            } else if (status === 500) {
+                console.error('Server error:', error.response?.data);
+            } else if (status === 404) {
+                console.error('Resource not found:', error.response?.data);
+            } else if (error?.code === 'ERR_NETWORK' || error?.message === 'Network Error') {
+                console.error('Network error:', error?.message);
+            } else if (status != null) {
+                console.error('Request failed:', status, error.response?.data);
+            } else {
+                console.error('Request error:', error?.message ?? error);
             }
-        } else if (error.response.status === 500) {
-            console.error('Server error:', error.response.data);
-        } else if (error.response.status === 404) {
-            console.error('Resource not found:', error.response.data);
-        } else if (error.code === 'ERR_NETWORK') {
-            console.error('Network error:', error.message);
+        } catch (interceptorErr) {
+            console.error('Axios interceptor error:', interceptorErr);
         }
         return Promise.reject(error);
     }
