@@ -1,10 +1,9 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { UserContext } from './context/UserContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import { ROLES } from './constants/roles';
-import { trackPageView } from './utils/analytics';
 
 // Auth pages
 import Login from './pages/auth/Login';
@@ -126,30 +125,11 @@ const CatchAllRoute = React.memo(({ user }) => {
   return <Navigate to="/login" replace />;
 }, userEqual);
 
-const AnalyticsTracker = () => {
-  const location = useLocation();
-  const lastTrackedPathRef = useRef('');
-
-  useEffect(() => {
-    const pagePath = `${location.pathname}${location.search}${location.hash}`;
-
-    if (lastTrackedPathRef.current === pagePath) {
-      return;
-    }
-
-    lastTrackedPathRef.current = pagePath;
-    trackPageView(pagePath);
-  }, [location.hash, location.pathname, location.search]);
-
-  return null;
-};
-
 function App() {
   const { user } = useContext(UserContext);
 
   return (
     <Router>
-      <AnalyticsTracker />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<HomeRoute user={user} />} />
