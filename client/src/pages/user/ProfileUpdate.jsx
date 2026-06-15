@@ -4,6 +4,7 @@ import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { getAbsoluteImageUrl } from '../../utils/imageUtils';
+import PageShell from '../../components/common/PageShell';
 
 function ProfileUpdate() {
     const { user, updateUser } = useContext(UserContext);
@@ -182,28 +183,21 @@ function ProfileUpdate() {
 
     if (!user) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Please Log In</h2>
-                    <p className="text-gray-600">You need to be logged in to update your profile.</p>
-                </div>
-            </div>
+            <PageShell title="Please Log In" subtitle="You need to be logged in to update your profile." />
         );
     }
 
     return (
-        <div className="min-h-screen py-8">
-            <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="bg-gray-100 rounded-lg shadow-xl p-8">
-                    {/* Header */}
-                    <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-blue-900 mb-2">Update Profile</h1>
-                        <p className="text-gray-600">Update your personal information and profile picture</p>
-                    </div>
+        <PageShell
+            title="Update Profile"
+            subtitle="Update your personal information and profile picture"
+        >
+            <div className="max-w-2xl">
+                <div className="card">
 
                     {/* Success Message */}
                     {success && (
-                        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="alert-success">
                             <div className="flex">
                                 <div className="flex-shrink-0">
                                     <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
@@ -219,7 +213,7 @@ function ProfileUpdate() {
 
                     {/* Error Message */}
                     {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="alert-error">
                             <div className="flex">
                                 <div className="flex-shrink-0">
                                     <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -237,7 +231,7 @@ function ProfileUpdate() {
                         {/* Profile Image Section */}
                         <div className="text-center">
                             <div className="relative inline-block">
-                                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200 mx-auto">
+                                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-600 mx-auto">
                                     {previewImage ? (
                                         <img
                                             src={previewImage}
@@ -245,14 +239,14 @@ function ProfileUpdate() {
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
-                                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <div className="w-full h-full bg-slate-700 flex items-center justify-center">
+                                            <svg className="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                             </svg>
                                         </div>
                                     )}
                                 </div>
-                                <label className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-2 cursor-pointer hover:bg-blue-600 transition-colors">
+                                <label className="absolute bottom-0 right-0 bg-primary text-white rounded-full p-2 cursor-pointer hover:bg-primary-hover transition-colors">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -265,14 +259,14 @@ function ProfileUpdate() {
                                     />
                                 </label>
                             </div>
-                            <p className="text-sm text-gray-500 mt-2">
+                            <p className="text-sm text-slate-400 mt-2">
                                 Click the camera icon to upload a new profile picture
                             </p>
                         </div>
 
                         {/* Name Field */}
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">
                                 Full Name
                             </label>
                             <input
@@ -282,14 +276,14 @@ function ProfileUpdate() {
                                 value={formData.name}
                                 onChange={handleInputChange}
                                 required
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="input-dark w-full px-3 py-2 rounded-lg"
                                 placeholder="Enter your full name"
                             />
                         </div>
 
                         {/* Email Field */}
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
                                 Email Address
                             </label>
                             <input
@@ -299,14 +293,14 @@ function ProfileUpdate() {
                                 value={formData.email}
                                 onChange={handleInputChange}
                                 required
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="input-dark w-full px-3 py-2 rounded-lg"
                                 placeholder="Enter your email address"
                             />
                         </div>
 
                         {/* Password Field */}
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
                                 New Password (optional)
                             </label>
                             <input
@@ -315,14 +309,14 @@ function ProfileUpdate() {
                                 name="password"
                                 value={formData.password}
                                 onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="input-dark w-full px-3 py-2 rounded-lg"
                                 placeholder="Enter new password (min 6 characters)"
                             />
                         </div>
 
                         {/* Confirm Password Field */}
                         <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-2">
                                 Confirm New Password
                             </label>
                             <input
@@ -331,20 +325,20 @@ function ProfileUpdate() {
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
                                 onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="input-dark w-full px-3 py-2 rounded-lg"
                                 placeholder="Confirm new password"
                             />
                         </div>
 
                         {/* Role Display (Read-only) */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-slate-300 mb-2">
                                 Role
                             </label>
-                            <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700">
+                            <div className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-slate-300">
                                 {user.role}
                             </div>
-                            <p className="text-sm text-gray-500 mt-1">Role cannot be changed</p>
+                            <p className="text-sm text-slate-400 mt-1">Role cannot be changed</p>
                         </div>
 
                         {/* Action Buttons */}
@@ -352,14 +346,14 @@ function ProfileUpdate() {
                             <button
                                 type="button"
                                 onClick={() => navigate('/user/dashboard')}
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-colors"
+                                className="flex-1 btn-secondary"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? (
                                     <div className="flex items-center justify-center">
@@ -374,7 +368,7 @@ function ProfileUpdate() {
                     </form>
                 </div>
             </div>
-        </div>
+        </PageShell>
     );
 }
 
