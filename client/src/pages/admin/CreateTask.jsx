@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
+import PageShell from '../../components/common/PageShell';
 
 function CreateTask() {
     const { user } = useContext(UserContext);
@@ -116,40 +117,35 @@ function CreateTask() {
 
     if (!user || user.role !== 'Admin') {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
-                    <p className="text-gray-600">You don't have permission to access this page.</p>
-                </div>
-            </div>
+            <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
         );
     }
 
+    const inputClass = "input-dark w-full px-3 py-2 text-sm";
+
     return (
-        <div className="py-8">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="bg-gray-100 rounded-lg shadow-lg p-6">
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-blue-600 mb-2">Create New Task</h1>
-                        <p className="text-blue-400">Fill in the details below to create a new task</p>
-                    </div>
+        <PageShell
+            title="Create New Task"
+            subtitle="Fill in the details below to create a new task"
+        >
+                <div className="max-w-7xl">
 
                     {error && (
-                        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                        <div className="alert-error">
                             {error}
                         </div>
                     )}
 
                     {success && (
-                        <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
+                        <div className="alert-success">
                             {success}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-6 bg-gray-200 rounded-lg shadow-lg p-6">
+                    <form onSubmit={handleSubmit} className="card space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label htmlFor="title" className="block text-sm font-medium text-blue-700 mb-2">
+                                <label htmlFor="title" className="block text-sm font-medium text-slate-300 mb-2">
                                     Task Title *
                                 </label>
                                 <input
@@ -158,14 +154,14 @@ function CreateTask() {
                                     name="title"
                                     value={formData.title}
                                     onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-blue-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    className={inputClass}
                                     placeholder="Enter task title"
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label htmlFor="priority" className="block text-sm font-medium text-blue-700 mb-2">
+                                <label htmlFor="priority" className="block text-sm font-medium text-slate-300 mb-2">
                                     Priority *
                                 </label>
                                 <select
@@ -173,7 +169,7 @@ function CreateTask() {
                                     name="priority"
                                     value={formData.priority}
                                     onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-blue-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    className={inputClass}
                                 >
                                     <option value="Low">Low</option>
                                     <option value="Medium">Medium</option>
@@ -183,7 +179,7 @@ function CreateTask() {
                         </div>
 
                         <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-blue-700 mb-2">
+                            <label htmlFor="description" className="block text-sm font-medium text-slate-300 mb-2">
                                 Description *
                             </label>
                             <textarea
@@ -192,7 +188,7 @@ function CreateTask() {
                                 value={formData.description}
                                 onChange={handleChange}
                                 rows={4}
-                                className="w-full px-3 py-2 border border-blue-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                className={inputClass}
                                 placeholder="Enter task description"
                                 required
                             />
@@ -200,7 +196,7 @@ function CreateTask() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label htmlFor="dueDate" className="block text-sm font-medium text-blue-700 mb-2">
+                                <label htmlFor="dueDate" className="block text-sm font-medium text-slate-300 mb-2">
                                     Due Date *
                                 </label>
                                 <input
@@ -209,13 +205,13 @@ function CreateTask() {
                                     name="dueDate"
                                     value={formData.dueDate}
                                     onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-blue-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    className={inputClass}
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label htmlFor="assignedTo" className="block text-sm font-medium text-blue-700 mb-2">
+                                <label htmlFor="assignedTo" className="block text-sm font-medium text-slate-300 mb-2">
                                     Assign To *
                                 </label>
                                 <select
@@ -223,7 +219,7 @@ function CreateTask() {
                                     name="assignedTo"
                                     value={formData.assignedTo}
                                     onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-blue-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    className={inputClass}
                                     required
                                 >
                                     <option value="">Select a user</option>
@@ -237,7 +233,7 @@ function CreateTask() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-blue-700 mb-4">
+                            <label className="block text-sm font-medium text-slate-300 mb-4">
                                 Todo Checklist
                             </label>
                             <div className="space-y-3">
@@ -247,13 +243,13 @@ function CreateTask() {
                                             type="checkbox"
                                             checked={todo.isCompleted}
                                             onChange={(e) => handleTodoChange(index, 'isCompleted', e.target.checked)}
-                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-blue-300 rounded"
+                                            className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded"
                                         />
                                         <input
                                             type="text"
                                             value={todo.text}
                                             onChange={(e) => handleTodoChange(index, 'text', e.target.value)}
-                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            className="flex-1 input-dark text-sm"
                                             placeholder="Enter todo item"
                                         />
                                         {todoItems.length > 1 && (
@@ -270,7 +266,7 @@ function CreateTask() {
                                 <button
                                     type="button"
                                     onClick={addTodoItem}
-                                    className="mt-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 focus:outline-none"
+                                    className="mt-2 px-4 py-2 text-sm font-medium text-primary hover:text-primary-hover focus:outline-none"
                                 >
                                     + Add Todo Item
                                 </button>
@@ -281,22 +277,21 @@ function CreateTask() {
                             <button
                                 type="button"
                                 onClick={() => navigate('/admin/manage-tasks')}
-                                className="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                className="btn-secondary"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                                className="btn-primary disabled:opacity-50"
                             >
                                 {loading ? 'Creating Task...' : 'Create Task'}
                             </button>
                         </div>
                     </form>
                 </div>
-            </div>
-        </div>
+        </PageShell>
     );
 }
 
