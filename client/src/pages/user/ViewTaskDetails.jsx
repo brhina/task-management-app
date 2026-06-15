@@ -6,6 +6,7 @@ import { apiPaths } from '../../utils/apiPaths';
 import { getStatusColor, getPriorityColor, TASK_STATUS } from '../../constants/taskStatus';
 import { formatDate, getRelativeTime, isOverdue, getDaysUntilDue } from '../../utils/dateUtils';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import PageShell from '../../components/common/PageShell';
 
 function ViewTaskDetails() {
     const { user } = useContext(UserContext);
@@ -111,8 +112,8 @@ function ViewTaskDetails() {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Please Log In</h2>
-                    <p className="text-gray-600">You need to be logged in to view task details.</p>
+                    <h2 className="text-2xl font-bold text-slate-200 mb-4">Please Log In</h2>
+                    <p className="text-slate-400">You need to be logged in to view task details.</p>
                 </div>
             </div>
         );
@@ -120,45 +121,36 @@ function ViewTaskDetails() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <LoadingSpinner size="lg" text="Loading task details..." />
-            </div>
+            <PageShell title="Task Details" subtitle="Loading task details...">
+                <div className="flex justify-center py-16">
+                    <LoadingSpinner size="lg" text="Loading task details..." />
+                </div>
+            </PageShell>
         );
     }
 
     if (!task) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center max-w-md">
-                    <div className="mb-4">
-                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Task Not Found</h2>
-                    <p className="text-gray-600 mb-6">{error || 'The task you are looking for does not exist or has been deleted.'}</p>
-                    <Link
-                        to="/user/my-tasks"
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                    >
+            <PageShell title="Task Not Found" subtitle={error || 'The task you are looking for does not exist or has been deleted.'}>
+                <Link
+                    to="/user/my-tasks"
+                    className="inline-flex items-center btn-primary"
+                >
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
                         Back to My Tasks
                     </Link>
-                </div>
-            </div>
+            </PageShell>
         );
     }
 
     return (
-        <div className="py-8 bg-gray-50 min-h-screen">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Header */}
+        <PageShell title={task.title} subtitle="Task details and progress">
                 <div className="mb-6">
                     <Link
                         to="/user/my-tasks"
-                        className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4 transition-colors"
+                        className="inline-flex items-center text-primary hover:text-primary-hover mb-4 transition-colors"
                     >
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -166,10 +158,9 @@ function ViewTaskDetails() {
                         Back to My Tasks
                     </Link>
                     
-                    <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                    <div className="card mb-6">
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                             <div className="flex-1">
-                                <h1 className="text-3xl font-bold text-gray-900 mb-3">{task.title}</h1>
                                 <div className="flex flex-wrap items-center gap-2 mb-4">
                                     <span className={`inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full ${getPriorityColor(task.priority)}`}>
                                         <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -202,7 +193,7 @@ function ViewTaskDetails() {
                     </div>
 
                     {error && (
-                        <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
+                        <div className="alert-error">
                             <div className="flex">
                                 <div className="flex-shrink-0">
                                     <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -221,27 +212,27 @@ function ViewTaskDetails() {
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Description */}
-                        <div className="bg-white rounded-lg shadow-sm p-6">
+                        <div className="card">
                             <div className="flex items-center mb-4">
-                                <svg className="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-6 h-6 text-slate-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
-                                <h2 className="text-xl font-semibold text-gray-900">Description</h2>
+                                <h2 className="text-xl font-semibold text-slate-200">Description</h2>
                             </div>
-                            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{task.description || 'No description provided.'}</p>
+                            <p className="text-slate-300 leading-relaxed whitespace-pre-wrap">{task.description || 'No description provided.'}</p>
                         </div>
 
                         {/* Checklist */}
-                        <div className="bg-white rounded-lg shadow-sm p-6">
+                        <div className="card">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center">
-                                    <svg className="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-6 h-6 text-slate-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                                     </svg>
-                                    <h2 className="text-xl font-semibold text-gray-900">Checklist</h2>
+                                    <h2 className="text-xl font-semibold text-slate-200">Checklist</h2>
                                 </div>
                                 {totalChecklistCount > 0 && (
-                                    <div className="text-sm text-gray-500">
+                                    <div className="text-sm text-slate-400">
                                         {completedChecklistCount} of {totalChecklistCount} completed
                                     </div>
                                 )}
@@ -249,11 +240,11 @@ function ViewTaskDetails() {
                             
                             {totalChecklistCount > 0 && (
                                 <div className="mb-4">
-                                    <div className="flex justify-between text-xs text-gray-600 mb-1">
+                                    <div className="flex justify-between text-xs text-slate-400 mb-1">
                                         <span>Progress</span>
                                         <span>{checklistProgress}%</span>
                                     </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div className="w-full bg-slate-700 rounded-full h-2">
                                         <div
                                             className="bg-green-500 h-2 rounded-full transition-all duration-300"
                                             style={{ width: `${checklistProgress}%` }}
@@ -267,17 +258,17 @@ function ViewTaskDetails() {
                                     task.todoCheckList.map((todo, index) => (
                                         <div 
                                             key={index} 
-                                            className="flex items-center group p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all"
+                                            className="flex items-center group p-3 border border-slate-600 rounded-lg hover:bg-slate-700/50 hover:border-slate-600 transition-all"
                                         >
                                             <input
                                                 type="checkbox"
                                                 checked={todo.isCompleted}
                                                 onChange={(e) => handleTodoToggle(index, e.target.checked)}
                                                 disabled={updating}
-                                                className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer disabled:opacity-50"
+                                                className="h-5 w-5 text-primary focus:ring-primary border-slate-600 rounded cursor-pointer disabled:opacity-50"
                                                 aria-label={`Mark "${todo.text}" as ${todo.isCompleted ? 'incomplete' : 'complete'}`}
                                             />
-                                            <span className={`ml-3 flex-1 ${todo.isCompleted ? 'line-through text-gray-500' : 'text-gray-700'}`}>
+                                            <span className={`ml-3 flex-1 ${todo.isCompleted ? 'line-through text-slate-400' : 'text-slate-300'}`}>
                                                 {todo.text}
                                             </span>
                                             <button
@@ -293,7 +284,7 @@ function ViewTaskDetails() {
                                         </div>
                                     ))
                                 ) : (
-                                    <p className="text-gray-500 text-sm italic">No checklist items yet. Add one below!</p>
+                                    <p className="text-slate-400 text-sm italic">No checklist items yet. Add one below!</p>
                                 )}
                             </div>
 
@@ -305,13 +296,13 @@ function ViewTaskDetails() {
                                             value={newChecklistItem}
                                             onChange={(e) => setNewChecklistItem(e.target.value)}
                                             placeholder="Enter checklist item..."
-                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="flex-1 px-3 py-2 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             autoFocus
                                         />
                                         <button
                                             type="submit"
                                             disabled={!newChecklistItem.trim() || updating}
-                                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                         >
                                             Add
                                         </button>
@@ -321,7 +312,7 @@ function ViewTaskDetails() {
                                                 setShowAddChecklist(false);
                                                 setNewChecklistItem('');
                                             }}
-                                            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                                            className="px-4 py-2 border border-slate-600 rounded-md hover:bg-slate-700/50 transition-colors"
                                         >
                                             Cancel
                                         </button>
@@ -330,7 +321,7 @@ function ViewTaskDetails() {
                             ) : (
                                 <button
                                     onClick={() => setShowAddChecklist(true)}
-                                    className="w-full mt-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors"
+                                    className="w-full mt-2 px-4 py-2 border-2 border-dashed border-slate-300 rounded-lg text-slate-600 hover:border-primary hover:text-primary transition-colors"
                                 >
                                     <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -341,20 +332,20 @@ function ViewTaskDetails() {
                         </div>
 
                         {/* Progress */}
-                        <div className="bg-white rounded-lg shadow-sm p-6">
+                        <div className="card">
                             <div className="flex items-center mb-4">
-                                <svg className="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-6 h-6 text-slate-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                 </svg>
-                                <h2 className="text-xl font-semibold text-gray-900">Overall Progress</h2>
+                                <h2 className="text-xl font-semibold text-slate-200">Overall Progress</h2>
                             </div>
                             <div className="space-y-4">
                                 <div>
-                                    <div className="flex justify-between text-sm text-gray-600 mb-2">
+                                    <div className="flex justify-between text-sm text-slate-400 mb-2">
                                         <span className="font-medium">Task Completion</span>
                                         <span className="font-semibold">{task.progress || 0}%</span>
                                     </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                                    <div className="w-full bg-slate-700 rounded-full h-4 overflow-hidden">
                                         <div
                                             className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2"
                                             style={{ width: `${task.progress || 0}%` }}
@@ -372,9 +363,9 @@ function ViewTaskDetails() {
                     {/* Sidebar */}
                     <div className="space-y-6">
                         {/* Status Update */}
-                        <div className="bg-white rounded-lg shadow-sm p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                                <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="card">
+                            <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center">
+                                <svg className="w-5 h-5 text-slate-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
                                 Update Status
@@ -384,14 +375,14 @@ function ViewTaskDetails() {
                                     value={task.status}
                                     onChange={(e) => handleStatusUpdate(e.target.value)}
                                     disabled={updating}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full px-3 py-2 border border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <option value={TASK_STATUS.PENDING}>{TASK_STATUS.PENDING}</option>
                                     <option value={TASK_STATUS.IN_PROGRESS}>{TASK_STATUS.IN_PROGRESS}</option>
                                     <option value={TASK_STATUS.COMPLETED}>{TASK_STATUS.COMPLETED}</option>
                                 </select>
                                 {updating && (
-                                    <div className="flex items-center text-sm text-gray-500">
+                                    <div className="flex items-center text-sm text-slate-400">
                                         <LoadingSpinner size="sm" text="" className="mr-2" />
                                         Updating...
                                     </div>
@@ -400,21 +391,21 @@ function ViewTaskDetails() {
                         </div>
 
                         {/* Task Info */}
-                        <div className="bg-white rounded-lg shadow-sm p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                                <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="card">
+                            <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center">
+                                <svg className="w-5 h-5 text-slate-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 Task Information
                             </h3>
                             <div className="space-y-4">
                                 <div>
-                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Due Date</p>
-                                    <p className={`text-sm font-medium ${isOverdue(task.dueDate) && task.status !== TASK_STATUS.COMPLETED ? 'text-red-600' : 'text-gray-900'}`}>
+                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">Due Date</p>
+                                    <p className={`text-sm font-medium ${isOverdue(task.dueDate) && task.status !== TASK_STATUS.COMPLETED ? 'text-red-600' : 'text-slate-200'}`}>
                                         {formatDate(task.dueDate)}
                                     </p>
                                     {daysUntilDue !== null && (
-                                        <p className="text-xs text-gray-500 mt-1">
+                                        <p className="text-xs text-slate-400 mt-1">
                                             {isOverdue(task.dueDate) 
                                                 ? `Overdue by ${Math.abs(daysUntilDue)} day${Math.abs(daysUntilDue) !== 1 ? 's' : ''}`
                                                 : daysUntilDue === 0 
@@ -426,24 +417,24 @@ function ViewTaskDetails() {
                                         </p>
                                     )}
                                 </div>
-                                <div className="border-t border-gray-200 pt-4">
-                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Created</p>
-                                    <p className="text-sm text-gray-900">{formatDate(task.createdAt)}</p>
-                                    <p className="text-xs text-gray-500 mt-1">{getRelativeTime(task.createdAt)}</p>
+                                <div className="border-t border-slate-600 pt-4">
+                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">Created</p>
+                                    <p className="text-sm text-slate-200">{formatDate(task.createdAt)}</p>
+                                    <p className="text-xs text-slate-400 mt-1">{getRelativeTime(task.createdAt)}</p>
                                 </div>
-                                <div className="border-t border-gray-200 pt-4">
-                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Last Updated</p>
-                                    <p className="text-sm text-gray-900">{formatDate(task.updatedAt)}</p>
-                                    <p className="text-xs text-gray-500 mt-1">{getRelativeTime(task.updatedAt)}</p>
+                                <div className="border-t border-slate-600 pt-4">
+                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">Last Updated</p>
+                                    <p className="text-sm text-slate-200">{formatDate(task.updatedAt)}</p>
+                                    <p className="text-xs text-slate-400 mt-1">{getRelativeTime(task.updatedAt)}</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Assigned To */}
                         {task.assignedTo && (
-                            <div className="bg-white rounded-lg shadow-sm p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                                    <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="card">
+                                <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center">
+                                    <svg className="w-5 h-5 text-slate-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
                                     Assigned To
@@ -451,20 +442,20 @@ function ViewTaskDetails() {
                                 <div className="flex items-center">
                                     {task.assignedTo.profileImageUrl ? (
                                         <img
-                                            className="h-12 w-12 rounded-full mr-4 ring-2 ring-gray-200"
+                                            className="h-12 w-12 rounded-full mr-4 ring-2 ring-slate-600"
                                             src={task.assignedTo.profileImageUrl}
                                             alt={`${task.assignedTo.name}'s profile`}
                                         />
                                     ) : (
-                                        <div className="h-12 w-12 rounded-full mr-4 bg-gray-200 flex items-center justify-center ring-2 ring-gray-200">
-                                            <span className="text-gray-600 font-semibold text-lg">
+                                        <div className="h-12 w-12 rounded-full mr-4 bg-slate-700 flex items-center justify-center ring-2 ring-slate-600">
+                                            <span className="text-slate-400 font-semibold text-lg">
                                                 {task.assignedTo.name?.charAt(0).toUpperCase() || '?'}
                                             </span>
                                         </div>
                                     )}
                                     <div>
-                                        <p className="font-medium text-gray-900">{task.assignedTo.name || 'Unknown'}</p>
-                                        <p className="text-sm text-gray-500">{task.assignedTo.email}</p>
+                                        <p className="font-medium text-slate-200">{task.assignedTo.name || 'Unknown'}</p>
+                                        <p className="text-sm text-slate-400">{task.assignedTo.email}</p>
                                         {task.assignedTo.role && (
                                             <span className={`inline-block mt-1 px-2 py-0.5 text-xs font-semibold rounded ${task.assignedTo.role === 'Admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
                                                 {task.assignedTo.role}
@@ -476,8 +467,7 @@ function ViewTaskDetails() {
                         )}
                     </div>
                 </div>
-            </div>
-        </div>
+        </PageShell>
     );
 }
 
