@@ -5,42 +5,48 @@
 body {
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   min-height: 100vh;
-  position: relative;
-}
-
-/* Background image and overlay */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  background-image: url('./assets/images/bg-image.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-}
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background: rgba(30, 41, 59, 0.45); /* slate-800/45 overlay */
-  backdrop-filter: blur(2px);
+  @apply bg-sidebar text-slate-200;
 }
 
 #root {
   min-height: 100vh;
 }
 
+/* Dark gradient backdrop for public/marketing pages */
+.public-page {
+  position: relative;
+  min-height: 100vh;
+}
+
+.public-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-color: #0f172a;
+}
+
+.public-page::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: rgba(30, 41, 59, 0.45);
+  backdrop-filter: blur(2px);
+}
+
 /* Card and form enhancements */
 .card, .form-card {
-  background: #ecf1eba9;
-  border-radius: 1rem;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-  padding: 2rem;
-  margin-bottom: 2rem;
-  backdrop-filter: blur(6px);
+  @apply bg-slate-800 rounded-xl shadow-card border border-slate-700/80 p-6 text-slate-100;
+}
+
+.form-card {
+  @apply mb-0;
+}
+
+.input-dark {
+  @apply bg-slate-900 border border-slate-600 text-slate-100 placeholder-slate-400 rounded-lg
+         focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary;
 }
 
 /* Responsive table */
@@ -52,18 +58,18 @@ body::after {
 
 /* Button styles */
 .btn-primary {
-  @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition;
+  @apply bg-primary hover:bg-primary-hover text-white font-semibold py-2 px-4 rounded shadow transition;
 }
 .btn-secondary {
-  @apply bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded shadow transition;
+  @apply bg-slate-700 hover:bg-slate-600 text-slate-100 font-semibold py-2 px-4 rounded shadow transition;
 }
 
 /* Headings */
 .heading-main {
-  @apply text-3xl md:text-4xl font-bold text-gray-900 mb-2;
+  @apply text-3xl md:text-4xl font-bold text-white mb-2;
 }
 .heading-section {
-  @apply text-xl md:text-2xl font-semibold text-gray-800 mb-4;
+  @apply text-xl md:text-2xl font-semibold text-slate-300 mb-4;
 }
 
 /* Section spacing */
@@ -73,13 +79,13 @@ body::after {
 
 /* For mobile forms */
 .form-card input, .form-card select, .form-card textarea {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 mb-4 bg-white bg-opacity-90;
+  @apply input-dark w-full px-3 py-2 mb-4;
 }
 
 /* For error/success messages */
 .alert-error {
-  @apply bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4;
+  @apply bg-red-900/30 border border-red-700 text-red-200 px-4 py-3 rounded mb-4;
 }
 .alert-success {
-  @apply bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4;
+  @apply bg-emerald-900/30 border border-emerald-700 text-emerald-200 px-4 py-3 rounded mb-4;
 }
