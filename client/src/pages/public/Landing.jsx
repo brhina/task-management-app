@@ -51,7 +51,7 @@ function Landing() {
                         <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6">
                             Organize Your Work,
                             <br />
-                            <span className="text-blue-400">Manage Your Tasks</span>
+                            <span className="text-indigo-400">Manage Your Tasks</span>
                         </h1>
                         <p className="text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
                             A powerful task management system designed to help teams and individuals stay organized, 
@@ -60,7 +60,7 @@ function Landing() {
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Link
                                 to="/signup"
-                                className="inline-flex items-center justify-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                                className="inline-flex items-center justify-center px-8 py-4 bg-primary hover:bg-primary-hover text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
                             >
                                 Get Started Free
                                 <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,7 +94,7 @@ function Landing() {
                                     key={index}
                                     className="bg-white bg-opacity-10 backdrop-blur-sm p-6 rounded-xl border border-white border-opacity-20 hover:bg-opacity-20 transition-all duration-200"
                                 >
-                                    <div className="text-blue-400 mb-4">
+                                    <div className="text-indigo-400 mb-4">
                                         {feature.icon}
                                     </div>
                                     <h3 className="text-xl font-semibold text-white mb-2">
@@ -112,7 +112,7 @@ function Landing() {
                 {/* CTA Section */}
                 <section className="py-20 px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto text-center">
-                        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-12 shadow-2xl">
+                        <div className="bg-gradient-to-r from-primary to-primary-hover rounded-2xl p-12 shadow-2xl">
                             <h2 className="text-4xl font-bold text-white mb-4">
                                 Ready to Get Started?
                             </h2>
@@ -122,7 +122,7 @@ function Landing() {
                             <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                 <Link
                                     to="/signup"
-                                    className="inline-flex items-center justify-center px-8 py-4 bg-white text-blue-600 text-lg font-semibold rounded-lg hover:bg-gray-100 transition-colors shadow-lg"
+                                    className="inline-flex items-center justify-center px-8 py-4 bg-white text-primary text-lg font-semibold rounded-lg hover:bg-gray-100 transition-colors shadow-lg"
                                 >
                                     Create Free Account
                                     <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,7 +131,7 @@ function Landing() {
                                 </Link>
                                 <Link
                                     to="/login"
-                                    className="inline-flex items-center justify-center px-8 py-4 bg-transparent border-2 border-white text-white text-lg font-semibold rounded-lg hover:bg-white hover:text-blue-600 transition-colors"
+                                    className="inline-flex items-center justify-center px-8 py-4 bg-transparent border-2 border-white text-white text-lg font-semibold rounded-lg hover:bg-white hover:text-primary transition-colors"
                                 >
                                     Sign In
                                 </Link>
@@ -145,7 +145,7 @@ function Landing() {
                     <div className="max-w-7xl mx-auto">
                         <div className="flex flex-col md:flex-row justify-between items-center">
                             <div className="flex items-center space-x-2 mb-4 md:mb-0">
-                                <div className="bg-blue-600 p-2 rounded-lg">
+                                <div className="bg-primary p-2 rounded-lg">
                                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                     </svg>
