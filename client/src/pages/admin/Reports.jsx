@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { UserContext } from '../../context/UserContext';
 import { apiPaths } from '../../utils/apiPaths';
 import axios from '../../utils/axios';
+import PageShell from '../../components/common/PageShell';
 
 const Reports = () => {
     const { user } = useContext(UserContext);
@@ -12,12 +13,7 @@ const Reports = () => {
     // Check if user is admin
     if (!user || user.role !== 'Admin') {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-                    <p className="text-gray-600">You don't have permission to access this page.</p>
-                </div>
-            </div>
+            <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
         );
     }
 
@@ -73,7 +69,7 @@ const Reports = () => {
             title: 'Tasks Report',
             description: 'Export all tasks with detailed information including status, priority, assignments, and dates.',
             icon: (
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
             ),
@@ -106,23 +102,20 @@ const Reports = () => {
     ];
 
     return (
-        <div className="py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-white mb-2">Reports</h1>
-                    <p className="text-white">Generate and download comprehensive reports for tasks and users.</p>
-                </div>
+        <PageShell
+            title="Reports"
+            subtitle="Generate and download comprehensive reports for tasks and users."
+        >
 
                 {/* Messages */}
                 {message && (
-                    <div className="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
+                    <div className="alert-success">
                         <span className="block sm:inline">{message}</span>
                     </div>
                 )}
 
                 {error && (
-                    <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+                    <div className="alert-error">
                         <span className="block sm:inline">{error}</span>
                     </div>
                 )}
@@ -130,19 +123,19 @@ const Reports = () => {
                 {/* Report Types Grid */}
                 <div className="grid md:grid-cols-2 gap-6">
                     {reportTypes.map((report) => (
-                        <div key={report.id} className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
+                        <div key={report.id} className="card">
                             <div className="flex items-center mb-4">
                                 {report.icon}
                                 <div className="ml-3">
-                                    <h3 className="text-xl font-semibold text-gray-900">{report.title}</h3>
+                                    <h3 className="text-xl font-semibold text-white">{report.title}</h3>
                                 </div>
                             </div>
                             
-                            <p className="text-gray-600 mb-4">{report.description}</p>
+                            <p className="text-slate-400 mb-4">{report.description}</p>
                             
                             <div className="mb-6">
-                                <h4 className="text-sm font-medium text-gray-900 mb-2">Report includes:</h4>
-                                <ul className="text-sm text-gray-600 space-y-1">
+                                <h4 className="text-sm font-medium text-slate-300 mb-2">Report includes:</h4>
+                                <ul className="text-sm text-slate-400 space-y-1">
                                     {report.features.map((feature, index) => (
                                         <li key={index} className="flex items-center">
                                             <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -160,7 +153,7 @@ const Reports = () => {
                                 className={`w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
                                     loading
                                         ? 'bg-gray-400 cursor-not-allowed'
-                                        : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                                        : 'bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
                                 }`}
                             >
                                 {loading ? (
@@ -185,17 +178,16 @@ const Reports = () => {
                 </div>
 
                 {/* Additional Information */}
-                <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-                    <h3 className="text-lg font-medium text-blue-900 mb-2">About Reports</h3>
-                    <div className="text-sm text-blue-800 space-y-2">
+                <div className="card bg-primary-light border-primary/20">
+                    <h3 className="text-lg font-medium text-white mb-2">About Reports</h3>
+                    <div className="text-sm text-slate-300 space-y-2">
                         <p>• Reports are generated in Excel format (.xlsx) for easy analysis and sharing</p>
                         <p>• Task reports include comprehensive information about all tasks in the system</p>
                         <p>• User reports provide detailed statistics about task assignments and completion rates</p>
                         <p>• Reports are generated in real-time with the latest data from the database</p>
                     </div>
                 </div>
-            </div>
-        </div>
+        </PageShell>
     );
 };
 
