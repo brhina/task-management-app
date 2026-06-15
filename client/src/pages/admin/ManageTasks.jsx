@@ -3,6 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
+import PageShell from '../../components/common/PageShell';
+import StatCard, { StatIcons } from '../../components/common/StatCard';
+import FilterToolbar from '../../components/common/FilterToolbar';
 
 function ManageTasks() {
     const { user } = useContext(UserContext);
@@ -94,262 +97,264 @@ function ManageTasks() {
 
     if (!user || user.role !== 'Admin') {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold text-white mb-4">Access Denied</h2>
-                    <p className="text-white">You don't have permission to access this page.</p>
-                </div>
-            </div>
+            <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
         );
     }
 
     return (
-        <div className="py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="mb-8">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h1 className="text-3xl font-bold text-white mb-2">Manage Tasks</h1>
-                            <p className="text-white">View and manage all tasks in the system</p>
-                        </div>
-                        <Link
-                            to="/admin/create-task"
-                            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            Create New Task
-                        </Link>
-                    </div>
-                </div>
+        <PageShell
+            title="Manage Tasks"
+            subtitle="View and manage all tasks in the system"
+            actions={
+                <Link
+                    to="/admin/create-task"
+                    className="btn-primary"
+                >
+                    Create New Task
+                </Link>
+            }
+        >
 
                 {error && (
-                    <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-                        {error}
-                    </div>
+                    <div className="alert-error">{error}</div>
                 )}
 
-                {/* Status Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-blue-100 rounded-lg shadow p-6">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                    <span className="text-white font-bold">{statusSummary.all || 0}</span>
-                                </div>
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">Total Tasks</p>
-                                <p className="text-2xl font-semibold text-gray-900">{statusSummary.all || 0}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-yellow-100 rounded-lg shadow p-6">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                                    <span className="text-white font-bold">{statusSummary.pending || 0}</span>
-                                </div>
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">Pending</p>
-                                <p className="text-2xl font-semibold text-gray-900">{statusSummary.pending || 0}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-green-100 rounded-lg shadow p-6">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                    <span className="text-white font-bold">{statusSummary.inProgress || 0}</span>
-                                </div>
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">In Progress</p>
-                                <p className="text-2xl font-semibold text-gray-900">{statusSummary.inProgress || 0}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-red-100 rounded-lg shadow p-6">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                    <span className="text-white font-bold">{statusSummary.completed || 0}</span>
-                                </div>
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">Completed</p>
-                                <p className="text-2xl font-semibold text-gray-900">{statusSummary.completed || 0}</p>
-                            </div>
-                        </div>
-                    </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <StatCard label="Total Tasks" value={statusSummary.all || 0} icon={StatIcons.tasks} accentColor="text-indigo-400" />
+                    <StatCard label="Pending" value={statusSummary.pending || 0} icon={StatIcons.pending} accentColor="text-amber-400" />
+                    <StatCard label="In Progress" value={statusSummary.inProgress || 0} icon={StatIcons.progress} accentColor="text-sky-400" />
+                    <StatCard label="Completed" value={statusSummary.completed || 0} icon={StatIcons.completed} accentColor="text-emerald-400" />
                 </div>
 
-                {/* Filters and Search */}
-                <div className="bg-gray-100 rounded-lg shadow mb-6 p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-                                Search Tasks
-                            </label>
-                            <input
-                                type="text"
-                                id="search"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Search by title, description, or assignee..."
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700 mb-2">
-                                Filter by Status
-                            </label>
-                            <select
-                                id="statusFilter"
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                <option value="">All Statuses</option>
-                                <option value="Pending">Pending</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Completed">Completed</option>
-                            </select>
-                        </div>
-                        <div className="flex items-end">
-                            <button
-                                onClick={fetchTasks}
-                                className="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                            >
-                                Refresh
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <FilterToolbar
+                    searchValue={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    searchPlaceholder="Search by title, description, or assignee..."
+                    filters={[{
+                        id: 'statusFilter',
+                        label: 'Filter by Status',
+                        value: statusFilter,
+                        onChange: setStatusFilter,
+                        options: [
+                            { value: '', label: 'All Statuses' },
+                            { value: 'Pending', label: 'Pending' },
+                            { value: 'In Progress', label: 'In Progress' },
+                            { value: 'Completed', label: 'Completed' },
+                        ],
+                    }]}
+                    actions={
+                        <button type="button" onClick={fetchTasks} className="btn-secondary w-full md:w-auto text-sm py-2">
+                            Refresh
+                        </button>
+                    }
+                />
 
                 {/* Tasks List */}
-                <div className="bg-gray-100 rounded-lg shadow">
+                <div className="card !p-0 overflow-hidden">
                     {loading ? (
                         <div className="p-8 text-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                            <p className="mt-4 text-gray-600">Loading tasks...</p>
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                            <p className="mt-4 text-slate-400">Loading tasks...</p>
                         </div>
                     ) : filteredTasks.length === 0 ? (
                         <div className="p-8 text-center">
-                            <p className="text-gray-600">No tasks found.</p>
+                            <p className="text-slate-400">No tasks found.</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-yellow-100">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                                            Task
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                                            Assigned To
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                                            Priority
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                                            Status
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                                            Due Date
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                                            Progress
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-gray-100 divide-y divide-gray-200">
-                                    {filteredTasks.map((task) => (
-                                        <tr key={task._id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div>
-                                                    <div className="text-sm font-medium text-gray-900">{task.title}</div>
-                                                    <div className="text-sm text-gray-500 truncate max-w-xs">
-                                                        {task.description}
+                        <>
+                            <div className="hidden md:block overflow-x-auto responsive-table">
+                                <table className="min-w-full w-full table-auto divide-y divide-slate-700">
+                                    <thead className="bg-slate-900">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                                Task
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                                Assigned To
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                                Priority
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                                Status
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                                Due Date
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                                Progress
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-slate-800 divide-y divide-slate-700">
+                                        {filteredTasks.map((task) => (
+                                            <tr key={task._id} className="hover:bg-slate-700/50">
+                                                <td className="px-4 py-4 align-top max-w-[16rem] break-words">
+                                                    <div>
+                                                        <div className="text-sm font-medium text-slate-200">{task.title}</div>
+                                                        <div className="text-sm text-slate-400 truncate">
+                                                            {task.description}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
+                                                </td>
+                                                <td className="px-4 py-4 align-top max-w-[14rem] break-words">
+                                                    <div className="flex items-center gap-3">
+                                                        {task.assignedTo?.profileImageUrl && (
+                                                            <img
+                                                                className="h-8 w-8 rounded-full"
+                                                                src={task.assignedTo.profileImageUrl}
+                                                                alt={task.assignedTo.name}
+                                                            />
+                                                        )}
+                                                        <div>
+                                                            <div className="text-sm font-medium text-slate-200">
+                                                                {task.assignedTo?.name || 'Unknown'}
+                                                            </div>
+                                                            <div className="text-sm text-slate-400 break-words">
+                                                                {task.assignedTo?.email}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4 align-top">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(task.priority)}`}>
+                                                        {task.priority}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-4 align-top">
+                                                    <select
+                                                        value={task.status}
+                                                        onChange={(e) => handleStatusUpdate(task._id, e.target.value)}
+                                                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(task.status)} border-0 focus:ring-0`}
+                                                    >
+                                                        <option value="Pending">Pending</option>
+                                                        <option value="In Progress">In Progress</option>
+                                                        <option value="Completed">Completed</option>
+                                                    </select>
+                                                </td>
+                                                <td className="px-4 py-4 align-top text-sm text-slate-200">
+                                                    {formatDate(task.dueDate)}
+                                                </td>
+                                                <td className="px-4 py-4 align-top">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-24 bg-slate-700 rounded-full h-2 overflow-hidden">
+                                                            <div
+                                                                className="bg-primary h-2 rounded-full"
+                                                                style={{ width: `${task.progress || 0}%` }}
+                                                            ></div>
+                                                        </div>
+                                                        <span className="text-sm text-slate-400">{task.progress || 0}%</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4 align-top text-sm font-medium">
+                                                    <div className="flex flex-wrap gap-3">
+                                                        <Link
+                                                            to={`/admin/task/${task._id}`}
+                                                            className="text-primary hover:text-primary-hover"
+                                                        >
+                                                            View
+                                                        </Link>
+                                                        <button
+                                                            onClick={() => handleDeleteTask(task._id)}
+                                                            className="text-red-400 hover:text-red-300"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="space-y-4 md:hidden p-4">
+                                {filteredTasks.map((task) => (
+                                    <div key={task._id} className="bg-slate-900 rounded-2xl border border-slate-700/80 p-4 shadow-sm">
+                                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                                            <div>
+                                                <div className="text-base font-semibold text-slate-100">{task.title}</div>
+                                                <p className="mt-1 text-sm text-slate-400">{task.description}</p>
+                                            </div>
+                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(task.priority)}`}>
+                                                {task.priority}
+                                            </span>
+                                        </div>
+                                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                                            <div>
+                                                <div className="text-xs uppercase tracking-wide text-slate-500">Assigned to</div>
+                                                <div className="mt-2 flex items-center gap-3">
                                                     {task.assignedTo?.profileImageUrl && (
                                                         <img
-                                                            className="h-8 w-8 rounded-full mr-3"
+                                                            className="h-8 w-8 rounded-full"
                                                             src={task.assignedTo.profileImageUrl}
                                                             alt={task.assignedTo.name}
                                                         />
                                                     )}
                                                     <div>
-                                                        <div className="text-sm font-medium text-gray-900">
+                                                        <div className="text-sm font-medium text-slate-100">
                                                             {task.assignedTo?.name || 'Unknown'}
                                                         </div>
-                                                        <div className="text-sm text-gray-500">
+                                                        <div className="text-sm text-slate-400 break-words">
                                                             {task.assignedTo?.email}
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(task.priority)}`}>
-                                                    {task.priority}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <select
-                                                    value={task.status}
-                                                    onChange={(e) => handleStatusUpdate(task._id, e.target.value)}
-                                                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(task.status)} border-0 focus:ring-0`}
-                                                >
-                                                    <option value="Pending">Pending</option>
-                                                    <option value="In Progress">In Progress</option>
-                                                    <option value="Completed">Completed</option>
-                                                </select>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {formatDate(task.dueDate)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                            </div>
+                                            <div>
+                                                <div className="text-xs uppercase tracking-wide text-slate-500">Status</div>
+                                                <div className="mt-2">
+                                                    <select
+                                                        value={task.status}
+                                                        onChange={(e) => handleStatusUpdate(task._id, e.target.value)}
+                                                        className={`w-full inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(task.status)} border-0 focus:ring-0`}
+                                                    >
+                                                        <option value="Pending">Pending</option>
+                                                        <option value="In Progress">In Progress</option>
+                                                        <option value="Completed">Completed</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="text-xs uppercase tracking-wide text-slate-500">Due Date</div>
+                                                <div className="mt-2 text-sm text-slate-200">{formatDate(task.dueDate)}</div>
+                                            </div>
+                                            <div>
+                                                <div className="text-xs uppercase tracking-wide text-slate-500">Progress</div>
+                                                <div className="mt-2 flex items-center gap-2">
+                                                    <div className="flex-1 bg-slate-700 rounded-full h-2 overflow-hidden">
                                                         <div
-                                                            className="bg-blue-600 h-2 rounded-full"
+                                                            className="bg-primary h-2 rounded-full"
                                                             style={{ width: `${task.progress || 0}%` }}
                                                         ></div>
                                                     </div>
-                                                    <span className="text-sm text-gray-500">{task.progress || 0}%</span>
+                                                    <span className="text-sm text-slate-400">{task.progress || 0}%</span>
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <div className="flex space-x-2">
-                                                    <Link
-                                                        to={`/admin/task/${task._id}`}
-                                                        className="text-blue-600 hover:text-blue-900"
-                                                    >
-                                                        View
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => handleDeleteTask(task._id)}
-                                                        className="text-red-600 hover:text-red-900"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm font-medium">
+                                            <Link
+                                                to={`/admin/task/${task._id}`}
+                                                className="text-primary hover:text-primary-hover"
+                                            >
+                                                View
+                                            </Link>
+                                            <button
+                                                onClick={() => handleDeleteTask(task._id)}
+                                                className="text-red-400 hover:text-red-300"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
                     )}
                 </div>
-            </div>
-        </div>
+        </PageShell>
     );
 }
 

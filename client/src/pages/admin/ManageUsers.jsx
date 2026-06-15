@@ -2,6 +2,9 @@ import React, { useState, useEffect, useContext } from 'react';
 import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
+import PageShell from '../../components/common/PageShell';
+import StatCard, { StatIcons } from '../../components/common/StatCard';
+import FilterToolbar from '../../components/common/FilterToolbar';
 
 function ManageUsers() {
     const { user } = useContext(UserContext);
@@ -51,154 +54,69 @@ function ManageUsers() {
 
     if (!user || user.role !== 'Admin') {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
-                    <p className="text-gray-600">You don't have permission to access this page.</p>
-                </div>
-            </div>
+            <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
         );
     }
 
     return (
-        <div className="py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="mb-8">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h1 className="text-3xl font-bold text-white mb-2">Manage Users</h1>
-                            <p className="text-white">View and manage all users in the system</p>
-                        </div>
-                    </div>
-                </div>
+        <PageShell
+            title="Manage Users"
+            subtitle="View and manage all users in the system"
+        >
 
                 {error && (
-                    <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-                        {error}
-                    </div>
+                    <div className="alert-error">{error}</div>
                 )}
 
-                {/* Summary Statistics */}
-                <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-blue-100 rounded-lg shadow p-6">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                    <span className="text-white font-bold">{users.length}</span>
-                                </div>
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">Total Users</p>
-                                <p className="text-2xl font-semibold text-gray-900">{users.length}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-purple-100 rounded-lg shadow p-6">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                                    <span className="text-white font-bold">
-                                        {users.filter(u => u.role === 'Admin').length}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">Admins</p>
-                                <p className="text-2xl font-semibold text-gray-900">
-                                    {users.filter(u => u.role === 'Admin').length}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-green-100 rounded-lg shadow p-6">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                    <span className="text-white font-bold">
-                                        {users.filter(u => u.role === 'Member').length}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">Members</p>
-                                <p className="text-2xl font-semibold text-gray-900">
-                                    {users.filter(u => u.role === 'Member').length}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-yellow-100 rounded-lg shadow p-6">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                                    <span className="text-white font-bold">
-                                        {users.reduce((total, user) => total + (user.pendingTasks || 0), 0)}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">Total Pending Tasks</p>
-                                <p className="text-2xl font-semibold text-gray-900">
-                                    {users.reduce((total, user) => total + (user.pendingTasks || 0), 0)}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <StatCard label="Total Users" value={users.length} icon={StatIcons.users} accentColor="text-indigo-400" />
+                    <StatCard label="Admins" value={users.filter(u => u.role === 'Admin').length} icon={StatIcons.admin} accentColor="text-violet-400" />
+                    <StatCard label="Members" value={users.filter(u => u.role === 'Member').length} icon={StatIcons.members} accentColor="text-emerald-400" />
+                    <StatCard label="Pending Tasks" value={users.reduce((total, u) => total + (u.pendingTasks || 0), 0)} icon={StatIcons.pending} accentColor="text-amber-400" />
                 </div>
 
-                {/* Search */}
-                <div className="bg-gray-100 rounded-lg shadow mb-6 p-6">
-                    <div>
-                        <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-                            Search Users
-                        </label>
-                        <input
-                            type="text"
-                            id="search"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Search by name or email..."
-                        />
-                    </div>
-                </div>
+                <FilterToolbar
+                    searchValue={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    searchPlaceholder="Search by name or email..."
+                />
 
                 {/* Users List */}
-                <div className="bg-white rounded-lg shadow">
+                <div className="card !p-0 overflow-hidden">
                     {loading ? (
                         <div className="p-8 text-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                            <p className="mt-4 text-gray-600">Loading users...</p>
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                            <p className="mt-4 text-slate-400">Loading users...</p>
                         </div>
                     ) : filteredUsers.length === 0 ? (
                         <div className="p-8 text-center">
-                            <p className="text-gray-600">No users found.</p>
+                            <p className="text-slate-400">No users found.</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-yellow-100">
+                        <div className="overflow-x-auto responsive-table">
+                            <table className="min-w-full divide-y divide-slate-700">
+                                <thead className="bg-slate-900">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                                             User
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                                             Role
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                                             Task Statistics
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                                             Joined
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                                             Actions
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-gray-100 divide-y divide-gray-200">
+                                <tbody className="bg-slate-800 divide-y divide-slate-700">
                                     {filteredUsers.map((userItem) => (
-                                        <tr key={userItem._id} className="hover:bg-gray-50">
+                                        <tr key={userItem._id} className="hover:bg-slate-700/50">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
                                                     {userItem.profileImageUrl && (
@@ -209,10 +127,10 @@ function ManageUsers() {
                                                         />
                                                     )}
                                                     <div>
-                                                        <div className="text-sm font-medium text-gray-900">
+                                                        <div className="text-sm font-medium text-slate-200">
                                                             {userItem.name}
                                                         </div>
-                                                        <div className="text-sm text-gray-500">
+                                                        <div className="text-sm text-slate-400">
                                                             {userItem.email}
                                                         </div>
                                                     </div>
@@ -233,26 +151,26 @@ function ManageUsers() {
                                                         <div className="font-semibold text-yellow-600">
                                                             {userItem.pendingTasks || 0}
                                                         </div>
-                                                        <div className="text-gray-500">Pending</div>
+                                                        <div className="text-slate-400">Pending</div>
                                                     </div>
                                                     <div className="text-center">
-                                                        <div className="font-semibold text-blue-600">
+                                                        <div className="font-semibold text-primary">
                                                             {userItem.inProgressTasks || 0}
                                                         </div>
-                                                        <div className="text-gray-500">In Progress</div>
+                                                        <div className="text-slate-400">In Progress</div>
                                                     </div>
                                                     <div className="text-center">
                                                         <div className="font-semibold text-green-600">
                                                             {userItem.completedTasks || 0}
                                                         </div>
-                                                        <div className="text-gray-500">Completed</div>
+                                                        <div className="text-slate-400">Completed</div>
                                                     </div>
                                                 </div>
-                                                <div className="mt-1 text-xs text-gray-500">
+                                                <div className="mt-1 text-xs text-slate-400">
                                                     Total: {getTotalTasks(userItem)} tasks
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
                                                 {new Date(userItem.createdAt).toLocaleDateString('en-US', {
                                                     year: 'numeric',
                                                     month: 'short',
@@ -262,7 +180,7 @@ function ManageUsers() {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <button
                                                     onClick={() => handleDeleteUser(userItem._id)}
-                                                    className="text-red-600 hover:text-red-900"
+                                                    className="text-red-400 hover:text-red-300 disabled:text-slate-500"
                                                     disabled={userItem.role === 'Admin'}
                                                 >
                                                     {userItem.role === 'Admin' ? 'Protected' : 'Delete'}
@@ -275,8 +193,7 @@ function ManageUsers() {
                         </div>
                     )}
                 </div>
-            </div>
-        </div>
+        </PageShell>
     );
 }
 
