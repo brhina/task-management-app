@@ -5,11 +5,24 @@
 body {
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   min-height: 100vh;
-  @apply bg-sidebar text-slate-200;
+  @apply bg-app-bg text-slate-200 antialiased;
 }
 
 #root {
   min-height: 100vh;
+}
+
+/* Page container primitives */
+.page {
+  @apply min-h-[calc(100vh-1px)];
+}
+
+.page-container {
+  @apply max-w-screen-2xl mx-auto px-3 sm:px-4 lg:px-6;
+}
+
+.page-section {
+  @apply mt-4 overflow-hidden;
 }
 
 /* Dark gradient backdrop for public/marketing pages */
@@ -23,7 +36,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: -2;
-  background-color: #0f172a;
+  background-color: #0b1220;
 }
 
 .public-page::after {
@@ -37,16 +50,70 @@ body {
 
 /* Card and form enhancements */
 .card, .form-card {
-  @apply bg-slate-800 rounded-xl shadow-card border border-slate-700/80 p-6 text-slate-100;
+  @apply bg-app-panel2 rounded-xl shadow-card border border-app-border p-4 text-slate-100;
 }
 
 .form-card {
   @apply mb-0;
 }
 
+.section-card {
+  @apply bg-app-panel2 rounded-xl shadow-card border border-app-border;
+}
+
+.section-card-header {
+  @apply px-4 pt-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2;
+}
+
+.section-card-title {
+  @apply text-sm font-semibold text-slate-100;
+}
+
+.section-card-subtitle {
+  @apply text-xs text-slate-400 mt-0.5;
+}
+
+.section-card-body {
+  @apply px-4 pb-4 pt-3;
+}
+
+/* Input styling */
 .input-dark {
-  @apply bg-slate-900 border border-slate-600 text-slate-100 placeholder-slate-400 rounded-lg
-         focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary;
+  @apply bg-slate-950/50 border border-app-border text-slate-100 placeholder-slate-500 rounded-lg
+         text-sm
+         px-3 py-2
+         focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/60
+         transition-colors duration-150;
+}
+
+.input-dark:hover {
+  @apply border-slate-600;
+}
+
+/* Input with icon wrapper */
+.input-icon-wrapper {
+  @apply relative;
+}
+
+.input-icon-wrapper .input-icon {
+  @apply absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500;
+}
+
+.input-icon-wrapper .input-dark {
+  @apply pl-9;
+}
+
+/* Form field group */
+.field-group {
+  @apply space-y-1.5;
+}
+
+.field-label {
+  @apply block text-xs font-medium text-slate-400 uppercase tracking-wide;
+}
+
+.field-hint {
+  @apply text-xs text-slate-500 mt-0.5;
 }
 
 /* Responsive table */
@@ -58,34 +125,59 @@ body {
 
 /* Button styles */
 .btn-primary {
-  @apply bg-primary hover:bg-primary-hover text-white font-semibold py-2 px-4 rounded shadow transition;
+  @apply bg-primary hover:bg-primary-hover text-white font-semibold text-sm
+         py-1.5 px-3.5 rounded-lg shadow transition;
 }
 .btn-secondary {
-  @apply bg-slate-700 hover:bg-slate-600 text-slate-100 font-semibold py-2 px-4 rounded shadow transition;
+  @apply bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold text-sm
+         py-1.5 px-3.5 rounded-lg shadow transition border border-app-border;
+}
+.btn-ghost {
+  @apply bg-transparent hover:bg-white/5 text-slate-100 font-semibold text-sm
+         py-1.5 px-3.5 rounded-lg transition border border-app-border;
 }
 
 /* Headings */
 .heading-main {
-  @apply text-3xl md:text-4xl font-bold text-white mb-2;
+  @apply text-2xl md:text-3xl font-bold text-white mb-1;
 }
 .heading-section {
-  @apply text-xl md:text-2xl font-semibold text-slate-300 mb-4;
+  @apply text-lg md:text-xl font-semibold text-slate-300 mb-3;
+}
+
+/* Compact KPI chips */
+.kpi-chip-row {
+  @apply flex flex-wrap items-center gap-1.5;
+}
+.kpi-chip {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-app-border bg-white/5 px-2.5 py-0.5 text-xs text-slate-200;
+}
+.kpi-chip-label {
+  @apply text-slate-400;
+}
+.kpi-chip-value {
+  @apply font-semibold text-slate-100 tabular-nums;
 }
 
 /* Section spacing */
 .section {
-  @apply mb-8;
+  @apply mb-6;
 }
 
-/* For mobile forms */
+/* Form card auto-applied input styling */
 .form-card input, .form-card select, .form-card textarea {
-  @apply input-dark w-full px-3 py-2 mb-4;
+  @apply input-dark w-full;
 }
 
-/* For error/success messages */
+/* Alert messages */
 .alert-error {
-  @apply bg-red-900/30 border border-red-700 text-red-200 px-4 py-3 rounded mb-4;
+  @apply bg-red-900/30 border border-red-700 text-red-200 px-3 py-2 rounded-lg text-sm mb-4;
 }
 .alert-success {
-  @apply bg-emerald-900/30 border border-emerald-700 text-emerald-200 px-4 py-3 rounded mb-4;
+  @apply bg-emerald-900/30 border border-emerald-700 text-emerald-200 px-3 py-2 rounded-lg text-sm mb-4;
+}
+
+/* Compact select styling */
+select.input-dark {
+  @apply appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%2394a3b8%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.23%207.21a.75.75%200%20011.06.02L10%2011.168l3.71-3.938a.75.75%200%20111.08%201.04l-4.25%204.5a.75.75%200%2001-1.08%200l-4.25-4.5a.75.75%200%2001.02-1.06z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat pr-8;
 }
