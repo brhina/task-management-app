@@ -67,7 +67,7 @@ function UserDashboard() {
 
     return (
         <PageShell
-            title={`Welcome back, ${user.name}!`}
+            title='Dashboard'
             subtitle="Here's an overview of your tasks and progress"
             actions={
                 <div className="flex gap-2">
