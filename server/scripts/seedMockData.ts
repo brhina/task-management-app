@@ -9,6 +9,7 @@ import Task from "../models/Task";
 import Goal from "../models/Goal";
 import Dependency from "../models/Dependency";
 import AutomationRule from "../models/AutomationRule";
+import Invite from "../models/Invite";
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ async function seedMockData() {
         await Goal.deleteMany({});
         await Dependency.deleteMany({});
         await AutomationRule.deleteMany({});
+        await Invite.deleteMany({});
         console.log("✓ Cleared all collections");
 
         // Create Users
