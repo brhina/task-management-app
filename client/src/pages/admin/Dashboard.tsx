@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { AlertTriangle, CheckCircle, Plus, ClipboardList, Folder, Users, ChevronRight } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
@@ -31,18 +32,6 @@ function Dashboard() {
       setLoading(false);
     }
   };
-
-  const stats = useMemo(() => {
-    if (!dashboardData)
-      return { total: 0, pending: 0, inProgress: 0, inReview: 0, completed: 0, overdue: 0 };
-    const total = dashboardData.statistics?.allTasks ?? 0;
-    const pending = dashboardData.statistics?.pendingTasks ?? 0;
-    const inProgress = dashboardData.statistics?.inProgressTasks ?? 0;
-    const inReview = dashboardData.statistics?.inReviewTasks ?? 0;
-    const completed = dashboardData.statistics?.completedTasks ?? 0;
-    const overdue = dashboardData.statistics?.overdueTasks ?? 0;
-    return { total, pending, inProgress, inReview, completed, overdue };
-  }, [dashboardData]);
 
   const urgentTasks = useMemo(() => {
     if (!dashboardData?.recentTasks) return [];
@@ -96,36 +85,7 @@ function Dashboard() {
       <div className="space-y-4">
         {error && <div className="alert-error">{error}</div>}
 
-        {/* KPI Cards */}
-        {/* <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-                    <div className="card text-center">
-                        <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Total Tasks</div>
-                        <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">{stats.total}</div>
-                        <div className="text-[10px] text-slate-500">across all projects</div>
-                    </div>
-                    <div className="card text-center">
-                        <div className="text-[10px] uppercase tracking-wider text-yellow-400 font-semibold">Pending</div>
-                        <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">{stats.pending}</div>
-                        <div className="text-[10px] text-slate-500">awaiting start</div>
-                    </div>
-                    <div className="card text-center">
-                        <div className="text-[10px] uppercase tracking-wider text-blue-400 font-semibold">In Progress</div>
-                        <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">{stats.inProgress}</div>
-                        <div className="text-[10px] text-slate-500">actively working</div>
-                    </div>
-                    <div className="card text-center">
-                        <div className="text-[10px] uppercase tracking-wider text-emerald-400 font-semibold">Completed</div>
-                        <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">{stats.completed}</div>
-                        <div className="text-[10px] text-slate-500">{stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}% rate</div>
-                    </div>
-                    <div className="card text-center">
-                        <div className="text-[10px] uppercase tracking-wider text-rose-400 font-semibold">Overdue</div>
-                        <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">{stats.overdue}</div>
-                        <div className="text-[10px] text-slate-500">need attention</div>
-                    </div>
-                </div>
-
-                {/* Charts */}
+        {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="card">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
@@ -155,14 +115,7 @@ function Dashboard() {
           <div className="lg:col-span-2 card">
             <div className="flex items-center justify-between mb-3">
               <div className="text-xs font-semibold text-rose-400 uppercase tracking-wide flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                <AlertTriangle className="w-4 h-4" />
                 Needs Attention ({urgentTasks.length})
               </div>
               <Link
@@ -174,19 +127,7 @@ function Dashboard() {
             </div>
             {urgentTasks.length === 0 ? (
               <div className="text-center py-8">
-                <svg
-                  className="w-8 h-8 text-emerald-500/50 mx-auto mb-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                <CheckCircle className="w-8 h-8 text-emerald-500/50 mx-auto mb-2" />
                 <div className="text-xs text-slate-500">No urgent tasks. All on track!</div>
               </div>
             ) : (
@@ -249,19 +190,7 @@ function Dashboard() {
                 className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-700 hover:border-primary/40 hover:bg-slate-700/30 transition-all group"
               >
                 <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center">
-                  <svg
-                    className="w-4 h-4 text-primary"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
+                  <Plus className="w-4 h-4 text-primary" />
                 </div>
                 <div className="flex-1">
                   <div className="text-sm font-medium text-slate-200 group-hover:text-primary transition-colors">
@@ -275,19 +204,7 @@ function Dashboard() {
                 className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-700 hover:border-blue-400/40 hover:bg-slate-700/30 transition-all group"
               >
                 <div className="h-8 w-8 rounded-lg bg-blue-500/15 flex items-center justify-center">
-                  <svg
-                    className="w-4 h-4 text-blue-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                    />
-                  </svg>
+                  <ClipboardList className="w-4 h-4 text-blue-400" />
                 </div>
                 <div className="flex-1">
                   <div className="text-sm font-medium text-slate-200 group-hover:text-primary transition-colors">
@@ -301,19 +218,7 @@ function Dashboard() {
                 className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-700 hover:border-violet-400/40 hover:bg-slate-700/30 transition-all group"
               >
                 <div className="h-8 w-8 rounded-lg bg-violet-500/15 flex items-center justify-center">
-                  <svg
-                    className="w-4 h-4 text-violet-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 7h6l2 2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"
-                    />
-                  </svg>
+                  <Folder className="w-4 h-4 text-violet-400" />
                 </div>
                 <div className="flex-1">
                   <div className="text-sm font-medium text-slate-200 group-hover:text-primary transition-colors">
@@ -327,19 +232,7 @@ function Dashboard() {
                 className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-700 hover:border-emerald-400/40 hover:bg-slate-700/30 transition-all group"
               >
                 <div className="h-8 w-8 rounded-lg bg-emerald-500/15 flex items-center justify-center">
-                  <svg
-                    className="w-4 h-4 text-emerald-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                    />
-                  </svg>
+                  <Users className="w-4 h-4 text-emerald-400" />
                 </div>
                 <div className="flex-1">
                   <div className="text-sm font-medium text-slate-200 group-hover:text-primary transition-colors">
@@ -367,19 +260,7 @@ function Dashboard() {
           </div>
           {dashboardData?.recentTasks?.length === 0 ? (
             <div className="text-center py-8">
-              <svg
-                className="w-10 h-10 text-slate-600 mx-auto mb-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
+              <ClipboardList className="w-10 h-10 text-slate-600 mx-auto mb-2" />
               <div className="text-xs text-slate-500">No tasks yet. Create your first task!</div>
             </div>
           ) : (
@@ -421,19 +302,7 @@ function Dashboard() {
                         )}
                       </div>
                     </div>
-                    <svg
-                      className="w-4 h-4 text-slate-600 group-hover:text-primary shrink-0 transition-colors"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
+                    <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary shrink-0 transition-colors" />
                   </Link>
                 );
               })}

@@ -1,5 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { Folder, ChevronRight, ClipboardList } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
@@ -133,19 +134,7 @@ function GoalDetails() {
             </div>
             {linkedProjects.length === 0 ? (
               <div className="text-center py-8">
-                <svg
-                  className="w-10 h-10 text-slate-600 mx-auto mb-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                  />
-                </svg>
+                <Folder className="w-10 h-10 text-slate-600 mx-auto mb-2" />
                 <div className="text-xs text-slate-500">No linked projects yet</div>
               </div>
             ) : (
@@ -157,19 +146,7 @@ function GoalDetails() {
                     className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-slate-700/30 transition-colors group"
                   >
                     <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <svg
-                        className="w-4 h-4 text-primary"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                        />
-                      </svg>
+                      <Folder className="w-4 h-4 text-primary" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium text-slate-200 group-hover:text-primary truncate transition-colors">
@@ -177,19 +154,7 @@ function GoalDetails() {
                       </div>
                       <div className="text-[10px] text-slate-500">{p.status}</div>
                     </div>
-                    <svg
-                      className="w-4 h-4 text-slate-600 group-hover:text-primary shrink-0 transition-colors"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
+                    <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary shrink-0 transition-colors" />
                   </Link>
                 ))}
               </div>
@@ -205,19 +170,7 @@ function GoalDetails() {
             </div>
             {linkedTasks.length === 0 ? (
               <div className="text-center py-8">
-                <svg
-                  className="w-10 h-10 text-slate-600 mx-auto mb-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                  />
-                </svg>
+                <ClipboardList className="w-10 h-10 text-slate-600 mx-auto mb-2" />
                 <div className="text-xs text-slate-500">No linked tasks yet</div>
               </div>
             ) : (
@@ -245,19 +198,7 @@ function GoalDetails() {
                         </span>
                       </div>
                     </div>
-                    <svg
-                      className="w-4 h-4 text-slate-600 group-hover:text-primary shrink-0 transition-colors"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
+                    <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary shrink-0 transition-colors" />
                   </Link>
                 ))}
               </div>
@@ -267,42 +208,6 @@ function GoalDetails() {
 
         {/* Right Column - Sidebar */}
         <div className="space-y-4">
-          {/* KPI Cards */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="card text-center">
-              <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-                Projects
-              </div>
-              <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">
-                {linkedProjects.length}
-              </div>
-            </div>
-            <div className="card text-center">
-              <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-                Tasks
-              </div>
-              <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">
-                {linkedTasks.length}
-              </div>
-            </div>
-            <div className="card text-center">
-              <div className="text-[10px] uppercase tracking-wider text-emerald-400 font-semibold">
-                Completed
-              </div>
-              <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">
-                {taskStats.completed}
-              </div>
-            </div>
-            <div className="card text-center">
-              <div className="text-[10px] uppercase tracking-wider text-blue-400 font-semibold">
-                In Progress
-              </div>
-              <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">
-                {taskStats.inProgress}
-              </div>
-            </div>
-          </div>
-
           {/* Task Completion */}
           {linkedTasks.length > 0 && (
             <div className="card">

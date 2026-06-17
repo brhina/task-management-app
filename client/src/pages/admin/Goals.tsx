@@ -1,5 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Zap, ChevronRight } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
 import FilterToolbar from '../../components/common/FilterToolbar';
 import api from '../../utils/axios';
@@ -50,12 +51,6 @@ function Goals() {
     fetchGoals();
   }, []);
 
-  const timeframeCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const g of goals) counts[g.timeframe] = (counts[g.timeframe] || 0) + 1;
-    return counts;
-  }, [goals]);
-
   const filteredGoals = useMemo(() => {
     return goals.filter((g) => {
       const matchesTimeframe = !timeframeFilter || g.timeframe === timeframeFilter;
@@ -93,44 +88,6 @@ function Goals() {
       <div className="space-y-4">
         {error && <div className="alert-error">{error}</div>}
 
-        {/* Timeframe Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          {TIMEFRAMES.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTimeframeFilter(timeframeFilter === t ? '' : t)}
-              className={`card text-left transition-all ${
-                timeframeFilter === t
-                  ? 'ring-2 ring-primary/50 border-primary/40'
-                  : 'hover:border-slate-600'
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-1.5">
-                <span
-                  className={`inline-flex h-6 w-6 items-center justify-center rounded text-[10px] font-bold border ${TIMEFRAME_COLORS[t]}`}
-                >
-                  {TIMEFRAME_ICONS[t]}
-                </span>
-                <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-                  {t}
-                </span>
-              </div>
-              <div className="text-2xl font-bold text-slate-100 tabular-nums">
-                {timeframeCounts[t] || 0}
-              </div>
-              <div className="mt-1.5 h-1 rounded-full bg-slate-700 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-primary transition-all"
-                  style={{
-                    width: `${goals.length ? ((timeframeCounts[t] || 0) / goals.length) * 100 : 0}%`,
-                  }}
-                />
-              </div>
-            </button>
-          ))}
-        </div>
-
         {/* Search & Filter */}
         <FilterToolbar
           searchValue={searchTerm}
@@ -157,19 +114,7 @@ function Goals() {
           </div>
         ) : filteredGoals.length === 0 ? (
           <div className="card text-center py-12">
-            <svg
-              className="w-12 h-12 text-slate-600 mx-auto mb-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
+            <Zap className="w-12 h-12 text-slate-600 mx-auto mb-3" />
             <div className="text-slate-400 text-sm">
               {goals.length === 0
                 ? 'No goals yet. Create your first OKR to get started.'
@@ -195,19 +140,7 @@ function Goals() {
                     >
                       {g.timeframe}
                     </span>
-                    <svg
-                      className="w-4 h-4 text-slate-600 group-hover:text-primary transition-colors shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
+                    <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary transition-colors shrink-0" />
                   </div>
 
                   <h3 className="text-sm font-semibold text-slate-200 group-hover:text-primary transition-colors mb-1">

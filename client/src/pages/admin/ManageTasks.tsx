@@ -9,6 +9,7 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from '@dnd-kit/core';
+import { LayoutGrid, List, Users, ClipboardList } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
@@ -80,7 +81,7 @@ function ManageTasks() {
   const [projectFilter, setProjectFilter] = useState(urlProjectId);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'board' | 'list'>('board');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'status' | 'assignee'>('dueDate');
   const [statusSummary, setStatusSummary] = useState<StatusSummary>({
     all: 0,
@@ -314,9 +315,9 @@ function ManageTasks() {
 
           {isProjectScoped && scopedProject && (
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-primary/15 text-primary border border-primary/30">
+              {/* <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-primary/15 text-primary border border-primary/30">
                 {scopedProject.name}
-              </span>
+              </span> */}
               <Link
                 to="/admin/projects"
                 className="text-xs text-slate-500 hover:text-slate-300 underline underline-offset-2"
@@ -344,14 +345,7 @@ function ManageTasks() {
               onClick={() => setViewMode('board')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'board' ? 'bg-primary text-white' : 'text-slate-400 hover:text-slate-200'}`}
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                />
-              </svg>
+              <LayoutGrid className="w-3.5 h-3.5" />
               Board
             </button>
             <button
@@ -359,14 +353,7 @@ function ManageTasks() {
               onClick={() => setViewMode('list')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'list' ? 'bg-primary text-white' : 'text-slate-400 hover:text-slate-200'}`}
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 10h16M4 14h16M4 18h16"
-                />
-              </svg>
+              <List className="w-3.5 h-3.5" />
               List
             </button>
             {/* </div> */}
@@ -380,14 +367,7 @@ function ManageTasks() {
                   : 'border-slate-700 bg-slate-800 text-slate-400 hover:text-slate-200'
               }`}
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
+              <Users className="w-3.5 h-3.5" />
               {sidebarOpen ? 'Hide' : 'Show'} Team
             </button>
           </div>
@@ -400,19 +380,7 @@ function ManageTasks() {
           </div>
         ) : filteredTasks.length === 0 ? (
           <div className="card text-center py-12">
-            <svg
-              className="w-12 h-12 text-slate-600 mx-auto mb-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
-            </svg>
+            <ClipboardList className="w-12 h-12 text-slate-600 mx-auto mb-3" />
             <div className="text-slate-400 text-sm">
               {tasks.length === 0
                 ? 'No tasks yet. Create your first task to get started.'

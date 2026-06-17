@@ -1,5 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Zap, AlertTriangle, Users, Lightbulb, RefreshCw, Target, TrendingUp } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
@@ -14,67 +15,6 @@ function downloadJson(filename: string, data: unknown) {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
-}
-
-function HealthBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    Healthy: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-    Warning: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-    Critical: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
-  };
-  return (
-    <span
-      className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full border ${colors[status] || 'bg-slate-500/15 text-slate-400 border-slate-500/30'}`}
-    >
-      {status || 'Unknown'}
-    </span>
-  );
-}
-
-function ScoreRing({
-  score,
-  size = 48,
-  stroke = 4,
-}: {
-  score: number;
-  size?: number;
-  stroke?: number;
-}) {
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (score / 100) * circumference;
-  const color = score >= 70 ? '#22c55e' : score >= 40 ? '#f59e0b' : '#f43f5e';
-
-  return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={stroke}
-          className="text-slate-700"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth={stroke}
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          className="transition-all duration-500"
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-slate-200">
-        {score}
-      </div>
-    </div>
-  );
 }
 
 function WorkOS() {
@@ -182,73 +122,6 @@ function WorkOS() {
       <div className="space-y-4">
         {error && <div className="alert-error">{error}</div>}
 
-        {/* KPI Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="card flex items-center gap-3">
-            <ScoreRing score={data?.risk?.score ?? 0} />
-            <div>
-              <div className="text-xs uppercase tracking-wide text-slate-400">Health</div>
-              <HealthBadge status={data?.health_status} />
-            </div>
-          </div>
-          <div className="card flex items-center gap-3">
-            <ScoreRing score={data?.priority?.score ?? 0} />
-            <div>
-              <div className="text-xs uppercase tracking-wide text-slate-400">Priority</div>
-              <div className="text-sm font-semibold text-slate-200">
-                {data?.priority?.level || '—'}
-              </div>
-            </div>
-          </div>
-          <div className="card flex items-center gap-3">
-            <ScoreRing score={data?.risk?.score ?? 0} />
-            <div>
-              <div className="text-xs uppercase tracking-wide text-slate-400">Risk</div>
-              <div className="text-sm font-semibold text-slate-200">{data?.risk?.level || '—'}</div>
-            </div>
-          </div>
-          <div className="card flex items-center gap-3">
-            <div className="relative w-12 h-12">
-              <svg width={48} height={48} className="-rotate-90">
-                <circle
-                  cx={24}
-                  cy={24}
-                  r={20}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={4}
-                  className="text-slate-700"
-                />
-                <circle
-                  cx={24}
-                  cy={24}
-                  r={20}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={4}
-                  strokeDasharray={125.66}
-                  strokeDashoffset={
-                    125.66 - ((data?.workload?.capacity_utilization ?? 0) / 100) * 125.66
-                  }
-                  strokeLinecap="round"
-                  className="text-primary"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-200">
-                {data?.workload?.capacity_utilization ?? 0}%
-              </div>
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-wide text-slate-400">Workload</div>
-              <div
-                className={`text-sm font-semibold ${data?.workload?.overloaded ? 'text-amber-400' : 'text-emerald-400'}`}
-              >
-                {data?.workload?.overloaded ? 'Overloaded' : 'Balanced'}
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Summary Banner */}
         <div className="card bg-gradient-to-r from-primary/10 to-transparent border-primary/20">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -289,19 +162,7 @@ function WorkOS() {
             {/* Next Best Actions */}
             <div className="card">
               <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
-                <svg
-                  className="w-4 h-4 text-primary"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
+                <Zap className="w-4 h-4 text-primary" />
                 Next Best Actions
               </h3>
               {(data?.next_best_actions || []).length === 0 ? (
@@ -323,19 +184,7 @@ function WorkOS() {
             {/* Risks & Mitigations */}
             <div className="card">
               <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
-                <svg
-                  className="w-4 h-4 text-amber-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-                  />
-                </svg>
+                <AlertTriangle className="w-4 h-4 text-amber-400" />
                 Risks & Mitigations
               </h3>
               <div className="space-y-3">
@@ -378,19 +227,7 @@ function WorkOS() {
             {/* Workload Recommendations */}
             <div className="card">
               <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
-                <svg
-                  className="w-4 h-4 text-blue-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
+                <Users className="w-4 h-4 text-blue-400" />
                 Workload
               </h3>
               <ul className="space-y-1.5">
@@ -406,19 +243,7 @@ function WorkOS() {
             {/* Recommendations */}
             <div className="card">
               <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
-                <svg
-                  className="w-4 h-4 text-purple-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                  />
-                </svg>
+                <Lightbulb className="w-4 h-4 text-purple-400" />
                 Recommendations
               </h3>
               <ul className="space-y-1.5">
@@ -558,19 +383,7 @@ function WorkOS() {
             {/* Automations */}
             <div className="card">
               <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
-                <svg
-                  className="w-4 h-4 text-cyan-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
+                <RefreshCw className="w-4 h-4 text-cyan-400" />
                 Active Automations
               </h3>
               <ul className="space-y-2">
@@ -586,19 +399,7 @@ function WorkOS() {
             {/* Goal Alignment */}
             <div className="card">
               <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
-                <svg
-                  className="w-4 h-4 text-emerald-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                  />
-                </svg>
+                <Target className="w-4 h-4 text-emerald-400" />
                 Goal Alignment
               </h3>
               <div className="flex items-center gap-4 mb-3">
@@ -617,19 +418,7 @@ function WorkOS() {
             {/* Critical Path */}
             <div className="card lg:col-span-2">
               <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
-                <svg
-                  className="w-4 h-4 text-amber-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                  />
-                </svg>
+                <TrendingUp className="w-4 h-4 text-amber-400" />
                 Critical Path
               </h3>
               {(data?.critical_path || []).length === 0 ? (

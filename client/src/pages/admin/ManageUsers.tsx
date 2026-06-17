@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { UserPlus, Users, Folder, Check, ClipboardCopy, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
@@ -299,33 +300,6 @@ function ManageUsers() {
     return map;
   }, [tasks]);
 
-  const teamStats = useMemo(() => {
-    const total = filteredUsers.length;
-    const admins = filteredUsers.filter((u) => u.role === 'Admin').length;
-    const members = filteredUsers.filter((u) => u.role === 'Member').length;
-    const totalTasks = filteredUsers.reduce((sum, u) => sum + getTotalTasks(u), 0);
-    const totalCompleted = filteredUsers.reduce((sum, u) => sum + (u.completedTasks || 0), 0);
-    const totalActive = filteredUsers.reduce(
-      (sum, u) => sum + (u.pendingTasks || 0) + (u.inProgressTasks || 0),
-      0
-    );
-    const avgCompletion =
-      total > 0
-        ? Math.round(filteredUsers.reduce((sum, u) => sum + getCompletionRate(u), 0) / total)
-        : 0;
-    const overloaded = filteredUsers.filter((u) => getTotalTasks(u) > 12).length;
-    return {
-      total,
-      admins,
-      members,
-      totalTasks,
-      totalCompleted,
-      totalActive,
-      avgCompletion,
-      overloaded,
-    };
-  }, [filteredUsers]);
-
   const effectiveRole = getEffectiveRole();
   if (!user || effectiveRole !== 'OrgAdmin') {
     return (
@@ -343,14 +317,7 @@ function ManageUsers() {
             Refresh
           </button>
           <button type="button" className="btn-primary" onClick={handleOpenInviteModal}>
-            <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-              />
-            </svg>
+            <UserPlus className="w-4 h-4 mr-1.5" />
             Invite Member
           </button>
         </div>
@@ -358,50 +325,6 @@ function ManageUsers() {
     >
       <div className="space-y-4">
         {error && <div className="alert-error">{error}</div>}
-
-        {/* Team KPIs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="card text-center">
-            <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-              Team Size
-            </div>
-            <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">
-              {teamStats.total}
-            </div>
-            <div className="text-[10px] text-slate-500 mt-0.5">
-              {teamStats.admins} admins, {teamStats.members} members
-            </div>
-          </div>
-          <div className="card text-center">
-            <div className="text-[10px] uppercase tracking-wider text-blue-400 font-semibold">
-              Active Tasks
-            </div>
-            <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">
-              {teamStats.totalActive}
-            </div>
-            <div className="text-[10px] text-slate-500 mt-0.5">across all members</div>
-          </div>
-          <div className="card text-center">
-            <div className="text-[10px] uppercase tracking-wider text-emerald-400 font-semibold">
-              Completed
-            </div>
-            <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">
-              {teamStats.totalCompleted}
-            </div>
-            <div className="text-[10px] text-slate-500 mt-0.5">
-              {teamStats.avgCompletion}% avg rate
-            </div>
-          </div>
-          <div className="card text-center">
-            <div className="text-[10px] uppercase tracking-wider text-rose-400 font-semibold">
-              Overloaded
-            </div>
-            <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">
-              {teamStats.overloaded}
-            </div>
-            <div className="text-[10px] text-slate-500 mt-0.5">13+ tasks each</div>
-          </div>
-        </div>
 
         {/* Filters */}
         <FilterToolbar
@@ -477,19 +400,7 @@ function ManageUsers() {
           </div>
         ) : filteredUsers.length === 0 ? (
           <div className="card text-center py-12">
-            <svg
-              className="w-12 h-12 text-slate-600 mx-auto mb-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
+            <Users className="w-12 h-12 text-slate-600 mx-auto mb-3" />
             <div className="text-slate-400 text-sm">
               {users.length === 0 ? 'No team members yet.' : 'No members match your filters.'}
             </div>
@@ -555,19 +466,7 @@ function ManageUsers() {
                             to={`/admin/manage-tasks?projectId=${p._id}`}
                             className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
                           >
-                            <svg
-                              className="w-3 h-3"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M3 7h6l2 2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"
-                              />
-                            </svg>
+                            <Folder className="w-3 h-3" />
                             {p.name}
                           </Link>
                         ))}
@@ -591,28 +490,6 @@ function ManageUsers() {
                         className={`h-full rounded-full ${wl.bar} transition-all`}
                         style={{ width: `${Math.min(100, (active / 15) * 100)}%` }}
                       />
-                    </div>
-                  </div>
-
-                  {/* Task Stats */}
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    <div className="text-center p-2 rounded-lg bg-slate-800/50">
-                      <div className="text-sm font-bold text-yellow-400 tabular-nums">
-                        {u.pendingTasks || 0}
-                      </div>
-                      <div className="text-[10px] text-slate-500">Pending</div>
-                    </div>
-                    <div className="text-center p-2 rounded-lg bg-slate-800/50">
-                      <div className="text-sm font-bold text-blue-400 tabular-nums">
-                        {u.inProgressTasks || 0}
-                      </div>
-                      <div className="text-[10px] text-slate-500">Active</div>
-                    </div>
-                    <div className="text-center p-2 rounded-lg bg-slate-800/50">
-                      <div className="text-sm font-bold text-emerald-400 tabular-nums">
-                        {u.completedTasks || 0}
-                      </div>
-                      <div className="text-[10px] text-slate-500">Done</div>
                     </div>
                   </div>
 
@@ -791,19 +668,7 @@ function ManageUsers() {
               <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
                   <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 sm:mx-0 sm:h-10 sm:w-10">
-                    <svg
-                      className="h-6 w-6 text-primary"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                      />
-                    </svg>
+                    <UserPlus className="h-6 w-6 text-primary" />
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                     <h3 className="text-lg font-semibold leading-6 text-white">
@@ -833,33 +698,9 @@ function ManageUsers() {
                             className={`px-3 py-2 transition-colors ${inviteModal.copied ? 'bg-emerald-500 text-white' : 'btn-primary'}`}
                           >
                             {inviteModal.copied ? (
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M5 13l4 4L19 7"
-                                />
-                              </svg>
+                              <Check className="w-4 h-4" />
                             ) : (
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
-                                />
-                              </svg>
+                              <ClipboardCopy className="w-4 h-4" />
                             )}
                           </button>
                         </div>
@@ -922,34 +763,12 @@ function ManageUsers() {
                                   User found - can be added directly
                                 </div>
                               </div>
-                              <svg
-                                className="w-5 h-5 text-emerald-400 shrink-0"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
+                              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
                             </div>
                           )}
                           {inviteModal.userLookup.found === false && (
                             <div className="mt-2 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex items-center gap-2">
-                              <svg
-                                className="w-4 h-4 text-yellow-400 shrink-0"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                              </svg>
+                              <AlertTriangle className="w-4 h-4 text-yellow-400 shrink-0" />
                               <span className="text-xs text-yellow-400">
                                 User not found - invite link will be generated
                               </span>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
+import { FileText, Users, Folder, Target, Filter, Download, Info } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { apiPaths } from '../../utils/apiPaths';
 import axios from '../../utils/axios';
@@ -132,19 +133,7 @@ const Reports = () => {
       id: 'tasks',
       title: 'Tasks Report',
       description: 'Export all tasks with status, priority, assignments, and progress tracking.',
-      color: 'from-blue-500/20 to-blue-600/10',
-      borderColor: 'border-blue-500/30',
-      iconColor: 'text-blue-400',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-          />
-        </svg>
-      ),
+      icon: <FileText className="w-6 h-6" />,
       stats: summary
         ? [
             { label: 'Total', value: summary.totalTasks },
@@ -158,19 +147,7 @@ const Reports = () => {
       title: 'Users Report',
       description:
         'Export user performance with task counts, completion rates, and workload distribution.',
-      color: 'from-emerald-500/20 to-emerald-600/10',
-      borderColor: 'border-emerald-500/30',
-      iconColor: 'text-emerald-400',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-          />
-        </svg>
-      ),
+      icon: <Users className="w-6 h-6" />,
       stats: summary
         ? [
             { label: 'Members', value: summary.totalMembers },
@@ -190,19 +167,7 @@ const Reports = () => {
       title: 'Projects Report',
       description:
         'Export project overview with task distribution, progress, and completion metrics.',
-      color: 'from-purple-500/20 to-purple-600/10',
-      borderColor: 'border-purple-500/30',
-      iconColor: 'text-purple-400',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-          />
-        </svg>
-      ),
+      icon: <Folder className="w-6 h-6" />,
       stats: summary
         ? [
             { label: 'Projects', value: summary.totalProjects },
@@ -215,19 +180,7 @@ const Reports = () => {
       id: 'goals',
       title: 'Goals Report',
       description: 'Export strategic goals with linked projects, status, and priority breakdown.',
-      color: 'from-amber-500/20 to-amber-600/10',
-      borderColor: 'border-amber-500/30',
-      iconColor: 'text-amber-400',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-          />
-        </svg>
-      ),
+      icon: <Target className="w-6 h-6" />,
       stats: summary
         ? [
             { label: 'Goals', value: summary.totalGoals },
@@ -256,58 +209,10 @@ const Reports = () => {
           </div>
         )}
 
-        {/* Summary Stats */}
-        {summary && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 rounded-xl p-4">
-              <div className="text-xs font-medium text-blue-400 uppercase tracking-wide mb-1">
-                Total Tasks
-              </div>
-              <div className="text-2xl font-bold text-white">{summary.totalTasks}</div>
-              <div className="text-xs text-slate-400 mt-1">
-                {summary.completionRate}% completion rate
-              </div>
-            </div>
-            <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 rounded-xl p-4">
-              <div className="text-xs font-medium text-emerald-400 uppercase tracking-wide mb-1">
-                Projects
-              </div>
-              <div className="text-2xl font-bold text-white">{summary.totalProjects}</div>
-              <div className="text-xs text-slate-400 mt-1">{summary.totalGoals} goals linked</div>
-            </div>
-            <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 rounded-xl p-4">
-              <div className="text-xs font-medium text-purple-400 uppercase tracking-wide mb-1">
-                Team Members
-              </div>
-              <div className="text-2xl font-bold text-white">{summary.totalMembers}</div>
-              <div className="text-xs text-slate-400 mt-1">Active contributors</div>
-            </div>
-            <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/20 rounded-xl p-4">
-              <div className="text-xs font-medium text-amber-400 uppercase tracking-wide mb-1">
-                Overdue Tasks
-              </div>
-              <div className="text-2xl font-bold text-white">{summary.overdueTasks}</div>
-              <div className="text-xs text-slate-400 mt-1">Need attention</div>
-            </div>
-          </div>
-        )}
-
         {/* Filters */}
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-3">
-            <svg
-              className="w-4 h-4 text-slate-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-              />
-            </svg>
+            <Filter className="w-4 h-4 text-slate-400" />
             <span className="text-sm font-medium text-slate-300">Filter Reports</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -377,11 +282,11 @@ const Reports = () => {
           {reportTypes.map((report) => (
             <div
               key={report.id}
-              className={`bg-gradient-to-br ${report.color} border ${report.borderColor} rounded-xl p-5 hover:scale-[1.01] transition-transform`}
+              className="card hover:border-primary/40 transition-all"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className={`${report.iconColor}`}>{report.icon}</div>
+                  <div className="text-primary">{report.icon}</div>
                   <div>
                     <h3 className="text-lg font-semibold text-white">{report.title}</h3>
                   </div>
@@ -429,14 +334,7 @@ const Reports = () => {
                   </>
                 ) : (
                   <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                      />
-                    </svg>
+                    <Download className="w-4 h-4" />
                     Download Excel
                   </>
                 )}
@@ -448,19 +346,7 @@ const Reports = () => {
         {/* Info */}
         <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4">
           <div className="flex items-start gap-3">
-            <svg
-              className="w-5 h-5 text-slate-400 mt-0.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <Info className="w-5 h-5 text-slate-400 mt-0.5" />
             <div className="text-sm text-slate-400 space-y-1">
               <p className="font-medium text-slate-300">About Reports</p>
               <p>• Reports are exported in Excel format (.xlsx) for easy analysis and sharing.</p>

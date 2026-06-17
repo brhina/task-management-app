@@ -1,5 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Folder, ChevronRight } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
 import FilterToolbar from '../../components/common/FilterToolbar';
 import api from '../../utils/axios';
@@ -43,12 +44,6 @@ function Projects() {
     fetchProjects();
   }, []);
 
-  const statusCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const p of projects) counts[p.status] = (counts[p.status] || 0) + 1;
-    return counts;
-  }, [projects]);
-
   const filteredProjects = useMemo(() => {
     return projects.filter((p) => {
       const matchesStatus = !statusFilter || p.status === statusFilter;
@@ -85,37 +80,6 @@ function Projects() {
       <div className="space-y-4">
         {error && <div className="alert-error">{error}</div>}
 
-        {/* Status Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          {STATUS_OPTIONS.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setStatusFilter(statusFilter === s ? '' : s)}
-              className={`card text-left transition-all ${
-                statusFilter === s
-                  ? 'ring-2 ring-primary/50 border-primary/40'
-                  : 'hover:border-slate-600'
-              }`}
-            >
-              <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-                {s}
-              </div>
-              <div className="mt-1.5 text-2xl font-bold text-slate-100 tabular-nums">
-                {statusCounts[s] || 0}
-              </div>
-              <div className="mt-2 h-1 rounded-full bg-slate-700 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-primary transition-all"
-                  style={{
-                    width: `${projects.length ? ((statusCounts[s] || 0) / projects.length) * 100 : 0}%`,
-                  }}
-                />
-              </div>
-            </button>
-          ))}
-        </div>
-
         {/* Search */}
         <FilterToolbar
           searchValue={searchTerm}
@@ -142,19 +106,7 @@ function Projects() {
           </div>
         ) : filteredProjects.length === 0 ? (
           <div className="card text-center py-12">
-            <svg
-              className="w-12 h-12 text-slate-600 mx-auto mb-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-              />
-            </svg>
+            <Folder className="w-12 h-12 text-slate-600 mx-auto mb-3" />
             <div className="text-slate-400 text-sm">
               {projects.length === 0
                 ? 'No projects yet. Create your first project to get started.'
@@ -219,19 +171,7 @@ function Projects() {
                         </span>
                       )}
                     </div>
-                    <svg
-                      className="w-4 h-4 text-slate-600 group-hover:text-primary transition-colors"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
+                    <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary transition-colors" />
                   </div>
                 </Link>
               );

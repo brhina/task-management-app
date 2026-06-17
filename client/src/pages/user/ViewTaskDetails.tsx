@@ -7,6 +7,7 @@ import { getStatusColor, getPriorityColor, TASK_STATUS } from '../../constants/t
 import { formatDate, getRelativeTime, isOverdue, getDaysUntilDue } from '../../utils/dateUtils';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageShell from '../../components/common/PageShell';
+import { X, Check } from 'lucide-react';
 import type { Task, TodoItem } from '../../types';
 
 const STATUS_FLOW = [
@@ -310,19 +311,7 @@ function ViewTaskDetails() {
                     disabled={updating}
                     className="opacity-0 group-hover:opacity-100 p-0.5 text-rose-400 hover:text-rose-300 transition-opacity disabled:opacity-50"
                   >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ))}
@@ -505,19 +494,7 @@ function ViewTaskDetails() {
                   />
                   {s.label}
                   {task.status === s.value && (
-                    <svg
-                      className="w-4 h-4 ml-auto text-primary"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                    <Check className="w-4 h-4 ml-auto text-primary" />
                   )}
                 </button>
               ))}

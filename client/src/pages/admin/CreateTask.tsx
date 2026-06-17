@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext, useMemo, type FormEvent } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { Check, ChevronDown } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
@@ -327,19 +328,7 @@ function CreateTask() {
                   <div className="text-[10px] text-slate-500 truncate">{u.email}</div>
                 </div>
                 {assignedTo === u._id && (
-                  <svg
-                    className="w-4 h-4 ml-auto text-primary shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+                  <Check className="w-4 h-4 ml-auto text-primary shrink-0" />
                 )}
               </button>
             ))}
@@ -402,19 +391,9 @@ function CreateTask() {
             className="w-full flex items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wide"
           >
             <span>Advanced Options</span>
-            <svg
+            <ChevronDown
               className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
+            />
           </button>
 
           {showAdvanced && (

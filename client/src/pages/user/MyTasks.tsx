@@ -19,6 +19,7 @@ import PageShell from '../../components/common/PageShell';
 import FilterToolbar from '../../components/common/FilterToolbar';
 import TaskBoard from '../../components/tasks/TaskBoard';
 import TaskCard from '../../components/tasks/TaskCard';
+import { ClipboardList, LayoutGrid, List } from 'lucide-react';
 import type { Task, Project, TaskStatus } from '../../types';
 
 interface StatusSummary {
@@ -247,14 +248,7 @@ function MyTasks() {
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                  />
-                </svg>
+                <LayoutGrid className="w-3.5 h-3.5" />
                 Board
               </button>
               <button
@@ -266,14 +260,7 @@ function MyTasks() {
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 10h16M4 14h16M4 18h16"
-                  />
-                </svg>
+                <List className="w-3.5 h-3.5" />
                 List
               </button>
             </div>
@@ -287,19 +274,7 @@ function MyTasks() {
           </div>
         ) : filteredTasks.length === 0 ? (
           <div className="card text-center py-12">
-            <svg
-              className="w-12 h-12 text-slate-600 mx-auto mb-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
-            </svg>
+            <ClipboardList className="w-12 h-12 text-slate-600 mx-auto mb-3" />
             <div className="text-slate-400 text-sm">
               {tasks.length === 0
                 ? 'No tasks assigned to you yet.'

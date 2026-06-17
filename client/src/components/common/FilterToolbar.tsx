@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Search } from 'lucide-react';
 
 interface FilterOption {
   value: string;
@@ -33,19 +34,7 @@ function FilterToolbar({
     <div className="flex flex-col md:flex-row md:items-center gap-2">
       <div className="relative md:w-64">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <svg
-            className="h-4 w-4 text-slate-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
+          <Search className="h-4 w-4 text-slate-400" />
         </div>
         <input
           type="text"

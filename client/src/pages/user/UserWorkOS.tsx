@@ -6,53 +6,8 @@ import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
 import { getStatusColor, getPriorityColor } from '../../constants/taskStatus';
 import { isOverdue, getDaysUntilDue, getRelativeTime } from '../../utils/dateUtils';
+import { AlertCircle, CheckCircle2, Zap, ChevronRight, Check } from 'lucide-react';
 import type { Task } from '../../types';
-
-function ScoreRing({
-  score,
-  size = 48,
-  stroke = 4,
-}: {
-  score: number;
-  size?: number;
-  stroke?: number;
-}) {
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (score / 100) * circumference;
-  const color = score >= 70 ? '#22c55e' : score >= 40 ? '#f59e0b' : '#f43f5e';
-
-  return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={stroke}
-          className="text-slate-700"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth={stroke}
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          className="transition-all duration-500"
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-slate-200">
-        {score}
-      </div>
-    </div>
-  );
-}
 
 function UserWorkOS() {
   const { user } = useContext(UserContext);
@@ -87,17 +42,6 @@ function UserWorkOS() {
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
     return { total, pending, inProgress, inReview, completed, overdue, completionRate };
   }, [tasks]);
-
-  const productivityScore = useMemo(() => {
-    if (stats.total === 0) return 0;
-    const weights = { completed: 3, inProgress: 2, inReview: 1, pending: 0 };
-    const maxScore = stats.total * 3;
-    const currentScore =
-      stats.completed * weights.completed +
-      stats.inProgress * weights.inProgress +
-      stats.inReview * weights.inReview;
-    return Math.round((currentScore / maxScore) * 100) || 0;
-  }, [stats]);
 
   const urgentTasks = useMemo(() => {
     return tasks
@@ -168,52 +112,6 @@ function UserWorkOS() {
       <div className="space-y-4">
         {error && <div className="alert-error">{error}</div>}
 
-        {/* Productivity Score + KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="card flex items-center gap-3">
-            <ScoreRing score={productivityScore} />
-            <div>
-              <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-                Productivity
-              </div>
-              <div
-                className={`text-sm font-bold ${productivityScore >= 70 ? 'text-emerald-400' : productivityScore >= 40 ? 'text-amber-400' : 'text-rose-400'}`}
-              >
-                {productivityScore >= 70
-                  ? 'Strong'
-                  : productivityScore >= 40
-                    ? 'Moderate'
-                    : 'Needs Focus'}
-              </div>
-            </div>
-          </div>
-          <div className="card text-center">
-            <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-              Total
-            </div>
-            <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">{stats.total}</div>
-            <div className="text-[10px] text-slate-500">tasks assigned</div>
-          </div>
-          <div className="card text-center">
-            <div className="text-[10px] uppercase tracking-wider text-emerald-400 font-semibold">
-              Completed
-            </div>
-            <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">
-              {stats.completed}
-            </div>
-            <div className="text-[10px] text-slate-500">{stats.completionRate}% rate</div>
-          </div>
-          <div className="card text-center">
-            <div className="text-[10px] uppercase tracking-wider text-rose-400 font-semibold">
-              Overdue
-            </div>
-            <div className="mt-1 text-2xl font-bold text-slate-100 tabular-nums">
-              {stats.overdue}
-            </div>
-            <div className="text-[10px] text-slate-500">need attention</div>
-          </div>
-        </div>
-
         {/* Weekly Activity */}
         <div className="card">
           <div className="flex items-center justify-between mb-2">
@@ -244,32 +142,13 @@ function UserWorkOS() {
             <div className="card">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-xs font-semibold text-rose-400 uppercase tracking-wide flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
+                  <AlertCircle className="w-4 h-4" />
                   Urgent & Overdue ({urgentTasks.length})
                 </div>
               </div>
               {urgentTasks.length === 0 ? (
                 <div className="text-center py-6">
-                  <svg
-                    className="w-8 h-8 text-emerald-500/50 mx-auto mb-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
+                  <CheckCircle2 className="w-8 h-8 text-emerald-500/50 mx-auto mb-2" />
                   <div className="text-xs text-slate-500">No urgent tasks. Great job!</div>
                 </div>
               ) : (
@@ -325,14 +204,7 @@ function UserWorkOS() {
             <div className="card">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-xs font-semibold text-amber-400 uppercase tracking-wide flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
+                  <Zap className="w-4 h-4" />
                   High Priority ({highPriorityTasks.length})
                 </div>
                 <Link
@@ -380,19 +252,7 @@ function UserWorkOS() {
                           )}
                         </div>
                       </div>
-                      <svg
-                        className="w-4 h-4 text-slate-600 group-hover:text-primary shrink-0 transition-colors"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
+                      <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary shrink-0 transition-colors" />
                     </Link>
                   ))}
                 </div>
@@ -472,19 +332,7 @@ function UserWorkOS() {
                       to={`/user/task/${t._id}`}
                       className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-700/30 transition-colors group"
                     >
-                      <svg
-                        className="w-4 h-4 text-emerald-500 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
+                      <Check className="w-4 h-4 text-emerald-500 shrink-0" />
                       <div className="min-w-0 flex-1">
                         <div className="text-xs font-medium text-slate-300 group-hover:text-primary truncate transition-colors">
                           {t.title}

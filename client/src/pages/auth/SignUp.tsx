@@ -195,7 +195,7 @@ function SignUp() {
         <div className="mx-auto w-full max-w-md">
           <div className="text-center mb-6 lg:hidden">
             <h2 className="text-3xl font-extrabold text-white mb-2">Create your account</h2>
-            <p className="text-sm text-slate-300">Join Task Manager and start managing tasks</p>
+            <p className="text-sm text-slate-300">Join Cadence and start managing tasks</p>
           </div>
 
           <div className="card p-5 sm:p-6">

@@ -1,90 +1,30 @@
 import { useContext, useState, useMemo, useCallback, type ReactNode } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
 import OrgSwitcher from '../common/OrgSwitcher';
+import {
+  LayoutDashboard,
+  ClipboardCheck,
+  Plus,
+  Users,
+  BarChart3,
+  Folder,
+  Target,
+  Settings,
+  ChevronsLeft,
+  Menu,
+  ClipboardList,
+} from 'lucide-react';
 
 const NavIcons: Record<string, ReactNode> = {
-  dashboard: (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-      />
-    </svg>
-  ),
-  tasks: (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-      />
-    </svg>
-  ),
-  create: (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-    </svg>
-  ),
-  users: (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-      />
-    </svg>
-  ),
-  reports: (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-      />
-    </svg>
-  ),
-  projects: (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M3 7h6l2 2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"
-      />
-    </svg>
-  ),
-  goals: (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 6V4m0 2a8 8 0 108 8m-8-8a8 8 0 00-8 8m16 0a8 8 0 01-8 8m0 0v2m0-2a8 8 0 01-8-8m8 8a8 8 0 008-8m-8 0a4 4 0 11-4-4"
-      />
-    </svg>
-  ),
-  workos: (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M11 3a1 1 0 011 1v1a1 1 0 01-2 0V4a1 1 0 011-1zm0 16a1 1 0 011 1v1a1 1 0 01-2 0v-1a1 1 0 011-1zm8-8a1 1 0 011 1v1a1 1 0 01-2 0v-1a1 1 0 011-1zM4 11a1 1 0 011 1v1a1 1 0 01-2 0v-1a1 1 0 011-1zm12.364-6.364a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM7.757 14.95a1 1 0 010 1.414l-.707.707A1 1 0 115.636 15.657l.707-.707a1 1 0 011.414 0zm8.486 1.414a1 1 0 01-1.414 0l-.707-.707a1 1 0 011.414-1.414l.707.707a1 1 0 010 1.414zM7.05 7.05a1 1 0 01-1.414 0l-.707-.707A1 1 0 116.343 4.93l.707.707a1 1 0 010 1.414z"
-      />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 8a4 4 0 100 8 4 4 0 000-8z"
-      />
-    </svg>
-  ),
+  dashboard: <LayoutDashboard className="w-5 h-5" />,
+  tasks: <ClipboardCheck className="w-5 h-5" />,
+  create: <Plus className="w-5 h-5" />,
+  users: <Users className="w-5 h-5" />,
+  reports: <BarChart3 className="w-5 h-5" />,
+  projects: <Folder className="w-5 h-5" />,
+  goals: <Target className="w-5 h-5" />,
+  workos: <Settings className="w-5 h-5" />,
 };
 
 interface NavLink {
@@ -94,18 +34,11 @@ interface NavLink {
 }
 
 function AuthLayout({ children }: { children: ReactNode }) {
-  const { user, clearUser, getEffectiveRole } = useContext(UserContext);
-  const navigate = useNavigate();
+  const { user, getEffectiveRole } = useContext(UserContext);
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const effectiveRole = getEffectiveRole();
-
-  const handleLogout = useCallback(() => {
-    clearUser();
-    navigate('/login');
-  }, [clearUser, navigate]);
 
   const isActive = useCallback(
     (path: string) => {
@@ -161,19 +94,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
           className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-3'} px-2 h-16 border-b border-slate-700/60`}
         >
           <div className="bg-primary p-2.5 rounded-xl shadow shrink-0">
-            <svg
-              className="w-5 h-5 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
-            </svg>
+            <ClipboardList className="w-5 h-5 text-white" />
           </div>
           {!isSidebarCollapsed && (
             <Link
@@ -181,7 +102,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
               className="text-lg font-bold text-white whitespace-nowrap"
               onClick={closeSidebar}
             >
-              Task Manager
+              Cadence
             </Link>
           )}
         </div>
@@ -237,28 +158,16 @@ function AuthLayout({ children }: { children: ReactNode }) {
             className="hidden md:flex items-center justify-center w-full mb-3 p-2 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-colors"
             title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            <svg
+            <ChevronsLeft
               className={`w-4 h-4 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-              />
-            </svg>
+            />
           </button>
           <div className="relative">
-            <button
-              type="button"
-              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            <Link
+              to="/user/profile"
+              onClick={closeSidebar}
               className={`flex items-center w-full px-2 py-2 rounded-xl hover:bg-white/5 transition-colors ${isSidebarCollapsed ? 'justify-center' : 'gap-3'}`}
               title={isSidebarCollapsed ? user.name : undefined}
-              aria-expanded={isUserMenuOpen}
-              aria-haspopup="true"
             >
               {user.profileImageUrl ? (
                 <img
@@ -272,46 +181,14 @@ function AuthLayout({ children }: { children: ReactNode }) {
                 </div>
               )}
               {!isSidebarCollapsed && (
-                <>
-                  <div className="flex-1 text-left min-w-0">
-                    <div className="text-sm font-medium text-white truncate">{user.name}</div>
-                    <div className="text-xs text-slate-400 truncate">
-                      {effectiveRole === 'OrgAdmin' ? 'Admin' : 'Member'}
-                    </div>
+                <div className="flex-1 text-left min-w-0">
+                  <div className="text-sm font-medium text-white truncate">{user.name}</div>
+                  <div className="text-xs text-slate-400 truncate">
+                    {effectiveRole === 'OrgAdmin' ? 'Admin' : 'Member'}
                   </div>
-                  <svg
-                    className={`h-4 w-4 text-slate-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`}
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </>
+                </div>
               )}
-            </button>
-
-            {isUserMenuOpen && (
-              <div className="absolute bottom-full left-0 right-0 mb-2 rounded-xl bg-slate-900 border border-white/10 shadow-lg py-1 z-50">
-                <Link
-                  to="/user/profile"
-                  className="block px-4 py-2 text-sm text-slate-200 hover:bg-white/5 hover:text-white"
-                  onClick={() => setIsUserMenuOpen(false)}
-                >
-                  Profile
-                </Link>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-sm text-rose-300 hover:bg-white/5 hover:text-rose-200"
-                >
-                  Sign out
-                </button>
-              </div>
-            )}
+            </Link>
           </div>
         </div>
       </aside>
@@ -326,16 +203,9 @@ function AuthLayout({ children }: { children: ReactNode }) {
             className="p-2 rounded-xl text-slate-300 hover:bg-white/5"
             aria-label="Open sidebar"
           >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
+            <Menu className="h-6 w-6" />
           </button>
-          <span className="ml-3 text-lg font-semibold text-white">Task Manager</span>
+          <span className="ml-3 text-lg font-semibold text-white">Cadence</span>
         </header>
 
         <main className="flex-1">
