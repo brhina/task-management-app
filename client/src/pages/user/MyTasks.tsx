@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, type DragStartEvent, type DragEndEvent } from '@dnd-kit/core';
 import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
@@ -9,7 +10,8 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageShell from '../../components/common/PageShell';
 import FilterToolbar from '../../components/common/FilterToolbar';
 import TaskBoard from '../../components/tasks/TaskBoard';
-import type { Task, Project } from '../../types';
+import TaskCard from '../../components/tasks/TaskCard';
+import type { Task, Project, TaskStatus } from '../../types';
 
 interface StatusSummary {
     all: number;
@@ -41,6 +43,9 @@ function MyTasks() {
     const [viewMode, setViewMode] = useState<'board' | 'list'>('board');
     const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'status'>('dueDate');
     const [statusSummary, setStatusSummary] = useState<StatusSummary>({ all: 0, pending: 0, inProgress: 0, inReview: 0, completed: 0 });
+
+    const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+    const [activeTask, setActiveTask] = useState<Task | null>(null);
 
     const fetchTasks = useCallback(async () => {
         try {
@@ -104,6 +109,25 @@ function MyTasks() {
             return (statusOrder[a.status as keyof typeof statusOrder] ?? 4) - (statusOrder[b.status as keyof typeof statusOrder] ?? 4);
         });
     }, [tasks, searchTerm, sortBy]);
+
+    const handleDragStart = useCallback((event: DragStartEvent) => {
+        const task = filteredTasks.find(t => t._id === event.active.id);
+        setActiveTask(task || null);
+    }, [filteredTasks]);
+
+    const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+        const { active, over } = event;
+        setActiveTask(null);
+        if (!over) return;
+
+        const taskId = String(active.id);
+        const newStatus = String(over.id) as TaskStatus;
+        const task = filteredTasks.find(t => t._id === taskId);
+        
+        if (task && task.status !== newStatus) {
+            await handleStatusUpdate(taskId, newStatus);
+        }
+    }, [filteredTasks, handleStatusUpdate]);
 
     if (!user) {
         return <PageShell title="Please Log In" subtitle="You need to be logged in." />;
@@ -206,10 +230,19 @@ function MyTasks() {
                         </div>
                     </div>
                 ) : viewMode === 'board' ? (
-                    <TaskBoard
-                        tasks={filteredTasks}
-                        onTaskClick={(taskId) => navigate(`/user/task/${taskId}`)}
-                    />
+                    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+                        <TaskBoard
+                            tasks={filteredTasks}
+                            onTaskClick={(taskId) => navigate(`/user/task/${taskId}`)}
+                        />
+                        <DragOverlay>
+                            {activeTask ? (
+                                <div className="rotate-2 opacity-90">
+                                    <TaskCard task={activeTask} />
+                                </div>
+                            ) : null}
+                        </DragOverlay>
+                    </DndContext>
                 ) : (
                     <div className="card !p-0 overflow-hidden">
                         <div className="divide-y divide-slate-700/50">
