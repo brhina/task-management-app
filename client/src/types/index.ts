@@ -15,6 +15,7 @@ export interface OrgMembership {
   role: OrgRole;
   capacityHoursPerWeek?: number;
   joinedAt?: string;
+  orgId?: string;
 }
 
 export interface User {
@@ -168,6 +169,7 @@ export interface UserContextType {
   loading: boolean;
   updateUser: (userData: User & { token?: string; activeOrgId?: string; orgs?: OrgMembership[] }) => void;
   clearUser: () => void;
+  getEffectiveRole: () => 'OrgAdmin' | 'OrgMember' | null;
 }
 
 export type ProjectStatus = 'Planned' | 'Active' | 'Paused' | 'Completed' | 'Archived';

@@ -5,12 +5,13 @@ import axios from '../../utils/axios';
 import PageShell from '../../components/common/PageShell';
 
 const Reports = () => {
-    const { user } = useContext(UserContext);
+    const { user, getEffectiveRole } = useContext(UserContext);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
-    if (!user || user.role !== 'Admin') {
+    const effectiveRole = getEffectiveRole();
+    if (!user || effectiveRole !== 'OrgAdmin') {
         return (
             <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
         );

@@ -15,7 +15,7 @@ const TIMEFRAMES: { value: GoalTimeframe; label: string; desc: string; color: st
 ];
 
 function CreateGoal() {
-  const { user } = useContext(UserContext);
+  const { user, getEffectiveRole } = useContext(UserContext);
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [title, setTitle] = useState('');
@@ -47,7 +47,8 @@ function CreateGoal() {
     }
   };
 
-  if (!user || user.role !== 'Admin') {
+  const effectiveRole = getEffectiveRole();
+  if (!user || effectiveRole !== 'OrgAdmin') {
     return <PageShell title="Access Denied" subtitle="Admin only." />;
   }
 

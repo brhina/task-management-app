@@ -37,8 +37,9 @@ interface PrivateRouteProps {
 }
 
 const PrivateRoute = ({ children, allowedRoles = [] }: PrivateRouteProps) => {
-  const { user, loading } = useContext(UserContext);
+  const { user, loading, getEffectiveRole } = useContext(UserContext);
   const location = useLocation();
+  const effectiveRole = getEffectiveRole();
 
   if (loading) {
     return (
@@ -52,8 +53,8 @@ const PrivateRoute = ({ children, allowedRoles = [] }: PrivateRouteProps) => {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    const redirectTo = user.role === ROLES.ADMIN ? '/admin/dashboard' : '/user/dashboard';
+  if (allowedRoles.length > 0 && (!effectiveRole || !allowedRoles.includes(effectiveRole))) {
+    const redirectTo = effectiveRole === 'OrgAdmin' ? '/admin/dashboard' : '/user/dashboard';
     return <Navigate to={redirectTo} replace />;
   }
 
@@ -65,11 +66,11 @@ interface RouteWrapperProps {
 }
 
 const AdminRouteWrapper = ({ children }: RouteWrapperProps) => {
-  return <PrivateRoute allowedRoles={[ROLES.ADMIN]}>{children}</PrivateRoute>;
+  return <PrivateRoute allowedRoles={['OrgAdmin']}>{children}</PrivateRoute>;
 };
 
 const UserRouteWrapper = ({ children }: RouteWrapperProps) => {
-  return <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.MEMBER]}>{children}</PrivateRoute>;
+  return <PrivateRoute allowedRoles={['OrgAdmin', 'OrgMember']}>{children}</PrivateRoute>;
 };
 
 const userEqual = (prevProps: { user: User | null }, nextProps: { user: User | null }) => {
@@ -88,22 +89,28 @@ interface RouteComponentProps {
 }
 
 const LoginRoute = React.memo(({ user }: RouteComponentProps) => {
+  const { getEffectiveRole } = useContext(UserContext);
+  const effectiveRole = getEffectiveRole();
   if (user) {
-    return <Navigate to={user.role === ROLES.ADMIN ? '/admin/dashboard' : '/user/dashboard'} replace />;
+    return <Navigate to={effectiveRole === 'OrgAdmin' ? '/admin/dashboard' : '/user/dashboard'} replace />;
   }
   return <Login />;
 }, userEqual);
 
 const SignUpRoute = React.memo(({ user }: RouteComponentProps) => {
+  const { getEffectiveRole } = useContext(UserContext);
+  const effectiveRole = getEffectiveRole();
   if (user) {
-    return <Navigate to={user.role === ROLES.ADMIN ? '/admin/dashboard' : '/user/dashboard'} replace />;
+    return <Navigate to={effectiveRole === 'OrgAdmin' ? '/admin/dashboard' : '/user/dashboard'} replace />;
   }
   return <SignUp />;
 }, userEqual);
 
 const HomeRoute = React.memo(({ user }: RouteComponentProps) => {
+  const { getEffectiveRole } = useContext(UserContext);
+  const effectiveRole = getEffectiveRole();
   if (user) {
-    return user.role === ROLES.ADMIN ? 
+    return effectiveRole === 'OrgAdmin' ? 
       <Navigate to="/admin/dashboard" replace /> : 
       <Navigate to="/user/dashboard" replace />;
   }
@@ -111,7 +118,9 @@ const HomeRoute = React.memo(({ user }: RouteComponentProps) => {
 }, userEqual);
 
 const AdminRedirectRoute = React.memo(({ user }: RouteComponentProps) => {
-  if (user && user.role === ROLES.ADMIN) {
+  const { getEffectiveRole } = useContext(UserContext);
+  const effectiveRole = getEffectiveRole();
+  if (user && effectiveRole === 'OrgAdmin') {
     return <Navigate to="/admin/dashboard" replace />;
   }
   return <Navigate to="/login" replace />;
@@ -125,8 +134,10 @@ const UserRedirectRoute = React.memo(({ user }: RouteComponentProps) => {
 }, userEqual);
 
 const CatchAllRoute = React.memo(({ user }: RouteComponentProps) => {
+  const { getEffectiveRole } = useContext(UserContext);
+  const effectiveRole = getEffectiveRole();
   if (user) {
-    return user.role === ROLES.ADMIN ? 
+    return effectiveRole === 'OrgAdmin' ? 
       <Navigate to="/admin/dashboard" replace /> : 
       <Navigate to="/user/dashboard" replace />;
   }

@@ -54,6 +54,7 @@ function OrgSwitcher() {
             updateUser({ ...user, activeOrgId: orgId });
         }
         setIsOpen(false);
+        window.location.reload();
     };
 
     const handleLeaveOrg = async (orgId: string) => {

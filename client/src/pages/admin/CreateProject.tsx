@@ -9,7 +9,7 @@ import type { ProjectStatus } from '../../types';
 const STATUS_OPTIONS: ProjectStatus[] = ['Planned', 'Active', 'Paused', 'Completed', 'Archived'];
 
 function CreateProject() {
-  const { user } = useContext(UserContext);
+  const { user, getEffectiveRole } = useContext(UserContext);
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [name, setName] = useState('');
@@ -35,7 +35,8 @@ function CreateProject() {
     }
   };
 
-  if (!user || user.role !== 'Admin') {
+  const effectiveRole = getEffectiveRole();
+  if (!user || effectiveRole !== 'OrgAdmin') {
     return <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />;
   }
 

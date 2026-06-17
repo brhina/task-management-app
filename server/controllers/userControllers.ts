@@ -19,6 +19,10 @@ export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void
 
         const usersWithTaskCounts = await Promise.all(
             users.map(async (user) => {
+                const userId = (user._id as any).toString();
+                const membership = memberships.find(
+                    (m) => m.userId.toString() === userId
+                );
                 const pendingTasks = await Task.countDocuments({ 
                     orgId: req.orgId,
                     assignedTo: user._id,
@@ -36,6 +40,7 @@ export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void
                 });
                 return {
                     ...user.toObject(),
+                    role: membership?.role || 'OrgMember',
                     pendingTasks,
                     inProgressTasks,
                     completedTasks

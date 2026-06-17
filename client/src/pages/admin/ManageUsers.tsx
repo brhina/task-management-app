@@ -30,7 +30,7 @@ interface InviteModalState {
 }
 
 function ManageUsers() {
-    const { user } = useContext(UserContext);
+    const { user, getEffectiveRole } = useContext(UserContext);
     const [users, setUsers] = useState<UserWithTaskCounts[]>([]);
     const [tasks, setTasks] = useState<Task[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
@@ -281,7 +281,8 @@ function ManageUsers() {
         return { total, admins, members, totalTasks, totalCompleted, totalActive, avgCompletion, overloaded };
     }, [filteredUsers]);
 
-    if (!user || user.role !== 'Admin') {
+    const effectiveRole = getEffectiveRole();
+    if (!user || effectiveRole !== 'OrgAdmin') {
         return <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />;
     }
 

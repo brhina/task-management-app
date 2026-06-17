@@ -54,12 +54,13 @@ interface NavLink {
 }
 
 function AuthLayout({ children }: { children: ReactNode }) {
-    const { user, clearUser } = useContext(UserContext);
+    const { user, clearUser, getEffectiveRole } = useContext(UserContext);
     const navigate = useNavigate();
     const location = useLocation();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const effectiveRole = getEffectiveRole();
 
     const handleLogout = useCallback(() => {
         clearUser();
@@ -71,16 +72,14 @@ function AuthLayout({ children }: { children: ReactNode }) {
     }, [location.pathname]);
 
     const getNavLinks: NavLink[] = useMemo(() => {
-        if (!user) return [];
+        if (!user || !effectiveRole) return [];
 
-        if (user.role === 'Admin') {
+        if (effectiveRole === 'OrgAdmin') {
             return [
                 { name: 'Dashboard', path: '/admin/dashboard', icon: NavIcons.dashboard },
                 { name: 'WorkOS', path: '/admin/workos', icon: NavIcons.workos },
                 { name: 'Projects', path: '/admin/projects', icon: NavIcons.projects },
                 { name: 'Goals', path: '/admin/goals', icon: NavIcons.goals },
-                { name: 'Manage Tasks', path: '/admin/manage-tasks', icon: NavIcons.tasks },
-                { name: 'Create Task', path: '/admin/create-task', icon: NavIcons.create },
                 { name: 'Manage Users', path: '/admin/manage-users', icon: NavIcons.users },
                 { name: 'Reports', path: '/admin/reports', icon: NavIcons.reports },
             ];
@@ -91,7 +90,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
             { name: 'WorkOS', path: '/user/workos', icon: NavIcons.workos },
             { name: 'My Tasks', path: '/user/my-tasks', icon: NavIcons.tasks },
         ];
-    }, [user]);
+    }, [user, effectiveRole]);
 
     const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
 
@@ -202,7 +201,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
                                 <>
                                     <div className="flex-1 text-left min-w-0">
                                         <div className="text-sm font-medium text-white truncate">{user.name}</div>
-                                        <div className="text-xs text-slate-400 truncate">{user.role}</div>
+                                        <div className="text-xs text-slate-400 truncate">{effectiveRole === 'OrgAdmin' ? 'Admin' : 'Member'}</div>
                                     </div>
                                     <svg className={`h-4 w-4 text-slate-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />

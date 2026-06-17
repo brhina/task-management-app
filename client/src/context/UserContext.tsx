@@ -8,6 +8,7 @@ export const UserContext = createContext<UserContextType>({
     loading: true,
     updateUser: () => {},
     clearUser: () => {},
+    getEffectiveRole: () => null,
 });
 
 const UserProvider = ({ children }: { children: ReactNode }) => {
@@ -92,12 +93,21 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
         hasFetchedRef.current = false;
     }, []);
 
+    const getEffectiveRole = useCallback((): 'OrgAdmin' | 'OrgMember' | null => {
+        if (!user?.orgs || !user.activeOrgId) return null;
+        const membership = user.orgs.find(
+            (o) => o._id === user.activeOrgId || o.orgId === user.activeOrgId
+        );
+        return (membership?.role as 'OrgAdmin' | 'OrgMember') || null;
+    }, [user]);
+
     const value = useMemo(() => ({
         user,
         loading,
         updateUser,
-        clearUser
-    }), [user, loading, updateUser, clearUser]);
+        clearUser,
+        getEffectiveRole
+    }), [user, loading, updateUser, clearUser, getEffectiveRole]);
 
     return (
         <UserContext.Provider value={value}>

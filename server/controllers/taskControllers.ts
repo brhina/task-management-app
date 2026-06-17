@@ -222,7 +222,7 @@ const updateTaskStatus = async (req: AuthRequest, res: Response): Promise<void> 
 
         const isAssigned = task.assignedTo.toString() === req.user._id.toString();
 
-        if (!isAssigned && req.user.role !== 'Admin') {
+        if (!isAssigned && req.membershipRole !== 'OrgAdmin') {
             res.status(403).json({ message: 'You are not authorized to update this task' });
             return;
         }
@@ -262,7 +262,7 @@ const updateTaskAssignee = async (req: AuthRequest, res: Response): Promise<void
             return;
         }
 
-        if (req.user.role !== 'Admin') {
+        if (req.membershipRole !== 'OrgAdmin') {
             res.status(403).json({ message: 'Only admins can reassign tasks' });
             return;
         }
@@ -298,7 +298,7 @@ const updateTaskCheckList = async (req: AuthRequest, res: Response): Promise<voi
         }
 
         const isAssigned = task.assignedTo.toString() === req.user._id.toString();
-        if (!isAssigned && req.user.role !== 'Admin') {
+        if (!isAssigned && req.membershipRole !== 'OrgAdmin') {
             res.status(403).json({ message: 'You are not authorized to update this task' });
             return;
         }

@@ -27,7 +27,7 @@ const DATE_PRESETS = [
 ];
 
 function CreateTask() {
-    const { user } = useContext(UserContext);
+    const { user, getEffectiveRole } = useContext(UserContext);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const urlProjectId = searchParams.get('projectId') || '';
@@ -105,7 +105,8 @@ function CreateTask() {
         }
     };
 
-    if (!user || user.role !== 'Admin') {
+    const effectiveRole = getEffectiveRole();
+    if (!user || effectiveRole !== 'OrgAdmin') {
         return <PageShell title="Access Denied" subtitle="Admin only." />;
     }
 

@@ -47,7 +47,7 @@ function ScoreRing({ score, size = 48, stroke = 4 }: { score: number; size?: num
 }
 
 function WorkOS() {
-  const { user } = useContext(UserContext);
+  const { user, getEffectiveRole } = useContext(UserContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<any>(null);
@@ -97,7 +97,8 @@ function WorkOS() {
     }
   };
 
-  if (!user || user.role !== 'Admin') {
+  const effectiveRole = getEffectiveRole();
+  if (!user || effectiveRole !== 'OrgAdmin') {
     return <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />;
   }
 

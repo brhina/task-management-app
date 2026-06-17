@@ -34,7 +34,7 @@ const STATUS_OPTIONS = [
 ];
 
 function ManageTasks() {
-    const { user } = useContext(UserContext);
+    const { user, getEffectiveRole } = useContext(UserContext);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const urlProjectId = searchParams.get('projectId') || '';
@@ -187,7 +187,8 @@ function ManageTasks() {
         }
     }, [filteredTasks]);
 
-    if (!user || user.role !== 'Admin') {
+    const effectiveRole = getEffectiveRole();
+    if (!user || effectiveRole !== 'OrgAdmin') {
         return <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />;
     }
 

@@ -11,7 +11,7 @@ import { isOverdue, getDaysUntilDue, getRelativeTime } from '../../utils/dateUti
 import type { DashboardData } from '../../types';
 
 function Dashboard() {
-    const { user } = useContext(UserContext);
+    const { user, getEffectiveRole } = useContext(UserContext);
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -51,7 +51,8 @@ function Dashboard() {
             .slice(0, 5);
     }, [dashboardData]);
 
-    if (!user || user.role !== 'Admin') {
+    const effectiveRole = getEffectiveRole();
+    if (!user || effectiveRole !== 'OrgAdmin') {
         return <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />;
     }
 

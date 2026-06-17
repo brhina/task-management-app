@@ -16,7 +16,7 @@ const TIMEFRAME_COLORS: Record<string, string> = {
 };
 
 function GoalDetails() {
-  const { user } = useContext(UserContext);
+  const { user, getEffectiveRole } = useContext(UserContext);
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -55,7 +55,8 @@ function GoalDetails() {
     return Math.min(100, Math.round(((goal.currentValue || 0) / goal.targetValue) * 100));
   }, [goal]);
 
-  if (!user || user.role !== 'Admin') {
+  const effectiveRole = getEffectiveRole();
+  if (!user || effectiveRole !== 'OrgAdmin') {
     return <PageShell title="Access Denied" subtitle="Admin only." />;
   }
 
