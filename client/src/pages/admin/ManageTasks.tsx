@@ -234,11 +234,10 @@ function ManageTasks() {
                         />
                     </div>
 
-                    {isProjectScoped && (
+                    {isProjectScoped && scopedProject && (
                         <div className="flex items-center gap-2">
-                            <span className="text-xs text-slate-400">Project:</span>
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-primary/15 text-primary border border-primary/30">
-                                {scopedProject?.name || 'Unknown'}
+                                {scopedProject.name}
                             </span>
                             <Link to="/admin/projects" className="text-xs text-slate-500 hover:text-slate-300 underline underline-offset-2">
                                 All projects

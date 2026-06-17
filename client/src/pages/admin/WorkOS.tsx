@@ -125,7 +125,7 @@ function WorkOS() {
       subtitle="Execution intelligence across priorities, risks, workload, and next-best-actions"
       actions={
         <div className="flex flex-wrap gap-2">
-          <button className="btn-secondary" type="button" onClick={fetchSummary}>Refresh</button>
+          {/* <button className="btn-secondary" type="button" onClick={fetchSummary}>Refresh</button> */}
           <button className="btn-secondary disabled:opacity-50" type="button" onClick={handleRunDaily} disabled={runningDaily}>
             {runningDaily ? 'Running…' : 'Run summary'}
           </button>

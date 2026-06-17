@@ -79,6 +79,7 @@ function CreateTask() {
         if (!title.trim()) return setError('Title is required');
         if (!dueDate) return setError('Due date is required');
         if (!assignedTo) return setError('Please assign to a user');
+        if (!projectId) return setError('Please select a project');
 
         setLoading(true);
         setError('');
@@ -116,7 +117,7 @@ function CreateTask() {
             subtitle={scopedProject ? scopedProject.description || 'Adding a task to this project' : 'Fill in the details below'}
             actions={
                 <div className="flex gap-2">
-                    <Link to={projectId ? `/admin/manage-tasks?projectId=${projectId}` : '/admin/manage-tasks'} className="btn-secondary">Cancel</Link>
+                    <Link to={projectId ? `/admin/manage-tasks?projectId=${projectId}` : '/admin/projects'} className="btn-secondary">Cancel</Link>
                 </div>
             }
         >
@@ -126,9 +127,9 @@ function CreateTask() {
                     {/* Project Selector (when not scoped) */}
                     {!urlProjectId && (
                         <div className="card">
-                            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Project</div>
-                            <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="input-dark w-full text-sm">
-                                <option value="">No project (standalone task)</option>
+                            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Project *</div>
+                            <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="input-dark w-full text-sm" required>
+                                <option value="">Select a project</option>
                                 {projects.map(p => (
                                     <option key={p._id} value={p._id}>{p.name}</option>
                                 ))}

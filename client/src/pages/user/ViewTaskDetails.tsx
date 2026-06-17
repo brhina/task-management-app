@@ -218,7 +218,7 @@ function ViewTaskDetails() {
             }
             actions={
                 <div className="flex gap-2">
-                    <Link to={isAdminRoute ? "/admin/manage-tasks" : "/user/my-tasks"} className="btn-secondary">← Back</Link>
+                    <Link to={isAdminRoute ? "/admin/manage-tasks" : "/user/my-tasks"} className="btn-secondary">Back</Link>
                 </div>
             }
         >
