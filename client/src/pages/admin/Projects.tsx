@@ -50,9 +50,10 @@ function Projects() {
   }, [projects]);
 
   const filteredProjects = useMemo(() => {
-    return projects.filter(p => {
+    return projects.filter((p) => {
       const matchesStatus = !statusFilter || p.status === statusFilter;
-      const matchesSearch = !searchTerm ||
+      const matchesSearch =
+        !searchTerm ||
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.description?.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesStatus && matchesSearch;
@@ -61,7 +62,9 @@ function Projects() {
 
   const effectiveRole = getEffectiveRole();
   if (!user || effectiveRole !== 'OrgAdmin') {
-    return <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />;
+    return (
+      <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
+    );
   }
 
   return (
@@ -70,8 +73,12 @@ function Projects() {
       subtitle="Organize work into outcomes and timelines"
       actions={
         <div className="flex gap-2">
-          <Link to="/admin/projects/create" className="btn-primary">Create Project</Link>
-          <button type="button" className="btn-secondary" onClick={fetchProjects}>Refresh</button>
+          <Link to="/admin/projects/create" className="btn-primary">
+            Create Project
+          </Link>
+          <button type="button" className="btn-secondary" onClick={fetchProjects}>
+            Refresh
+          </button>
         </div>
       }
     >
@@ -91,12 +98,18 @@ function Projects() {
                   : 'hover:border-slate-600'
               }`}
             >
-              <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">{s}</div>
-              <div className="mt-1.5 text-2xl font-bold text-slate-100 tabular-nums">{statusCounts[s] || 0}</div>
+              <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                {s}
+              </div>
+              <div className="mt-1.5 text-2xl font-bold text-slate-100 tabular-nums">
+                {statusCounts[s] || 0}
+              </div>
               <div className="mt-2 h-1 rounded-full bg-slate-700 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-primary transition-all"
-                  style={{ width: `${projects.length ? ((statusCounts[s] || 0) / projects.length) * 100 : 0}%` }}
+                  style={{
+                    width: `${projects.length ? ((statusCounts[s] || 0) / projects.length) * 100 : 0}%`,
+                  }}
                 />
               </div>
             </button>
@@ -108,16 +121,18 @@ function Projects() {
           searchValue={searchTerm}
           onSearchChange={setSearchTerm}
           searchPlaceholder="Search projects by name or description..."
-          filters={[{
-            id: 'statusFilter',
-            label: 'Status',
-            value: statusFilter,
-            onChange: setStatusFilter,
-            options: [
-              { value: '', label: 'All Statuses' },
-              ...STATUS_OPTIONS.map(s => ({ value: s, label: s })),
-            ],
-          }]}
+          filters={[
+            {
+              id: 'statusFilter',
+              label: 'Status',
+              value: statusFilter,
+              onChange: setStatusFilter,
+              options: [
+                { value: '', label: 'All Statuses' },
+                ...STATUS_OPTIONS.map((s) => ({ value: s, label: s })),
+              ],
+            },
+          ]}
         />
 
         {/* Project Grid */}
@@ -127,20 +142,36 @@ function Projects() {
           </div>
         ) : filteredProjects.length === 0 ? (
           <div className="card text-center py-12">
-            <svg className="w-12 h-12 text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+            <svg
+              className="w-12 h-12 text-slate-600 mx-auto mb-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+              />
             </svg>
             <div className="text-slate-400 text-sm">
-              {projects.length === 0 ? 'No projects yet. Create your first project to get started.' : 'No projects match your filters.'}
+              {projects.length === 0
+                ? 'No projects yet. Create your first project to get started.'
+                : 'No projects match your filters.'}
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredProjects.map(p => {
+            {filteredProjects.map((p) => {
               const daysLeft = p.targetDate
                 ? Math.ceil((new Date(p.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
                 : null;
-              const isOverdue = daysLeft !== null && daysLeft < 0 && p.status !== 'Completed' && p.status !== 'Archived';
+              const isOverdue =
+                daysLeft !== null &&
+                daysLeft < 0 &&
+                p.status !== 'Completed' &&
+                p.status !== 'Archived';
 
               return (
                 <Link
@@ -149,8 +180,12 @@ function Projects() {
                   className="card group hover:border-primary/40 transition-all"
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="text-sm font-semibold text-slate-200 group-hover:text-primary truncate transition-colors">{p.name}</h3>
-                    <span className={`shrink-0 inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full border ${STATUS_COLORS[p.status] || ''}`}>
+                    <h3 className="text-sm font-semibold text-slate-200 group-hover:text-primary truncate transition-colors">
+                      {p.name}
+                    </h3>
+                    <span
+                      className={`shrink-0 inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full border ${STATUS_COLORS[p.status] || ''}`}
+                    >
                       {p.status}
                     </span>
                   </div>
@@ -162,18 +197,40 @@ function Projects() {
                   <div className="flex items-center justify-between text-[10px] text-slate-500 mt-auto pt-2 border-t border-slate-700/50">
                     <div className="flex items-center gap-3">
                       {p.startDate && (
-                        <span>{new Date(p.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                        <span>
+                          {new Date(p.startDate).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </span>
                       )}
                       {p.targetDate && (
                         <span className={isOverdue ? 'text-rose-400 font-medium' : ''}>
-                          → {new Date(p.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          →{' '}
+                          {new Date(p.targetDate).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                          })}
                           {isOverdue && ` (${Math.abs(daysLeft!)}d overdue)`}
-                          {!isOverdue && daysLeft !== null && daysLeft >= 0 && ` (${daysLeft}d left)`}
+                          {!isOverdue &&
+                            daysLeft !== null &&
+                            daysLeft >= 0 &&
+                            ` (${daysLeft}d left)`}
                         </span>
                       )}
                     </div>
-                    <svg className="w-4 h-4 text-slate-600 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <svg
+                      className="w-4 h-4 text-slate-600 group-hover:text-primary transition-colors"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   </div>
                 </Link>

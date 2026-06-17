@@ -57,9 +57,10 @@ function Goals() {
   }, [goals]);
 
   const filteredGoals = useMemo(() => {
-    return goals.filter(g => {
+    return goals.filter((g) => {
       const matchesTimeframe = !timeframeFilter || g.timeframe === timeframeFilter;
-      const matchesSearch = !searchTerm ||
+      const matchesSearch =
+        !searchTerm ||
         g.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         g.objective?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         g.metric?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -69,7 +70,9 @@ function Goals() {
 
   const effectiveRole = getEffectiveRole();
   if (!user || effectiveRole !== 'OrgAdmin') {
-    return <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />;
+    return (
+      <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
+    );
   }
 
   return (
@@ -78,8 +81,12 @@ function Goals() {
       subtitle="Align projects and tasks to measurable outcomes"
       actions={
         <div className="flex gap-2">
-          <Link to="/admin/goals/create" className="btn-primary">Create Goal</Link>
-          <button type="button" className="btn-secondary" onClick={fetchGoals}>Refresh</button>
+          <Link to="/admin/goals/create" className="btn-primary">
+            Create Goal
+          </Link>
+          <button type="button" className="btn-secondary" onClick={fetchGoals}>
+            Refresh
+          </button>
         </div>
       }
     >
@@ -100,16 +107,24 @@ function Goals() {
               }`}
             >
               <div className="flex items-center gap-2 mb-1.5">
-                <span className={`inline-flex h-6 w-6 items-center justify-center rounded text-[10px] font-bold border ${TIMEFRAME_COLORS[t]}`}>
+                <span
+                  className={`inline-flex h-6 w-6 items-center justify-center rounded text-[10px] font-bold border ${TIMEFRAME_COLORS[t]}`}
+                >
                   {TIMEFRAME_ICONS[t]}
                 </span>
-                <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">{t}</span>
+                <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                  {t}
+                </span>
               </div>
-              <div className="text-2xl font-bold text-slate-100 tabular-nums">{timeframeCounts[t] || 0}</div>
+              <div className="text-2xl font-bold text-slate-100 tabular-nums">
+                {timeframeCounts[t] || 0}
+              </div>
               <div className="mt-1.5 h-1 rounded-full bg-slate-700 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-primary transition-all"
-                  style={{ width: `${goals.length ? ((timeframeCounts[t] || 0) / goals.length) * 100 : 0}%` }}
+                  style={{
+                    width: `${goals.length ? ((timeframeCounts[t] || 0) / goals.length) * 100 : 0}%`,
+                  }}
                 />
               </div>
             </button>
@@ -121,16 +136,18 @@ function Goals() {
           searchValue={searchTerm}
           onSearchChange={setSearchTerm}
           searchPlaceholder="Search goals by title, objective, or metric..."
-          filters={[{
-            id: 'timeframeFilter',
-            label: 'Timeframe',
-            value: timeframeFilter,
-            onChange: setTimeframeFilter,
-            options: [
-              { value: '', label: 'All Timeframes' },
-              ...TIMEFRAMES.map(t => ({ value: t, label: t })),
-            ],
-          }]}
+          filters={[
+            {
+              id: 'timeframeFilter',
+              label: 'Timeframe',
+              value: timeframeFilter,
+              onChange: setTimeframeFilter,
+              options: [
+                { value: '', label: 'All Timeframes' },
+                ...TIMEFRAMES.map((t) => ({ value: t, label: t })),
+              ],
+            },
+          ]}
         />
 
         {/* Goals Grid */}
@@ -140,17 +157,31 @@ function Goals() {
           </div>
         ) : filteredGoals.length === 0 ? (
           <div className="card text-center py-12">
-            <svg className="w-12 h-12 text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            <svg
+              className="w-12 h-12 text-slate-600 mx-auto mb-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M13 10V3L4 14h7v7l9-11h-7z"
+              />
             </svg>
             <div className="text-slate-400 text-sm">
-              {goals.length === 0 ? 'No goals yet. Create your first OKR to get started.' : 'No goals match your filters.'}
+              {goals.length === 0
+                ? 'No goals yet. Create your first OKR to get started.'
+                : 'No goals match your filters.'}
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredGoals.map(g => {
-              const progress = g.targetValue ? Math.min(100, Math.round(((g.currentValue || 0) / g.targetValue) * 100)) : null;
+            {filteredGoals.map((g) => {
+              const progress = g.targetValue
+                ? Math.min(100, Math.round(((g.currentValue || 0) / g.targetValue) * 100))
+                : null;
 
               return (
                 <Link
@@ -159,15 +190,29 @@ function Goals() {
                   className="card group hover:border-primary/40 transition-all flex flex-col"
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full border ${TIMEFRAME_COLORS[g.timeframe] || TIMEFRAME_COLORS.Custom}`}>
+                    <span
+                      className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full border ${TIMEFRAME_COLORS[g.timeframe] || TIMEFRAME_COLORS.Custom}`}
+                    >
                       {g.timeframe}
                     </span>
-                    <svg className="w-4 h-4 text-slate-600 group-hover:text-primary transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <svg
+                      className="w-4 h-4 text-slate-600 group-hover:text-primary transition-colors shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   </div>
 
-                  <h3 className="text-sm font-semibold text-slate-200 group-hover:text-primary transition-colors mb-1">{g.title}</h3>
+                  <h3 className="text-sm font-semibold text-slate-200 group-hover:text-primary transition-colors mb-1">
+                    {g.title}
+                  </h3>
 
                   {g.objective && (
                     <p className="text-xs text-slate-400 line-clamp-2 mb-3">{g.objective}</p>
@@ -177,8 +222,12 @@ function Goals() {
                     {progress !== null ? (
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] text-slate-500">{g.metric || 'Progress'}</span>
-                          <span className="text-[10px] font-bold text-slate-300 tabular-nums">{progress}%</span>
+                          <span className="text-[10px] text-slate-500">
+                            {g.metric || 'Progress'}
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-300 tabular-nums">
+                            {progress}%
+                          </span>
                         </div>
                         <div className="h-1.5 rounded-full bg-slate-700 overflow-hidden">
                           <div

@@ -167,7 +167,9 @@ export interface Filter {
 export interface UserContextType {
   user: User | null;
   loading: boolean;
-  updateUser: (userData: User & { token?: string; activeOrgId?: string; orgs?: OrgMembership[] }) => void;
+  updateUser: (
+    userData: User & { token?: string; activeOrgId?: string; orgs?: OrgMembership[] }
+  ) => void;
   clearUser: () => void;
   getEffectiveRole: () => 'OrgAdmin' | 'OrgMember' | null;
 }
