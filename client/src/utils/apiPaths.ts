@@ -62,8 +62,11 @@ export const apiPaths = {
     DAILY_SUMMARY_JOB: '/api/automation/jobs/daily-summary',
   },
   REPORTS: {
+    SUMMARY: '/api/reports/summary',
     Export_TASKS_REPORT: '/api/reports/export-tasks',
     Export_USERS_REPORT: '/api/reports/export-users',
+    Export_PROJECTS_REPORT: '/api/reports/export-projects',
+    Export_GOALS_REPORT: '/api/reports/export-goals',
   },
   UPLOADS: {
     UPLOAD_IMAGE: '/api/auth/upload-image',
