@@ -1,4 +1,4 @@
-import { Request } from 'express';
+import { Request } from "express";
 
 export interface IUser {
   _id: string;
@@ -6,7 +6,7 @@ export interface IUser {
   email: string;
   password: string;
   profileImageUrl?: string;
-  role: 'Admin' | 'Member';
+  role: "Admin" | "Member";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -20,8 +20,8 @@ export interface ITask {
   _id: string;
   title: string;
   description: string;
-  priority: 'Low' | 'Medium' | 'High';
-  status: 'Pending' | 'In Progress' | 'In Review' | 'Completed';
+  priority: "Low" | "Medium" | "High";
+  status: "Pending" | "In Progress" | "In Review" | "Completed";
   dueDate: Date;
   assignedTo: string | IUser;
   createdBy: string;

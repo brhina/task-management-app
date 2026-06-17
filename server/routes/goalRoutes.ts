@@ -1,13 +1,13 @@
 import express from "express";
 import protect, { orgAdminOnly } from "../middleware/authMiddleware.js";
 import {
-    listGoals,
-    getGoalById,
-    createGoal,
-    updateGoal,
-    deleteGoal,
-    linkGoalToProject,
-    unlinkGoalFromProject,
+  listGoals,
+  getGoalById,
+  createGoal,
+  updateGoal,
+  deleteGoal,
+  linkGoalToProject,
+  unlinkGoalFromProject,
 } from "../controllers/goalControllers.js";
 
 const router = express.Router();
@@ -19,7 +19,11 @@ router.put("/:id", protect, orgAdminOnly, updateGoal);
 router.delete("/:id", protect, orgAdminOnly, deleteGoal);
 
 router.post("/:id/link-project", protect, orgAdminOnly, linkGoalToProject);
-router.post("/:id/unlink-project", protect, orgAdminOnly, unlinkGoalFromProject);
+router.post(
+  "/:id/unlink-project",
+  protect,
+  orgAdminOnly,
+  unlinkGoalFromProject,
+);
 
 export default router;
-

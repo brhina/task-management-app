@@ -1,11 +1,11 @@
 import express from "express";
 import protect, { orgAdminOnly } from "../middleware/authMiddleware.js";
 import {
-    listAutomationRules,
-    createAutomationRule,
-    updateAutomationRule,
-    deleteAutomationRule,
-    runDailySummaryJob,
+  listAutomationRules,
+  createAutomationRule,
+  updateAutomationRule,
+  deleteAutomationRule,
+  runDailySummaryJob,
 } from "../controllers/automationControllers.js";
 
 const router = express.Router();
@@ -18,4 +18,3 @@ router.delete("/rules/:id", protect, orgAdminOnly, deleteAutomationRule);
 router.post("/jobs/daily-summary", protect, orgAdminOnly, runDailySummaryJob);
 
 export default router;
-
