@@ -14,6 +14,7 @@ import {
   ChevronsLeft,
   Menu,
   ClipboardList,
+  Brain,
 } from 'lucide-react';
 
 const NavIcons: Record<string, ReactNode> = {
@@ -25,6 +26,7 @@ const NavIcons: Record<string, ReactNode> = {
   projects: <Folder className="w-5 h-5" />,
   goals: <Target className="w-5 h-5" />,
   workos: <Settings className="w-5 h-5" />,
+  intelligence: <Brain className="w-5 h-5" />,
 };
 
 interface NavLink {
@@ -54,6 +56,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
       return [
         { name: 'Dashboard', path: '/admin/dashboard', icon: NavIcons.dashboard },
         { name: 'WorkOS', path: '/admin/workos', icon: NavIcons.workos },
+        { name: 'Intelligence', path: '/admin/intelligence', icon: NavIcons.intelligence },
         { name: 'Projects', path: '/admin/projects', icon: NavIcons.projects },
         { name: 'Goals', path: '/admin/goals', icon: NavIcons.goals },
         { name: 'Manage Users', path: '/admin/manage-users', icon: NavIcons.users },
