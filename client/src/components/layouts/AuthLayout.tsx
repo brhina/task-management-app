@@ -1,6 +1,9 @@
 import { useContext, useState, useMemo, useCallback, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
+import { AssistantProvider } from '../../context/AssistantContext';
+import AssistantPanel from '../assistant/AssistantPanel';
+import AssistantToggle from '../assistant/AssistantToggle';
 import OrgSwitcher from '../common/OrgSwitcher';
 import {
   LayoutDashboard,
@@ -56,7 +59,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
       return [
         { name: 'Dashboard', path: '/admin/dashboard', icon: NavIcons.dashboard },
         { name: 'WorkOS', path: '/admin/workos', icon: NavIcons.workos },
-        { name: 'Intelligence', path: '/admin/intelligence', icon: NavIcons.intelligence },
+        { name: 'AI Hub', path: '/admin/intelligence', icon: NavIcons.intelligence },
         { name: 'Projects', path: '/admin/projects', icon: NavIcons.projects },
         { name: 'Goals', path: '/admin/goals', icon: NavIcons.goals },
         { name: 'Manage Users', path: '/admin/manage-users', icon: NavIcons.users },
@@ -67,7 +70,6 @@ function AuthLayout({ children }: { children: ReactNode }) {
     return [
       { name: 'Dashboard', path: '/user/dashboard', icon: NavIcons.dashboard },
       { name: 'WorkOS', path: '/user/workos', icon: NavIcons.workos },
-      { name: 'Intelligence', path: '/user/intelligence', icon: NavIcons.intelligence },
       { name: 'My Tasks', path: '/user/my-tasks', icon: NavIcons.tasks },
     ];
   }, [user, effectiveRole]);
@@ -79,21 +81,22 @@ function AuthLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-app-bg">
-      {isSidebarOpen && (
-        <button
-          type="button"
-          className="fixed inset-0 z-40 bg-slate-900/50 md:hidden"
-          onClick={closeSidebar}
-          aria-label="Close sidebar"
-        />
-      )}
+    <AssistantProvider>
+      <div className="flex min-h-screen bg-app-bg">
+        {isSidebarOpen && (
+          <button
+            type="button"
+            className="fixed inset-0 z-40 bg-slate-900/50 md:hidden"
+            onClick={closeSidebar}
+            aria-label="Close sidebar"
+          />
+        )}
 
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 bg-sidebar text-white flex flex-col transform transition-all duration-200 ease-in-out md:translate-x-0 ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } ${isSidebarCollapsed ? 'md:w-[72px]' : 'md:w-72'} w-72`}
-      >
+        <aside
+          className={`fixed inset-y-0 left-0 z-50 bg-sidebar text-white flex flex-col transform transition-all duration-200 ease-in-out md:translate-x-0 ${
+            isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } ${isSidebarCollapsed ? 'md:w-[72px]' : 'md:w-72'} w-72`}
+        >
         <div
           className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-3'} px-2 h-16 border-b border-slate-700/60`}
         >
@@ -195,30 +198,39 @@ function AuthLayout({ children }: { children: ReactNode }) {
             </Link>
           </div>
         </div>
-      </aside>
+        </aside>
 
-      <div
-        className={`flex-1 flex flex-col min-h-screen transition-all duration-200 ${isSidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-72'}`}
-      >
-        <header className="sticky top-0 z-30 flex items-center h-14 bg-sidebar/95 backdrop-blur border-b border-slate-700/70 md:hidden">
-          <button
-            type="button"
-            onClick={() => setIsSidebarOpen(true)}
-            className="p-2 rounded-xl text-slate-300 hover:bg-white/5"
-            aria-label="Open sidebar"
-          >
-            <Menu className="h-6 w-6" />
-          </button>
-          <span className="ml-3 text-lg font-semibold text-white">Cadence</span>
-        </header>
+        <div
+          className={`flex-1 flex min-h-screen transition-all duration-200 ${isSidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-72'}`}
+        >
+          <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+            <header className="sticky top-0 z-30 flex items-center justify-between h-14 px-4 bg-sidebar/95 backdrop-blur border-b border-slate-700/70">
+              <div className="flex items-center md:hidden">
+                <button
+                  type="button"
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="p-2 rounded-xl text-slate-300 hover:bg-white/5"
+                  aria-label="Open sidebar"
+                >
+                  <Menu className="h-6 w-6" />
+                </button>
+                <span className="ml-3 text-lg font-semibold text-white">Cadence</span>
+              </div>
+              <div className="hidden md:block" />
+              <AssistantToggle />
+            </header>
 
-        <main className="flex-1">
-          <div className="page">
-            <div className="page-container py-4">{children}</div>
+            <main className="flex-1 min-w-0">
+              <div className="page">
+                <div className="page-container py-4">{children}</div>
+              </div>
+            </main>
           </div>
-        </main>
+
+          <AssistantPanel />
+        </div>
       </div>
-    </div>
+    </AssistantProvider>
   );
 }
 
