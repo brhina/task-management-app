@@ -9,12 +9,27 @@ import {
 } from "../services/taskService.js";
 import { getExecutionContext } from "../types/tool-context.js";
 
+function safeGetCtx(context?: any) {
+  try {
+    console.log("[tool-debug] context keys:", context ? Object.keys(context) : "null");
+    console.log("[tool-debug] requestContext type:", typeof context?.requestContext);
+    console.log("[tool-debug] requestContext:", context?.requestContext);
+    const ctx = getExecutionContext(context?.requestContext);
+    console.log("[tool-debug] resolved ctx:", ctx);
+    return ctx;
+  } catch (e) {
+    console.log("[tool-debug] getExecutionContext failed:", (e as Error).message);
+    return null;
+  }
+}
+
 export const getTaskTool = createTool({
   id: "getTask",
   description: "Get a task by ID",
   inputSchema: z.object({ taskId: z.string() }),
   execute: async (inputData, context) => {
-    const ctx = getExecutionContext(context?.requestContext);
+    const ctx = safeGetCtx(context);
+    if (!ctx) return { error: "Missing execution context (orgId/userId)" };
     const task = await getTask(ctx, inputData.taskId);
     if (!task) return { error: "Task not found", retryable: false };
     return { task };
@@ -30,7 +45,8 @@ export const getTasksTool = createTool({
     assignedTo: z.string().optional(),
   }),
   execute: async (inputData, context) => {
-    const ctx = getExecutionContext(context?.requestContext);
+    const ctx = safeGetCtx(context);
+    if (!ctx) return { error: "Missing execution context (orgId/userId)" };
     const tasks = await listTasks(ctx, inputData);
     return { tasks, count: tasks.length };
   },
@@ -52,7 +68,8 @@ export const createTaskTool = createTool({
     dryRun: z.boolean().optional(),
   }),
   execute: async (inputData, context) => {
-    const ctx = getExecutionContext(context?.requestContext);
+    const ctx = safeGetCtx(context);
+    if (!ctx) return { error: "Missing execution context (orgId/userId)" };
     return createTask(ctx, {
       ...inputData,
       dueDate: new Date(inputData.dueDate),
@@ -74,7 +91,8 @@ export const updateTaskTool = createTool({
     dryRun: z.boolean().optional(),
   }),
   execute: async (inputData, context) => {
-    const ctx = getExecutionContext(context?.requestContext);
+    const ctx = safeGetCtx(context);
+    if (!ctx) return { error: "Missing execution context (orgId/userId)" };
     const { taskId, dueDate, ...rest } = inputData;
     const result = await updateTask(ctx, taskId, {
       ...rest,
@@ -94,7 +112,8 @@ export const assignTaskTool = createTool({
     dryRun: z.boolean().optional(),
   }),
   execute: async (inputData, context) => {
-    const ctx = getExecutionContext(context?.requestContext);
+    const ctx = safeGetCtx(context);
+    if (!ctx) return { error: "Missing execution context (orgId/userId)" };
     const result = await assignTask(
       ctx,
       inputData.taskId,

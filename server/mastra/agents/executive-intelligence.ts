@@ -5,14 +5,18 @@ import { executiveIntelligenceSchema } from "../schemas/executive-intelligence.s
 import { capacityTools } from "../tools/capacity-tools.js";
 import { projectTools } from "../tools/project-tools.js";
 import { reportingTools } from "../tools/reporting-tools.js";
+import { buildJsonInstructions, parseJsonResponse } from "../utils/json-response.js";
 
 export const executiveIntelligenceAgent = new Agent({
   id: "executive-intelligence",
   name: "Executive Intelligence",
   instructions: `You provide portfolio-level intelligence for executives.
+Always call getProjects, getProjectHealth, and calculateUtilization tools first.
+If a tool returns an error, proceed with the information you have — do NOT ask for context or refuse.
 Analyze all projects, capacity bottlenecks, strategic risks, and delivery forecasts.
-Always use getProjects, getProjectHealth, and calculateUtilization tools.
-Provide resource recommendations and portfolio health assessment.`,
+Provide resource recommendations and portfolio health assessment.
+Output ONLY valid JSON matching the schema below. No text outside the JSON.
+${buildJsonInstructions(executiveIntelligenceSchema)}`,
   model: EXECUTIVE_MODEL,
   tools: {
     ...projectTools,
@@ -24,16 +28,20 @@ Provide resource recommendations and portfolio health assessment.`,
 
 export async function generateExecutiveIntelligence(
   prompt: string,
-  options?: { resourceId?: string; threadId?: string },
+  options?: { resourceId?: string; threadId?: string; requestContext?: any },
 ) {
   const result = await executiveIntelligenceAgent.generate(prompt, {
-    structuredOutput: { schema: executiveIntelligenceSchema },
     memory: options?.resourceId
       ? {
           resource: options.resourceId,
           thread: options.threadId || options.resourceId,
         }
       : undefined,
+    requestContext: options?.requestContext,
   });
-  return result.object ?? result.text;
+  try {
+    return parseJsonResponse(result.text, executiveIntelligenceSchema);
+  } catch (e) {
+    throw new Error(`Failed to parse executive intelligence: ${e instanceof Error ? e.message : e}`);
+  }
 }

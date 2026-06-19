@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const keyResultSchema = z.object({
-  title: z.string(),
+  title: z.string().default(""),
   metric: z.string().optional(),
   targetValue: z.number().optional(),
   suggestedProjects: z.array(z.string()).optional(),
@@ -10,19 +10,19 @@ export const keyResultSchema = z.object({
 export const okrPlanSchema = z.object({
   objectives: z.array(
     z.object({
-      title: z.string(),
+      title: z.string().default(""),
       description: z.string().optional(),
-      keyResults: z.array(keyResultSchema),
+      keyResults: z.array(keyResultSchema).default([]),
     }),
-  ),
-  alignmentScore: z.number().min(0).max(100),
+  ).default([]),
+  alignmentScore: z.number().min(0).max(100).default(50),
   suggestedProjects: z.array(
     z.object({
-      name: z.string(),
-      rationale: z.string(),
+      name: z.string().default(""),
+      rationale: z.string().default(""),
     }),
-  ),
-  summary: z.string(),
+  ).default([]),
+  summary: z.string().default(""),
 });
 
 export type OkrPlan = z.infer<typeof okrPlanSchema>;

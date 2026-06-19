@@ -1,6 +1,6 @@
+import "./config/loadEnv.js";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
@@ -20,8 +20,6 @@ import intelligenceRoutes from "./routes/intelligenceRoutes.js";
 import { runLegacyOrgMigration } from "./services/legacyMigration.js";
 import { startRagChangeStreams } from "./services/ragChangeStreams.js";
 
-dotenv.config();
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -30,7 +28,7 @@ const app = express();
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "x-org-id"],
     credentials: true,
   }),

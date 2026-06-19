@@ -1,12 +1,12 @@
 import { z } from "zod";
 
 export const statusReportSchema = z.object({
-  reportType: z.enum(["daily", "weekly", "executive", "health"]),
-  title: z.string(),
-  summary: z.string(),
-  highlights: z.array(z.string()),
-  blockers: z.array(z.string()),
-  risks: z.array(z.string()),
+  reportType: z.enum(["daily", "weekly", "executive", "health"]).default("weekly"),
+  title: z.string().default("Status Report"),
+  summary: z.string().default(""),
+  highlights: z.array(z.string()).default([]),
+  blockers: z.array(z.string()).default([]),
+  risks: z.array(z.string()).default([]),
   metrics: z
     .object({
       totalTasks: z.number().optional(),

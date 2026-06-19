@@ -1,8 +1,6 @@
-import dotenv from "dotenv";
+import "../../config/loadEnv.js";
 import { Memory } from "@mastra/memory";
 import { MongoDBStore } from "@mastra/mongodb";
-
-dotenv.config();
 
 let sharedStore: MongoDBStore | null = null;
 

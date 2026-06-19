@@ -5,14 +5,18 @@ import { sprintPlanSchema } from "../schemas/sprint-plan.schema.js";
 import { capacityTools } from "../tools/capacity-tools.js";
 import { dependencyTools } from "../tools/dependency-tools.js";
 import { taskTools } from "../tools/task-tools.js";
+import { buildJsonInstructions, parseJsonResponse } from "../utils/json-response.js";
 
 export const sprintPlanningAgent = new Agent({
   id: "sprint-planning",
   name: "Sprint Planning",
   instructions: `You generate sprint plans based on team capacity, backlog, and dependencies.
-Always check capacity and workload before assigning tasks.
+Always call the getTasks, getCapacity, and analyzeCriticalPath tools first to get real data.
+If a tool returns an error, proceed with the information you have — do NOT ask for context or refuse.
 Respect dependency constraints — never schedule blocked tasks.
-Provide utilization percentages and forecast completion dates.`,
+Provide utilization percentages and forecast completion dates.
+Output ONLY valid JSON matching the schema below. No text outside the JSON.
+${buildJsonInstructions(sprintPlanSchema)}`,
   model: DEFAULT_MODEL,
   tools: {
     ...taskTools,
@@ -25,16 +29,20 @@ Provide utilization percentages and forecast completion dates.`,
 
 export async function generateSprintPlan(
   prompt: string,
-  options?: { resourceId?: string; threadId?: string },
+  options?: { resourceId?: string; threadId?: string; requestContext?: any },
 ) {
   const result = await sprintPlanningAgent.generate(prompt, {
-    structuredOutput: { schema: sprintPlanSchema },
     memory: options?.resourceId
       ? {
           resource: options.resourceId,
           thread: options.threadId || options.resourceId,
         }
       : undefined,
+    requestContext: options?.requestContext,
   });
-  return result.object ?? result.text;
+  try {
+    return parseJsonResponse(result.text, sprintPlanSchema);
+  } catch (e) {
+    throw new Error(`Failed to parse sprint plan: ${e instanceof Error ? e.message : e}`);
+  }
 }

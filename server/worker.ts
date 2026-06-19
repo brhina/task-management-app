@@ -1,8 +1,6 @@
-import dotenv from "dotenv";
+import "./config/loadEnv.js";
 import connectDB from "./config/db.js";
 import { startWorkers } from "./infra/queue/workers.js";
-
-dotenv.config();
 
 const start = async () => {
   await connectDB();

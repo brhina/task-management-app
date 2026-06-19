@@ -47,6 +47,7 @@ Dependency constraints: ${depAnalysis.blockedTaskIds.length} blocked tasks, crit
 
     const plan = (await generateSprintPlan(prompt, {
       resourceId,
+      requestContext,
     })) as z.infer<typeof sprintPlanSchema>;
 
     const validation = {

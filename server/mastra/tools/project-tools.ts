@@ -8,6 +8,14 @@ import {
 } from "../services/projectService.js";
 import { getExecutionContext } from "../types/tool-context.js";
 
+function safeGetCtx(context?: any) {
+  try {
+    return getExecutionContext(context?.requestContext);
+  } catch {
+    return null;
+  }
+}
+
 export const getProjectTool = createTool({
   id: "getProject",
   description: "Get a project by ID with optional tasks",
@@ -16,7 +24,8 @@ export const getProjectTool = createTool({
     includeTasks: z.boolean().optional(),
   }),
   execute: async (inputData, context) => {
-    const ctx = getExecutionContext(context?.requestContext);
+    const ctx = safeGetCtx(context);
+    if (!ctx) return { error: "Missing execution context (orgId/userId)" };
     const result = await getProject(
       ctx,
       inputData.projectId,
@@ -32,7 +41,8 @@ export const getProjectsTool = createTool({
   description: "List all projects in the organization",
   inputSchema: z.object({}),
   execute: async (_inputData, context) => {
-    const ctx = getExecutionContext(context?.requestContext);
+    const ctx = safeGetCtx(context);
+    if (!ctx) return { error: "Missing execution context (orgId/userId)" };
     const projects = await listProjects(ctx);
     return { projects };
   },
@@ -51,7 +61,8 @@ export const createProjectTool = createTool({
     dryRun: z.boolean().optional(),
   }),
   execute: async (inputData, context) => {
-    const ctx = getExecutionContext(context?.requestContext);
+    const ctx = safeGetCtx(context);
+    if (!ctx) return { error: "Missing execution context (orgId/userId)" };
     return createProject(ctx, {
       name: inputData.name,
       description: inputData.description,
@@ -82,7 +93,8 @@ export const updateProjectTool = createTool({
     dryRun: z.boolean().optional(),
   }),
   execute: async (inputData, context) => {
-    const ctx = getExecutionContext(context?.requestContext);
+    const ctx = safeGetCtx(context);
+    if (!ctx) return { error: "Missing execution context (orgId/userId)" };
     const result = await updateProject(ctx, inputData.projectId, {
       name: inputData.name,
       description: inputData.description,

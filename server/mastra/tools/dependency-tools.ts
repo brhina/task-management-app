@@ -5,12 +5,21 @@ import Dependency from "../../models/Dependency.js";
 import { analyzeDependencies } from "../../services/dependencyEngine.js";
 import { getExecutionContext } from "../types/tool-context.js";
 
+function safeGetCtx(context?: any) {
+  try {
+    return getExecutionContext(context?.requestContext);
+  } catch {
+    return null;
+  }
+}
+
 export const getDependenciesTool = createTool({
   id: "getDependencies",
   description: "Get task dependencies for the organization or a specific task",
   inputSchema: z.object({ taskId: z.string().optional() }),
   execute: async (inputData, context) => {
-    const ctx = getExecutionContext(context?.requestContext);
+    const ctx = safeGetCtx(context);
+    if (!ctx) return { error: "Missing execution context (orgId/userId)" };
     const filter: Record<string, unknown> = {
       orgId: new mongoose.Types.ObjectId(ctx.orgId),
     };
@@ -36,7 +45,8 @@ export const analyzeCriticalPathTool = createTool({
     "Analyze dependency graph: critical path, blocked tasks, bottlenecks",
   inputSchema: z.object({}),
   execute: async (_inputData, context) => {
-    const ctx = getExecutionContext(context?.requestContext);
+    const ctx = safeGetCtx(context);
+    if (!ctx) return { error: "Missing execution context (orgId/userId)" };
     const analysis = await analyzeDependencies({
       orgId: new mongoose.Types.ObjectId(ctx.orgId),
     });
@@ -49,7 +59,8 @@ export const detectCyclesTool = createTool({
   description: "Detect circular dependencies in the task graph",
   inputSchema: z.object({}),
   execute: async (_inputData, context) => {
-    const ctx = getExecutionContext(context?.requestContext);
+    const ctx = safeGetCtx(context);
+    if (!ctx) return { error: "Missing execution context (orgId/userId)" };
     const analysis = await analyzeDependencies({
       orgId: new mongoose.Types.ObjectId(ctx.orgId),
     });

@@ -7,6 +7,14 @@ import {
 } from "../../services/workosSummary.js";
 import { getExecutionContext } from "../types/tool-context.js";
 
+function safeGetCtx(context?: any) {
+  try {
+    return getExecutionContext(context?.requestContext);
+  } catch {
+    return null;
+  }
+}
+
 export const getProjectHealthTool = createTool({
   id: "getProjectHealth",
   description: "Get project or org health metrics from WorkOS engine",
@@ -15,7 +23,8 @@ export const getProjectHealthTool = createTool({
     scope: z.enum(["org", "project"]).optional(),
   }),
   execute: async (inputData, context) => {
-    const ctx = getExecutionContext(context?.requestContext);
+    const ctx = safeGetCtx(context);
+    if (!ctx) return { error: "Missing execution context (orgId/userId)" };
     const orgId = new mongoose.Types.ObjectId(ctx.orgId);
 
     if (inputData.projectId || inputData.scope === "project") {
@@ -44,7 +53,8 @@ export const generateReportTool = createTool({
     projectId: z.string().optional(),
   }),
   execute: async (inputData, context) => {
-    const ctx = getExecutionContext(context?.requestContext);
+    const ctx = safeGetCtx(context);
+    if (!ctx) return { error: "Missing execution context (orgId/userId)" };
     const orgId = new mongoose.Types.ObjectId(ctx.orgId);
 
     if (inputData.projectId) {

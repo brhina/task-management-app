@@ -3,11 +3,16 @@ import type { ExecutionContext } from "../config/context.js";
 import { EXECUTION_CONTEXT_KEY } from "../config/context.js";
 
 export function getExecutionContext(
-  requestContext?: RequestContext,
+  requestContext?: RequestContext | Record<string, unknown>,
 ): ExecutionContext {
-  const ctx = requestContext?.get(EXECUTION_CONTEXT_KEY) as
-    | ExecutionContext
-    | undefined;
+  let ctx: ExecutionContext | undefined;
+
+  if (requestContext && typeof (requestContext as any).get === "function") {
+    ctx = (requestContext as RequestContext).get(EXECUTION_CONTEXT_KEY) as ExecutionContext;
+  } else if (requestContext && typeof requestContext === "object") {
+    ctx = (requestContext as Record<string, unknown>)[EXECUTION_CONTEXT_KEY] as ExecutionContext;
+  }
+
   if (!ctx?.orgId || !ctx?.userId) {
     throw new Error("Execution context (orgId, userId) is required");
   }

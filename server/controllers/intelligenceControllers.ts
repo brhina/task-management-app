@@ -138,6 +138,7 @@ export const breakdownTask = async (
 
     const result = await generateTaskBreakdown(prompt, {
       resourceId: memoryResourceId(ctx),
+      requestContext: createRequestContext(ctx),
     });
 
     const rec = await saveRecommendation(ctx, {
@@ -168,6 +169,7 @@ export const analyzeRisksHandler = async (
 
     const result = await analyzeRisks(prompt, {
       resourceId: memoryResourceId(ctx),
+      requestContext: createRequestContext(ctx),
     });
 
     const rec = await saveRecommendation(ctx, {
@@ -207,6 +209,7 @@ export const generateReport = async (
 
     const result = await generateStatusReport(prompt, {
       resourceId: memoryResourceId(ctx),
+      requestContext: createRequestContext(ctx),
     });
 
     res.status(200).json({ message: "Report generated", data: result });
@@ -226,6 +229,7 @@ export const generateOkrsHandler = async (
 
     const result = await generateOkrs(prompt, {
       resourceId: memoryResourceId(ctx),
+      requestContext: createRequestContext(ctx),
     });
 
     const rec = await saveRecommendation(ctx, {
@@ -258,6 +262,7 @@ export const analyzeDependenciesHandler = async (
 
     const result = await runDependencyIntelligence(prompt, {
       resourceId: memoryResourceId(ctx),
+      requestContext: createRequestContext(ctx),
     });
 
     res.status(200).json({ message: "Dependency analysis complete", data: result });
@@ -274,7 +279,7 @@ export const getPortfolio = async (
     const ctx = getCtx(req);
     const result = await generateExecutiveIntelligence(
       "Provide portfolio-level executive intelligence for all active projects.",
-      { resourceId: memoryResourceId(ctx) },
+      { resourceId: memoryResourceId(ctx), requestContext: createRequestContext(ctx) },
     );
 
     res.status(200).json({ message: "Portfolio intelligence", data: result });
@@ -297,6 +302,7 @@ export const orchestrate = async (
 
     const intent = await classifyIntent(message, {
       resourceId: memoryResourceId(ctx),
+      requestContext: createRequestContext(ctx),
     });
 
     let result: unknown = intent;
@@ -305,41 +311,49 @@ export const orchestrate = async (
       case "plan_project":
         result = await generateProjectPlan(message, {
           resourceId: memoryResourceId(ctx),
+          requestContext: createRequestContext(ctx),
         });
         break;
       case "breakdown_task":
         result = await generateTaskBreakdown(message, {
           resourceId: memoryResourceId(ctx),
+          requestContext: createRequestContext(ctx),
         });
         break;
       case "analyze_risks":
         result = await analyzeRisks(message, {
           resourceId: memoryResourceId(ctx),
+          requestContext: createRequestContext(ctx),
         });
         break;
       case "plan_sprint":
         result = await generateSprintPlan(message, {
           resourceId: memoryResourceId(ctx),
+          requestContext: createRequestContext(ctx),
         });
         break;
       case "generate_report":
         result = await generateStatusReport(message, {
           resourceId: memoryResourceId(ctx),
+          requestContext: createRequestContext(ctx),
         });
         break;
       case "generate_okrs":
         result = await generateOkrs(message, {
           resourceId: memoryResourceId(ctx),
+          requestContext: createRequestContext(ctx),
         });
         break;
       case "analyze_dependencies":
         result = await runDependencyIntelligence(message, {
           resourceId: memoryResourceId(ctx),
+          requestContext: createRequestContext(ctx),
         });
         break;
       case "portfolio_intelligence":
         result = await generateExecutiveIntelligence(message, {
           resourceId: memoryResourceId(ctx),
+          requestContext: createRequestContext(ctx),
         });
         break;
       default:
@@ -463,7 +477,7 @@ export const queryRag = async (
 
     const result = await classifyIntent(
       `${context.promptContext}\n\nUser question: ${query}`,
-      { resourceId: memoryResourceId(ctx) },
+      { resourceId: memoryResourceId(ctx), requestContext: createRequestContext(ctx) },
     );
 
     res.status(200).json({

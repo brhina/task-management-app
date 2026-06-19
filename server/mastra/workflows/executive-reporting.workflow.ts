@@ -32,7 +32,7 @@ const runExecutiveReportingStep = createStep({
         riskLevel: summary.risk?.level,
         utilization: summary.workload?.capacity_utilization,
       })}`,
-      { resourceId },
+      { resourceId, requestContext },
     )) as z.infer<typeof executiveIntelligenceSchema>;
 
     const snapshot = await InsightSnapshot.create({

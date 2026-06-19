@@ -1,6 +1,9 @@
 import axios from 'axios';
 import { BASE_URL } from './apiPaths';
 
+/** AI intelligence endpoints (portfolio, planning, orchestration) often exceed the default timeout. */
+export const INTELLIGENCE_TIMEOUT_MS = 120_000;
+
 const api = axios.create({
   baseURL: BASE_URL,
   timeout: 10000,

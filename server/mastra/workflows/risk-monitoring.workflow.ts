@@ -33,12 +33,12 @@ const runRiskMonitoringStep = createStep({
     const projects = await Project.find({ orgId, status: "Active" });
     const orgRisk = (await analyzeRisks(
       "Perform organization-wide risk analysis for all active projects.",
-      { resourceId },
+      { resourceId, requestContext },
     )) as z.infer<typeof riskAnalysisSchema>;
 
     const executive = await generateExecutiveIntelligence(
       "Generate executive risk summary and recommendations for stakeholders.",
-      { resourceId },
+      { resourceId, requestContext },
     );
 
     const payload = await buildOrgWorkosSummary({ orgId });

@@ -29,11 +29,12 @@ Objectives: ${inputData.objectives.join(", ")}`;
 
     const plan = (await generateProjectPlan(prompt, {
       resourceId,
+      requestContext,
     })) as z.infer<typeof projectPlanSchema>;
 
     const risks = (await analyzeRisks(
       `Analyze delivery risks for project "${inputData.name}" with ${plan.tasks.length} tasks due ${inputData.deadline}.`,
-      { resourceId },
+      { resourceId, requestContext },
     )) as z.infer<typeof riskAnalysisSchema>;
 
     if (inputData.dryRun) {

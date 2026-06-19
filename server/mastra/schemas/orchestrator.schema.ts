@@ -11,12 +11,12 @@ export const orchestratorIntentSchema = z.object({
     "analyze_dependencies",
     "portfolio_intelligence",
     "general_query",
-  ]),
-  confidence: z.number().min(0).max(1),
+  ]).default("general_query"),
+  confidence: z.number().min(0).max(1).default(0.5),
   suggestedWorkflow: z.string().optional(),
   suggestedAgent: z.string().optional(),
   parameters: z.record(z.unknown()).optional(),
-  summary: z.string(),
+  summary: z.string().default(""),
 });
 
 export type OrchestratorIntent = z.infer<typeof orchestratorIntentSchema>;
