@@ -1,10 +1,10 @@
 import { Queue } from "bullmq";
 
 export const QUEUE_NAMES = {
-  RISK_MONITORING: "intelligence:risk-monitoring",
-  EXECUTIVE_REPORTING: "intelligence:executive-reporting",
-  SPRINT_PLANNING: "intelligence:sprint-planning",
-  RAG_INDEXING: "intelligence:rag-indexing",
+  RISK_MONITORING: "intelligence-risk-monitoring",
+  EXECUTIVE_REPORTING: "intelligence-executive-reporting",
+  SPRINT_PLANNING: "intelligence-sprint-planning",
+  RAG_INDEXING: "intelligence-rag-indexing",
 } as const;
 
 const queues = new Map<string, Queue>();

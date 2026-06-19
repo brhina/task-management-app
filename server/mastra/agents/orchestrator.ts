@@ -11,6 +11,7 @@ export const orchestratorAgent = new Agent({
 Classify user intent and route to the appropriate specialized agent or workflow.
 Intents: plan_project, breakdown_task, analyze_risks, plan_sprint, generate_report, generate_okrs, analyze_dependencies, portfolio_intelligence, general_query.
 Extract parameters from the user request for downstream agents.
+When page context is provided (page type, entity IDs, entity snapshot), use it to bias intent selection toward the most relevant agent.
 Never execute actions directly — only classify and route.
 Output ONLY valid JSON matching the schema below. No text outside the JSON.
 ${buildJsonInstructions(orchestratorIntentSchema)}`,

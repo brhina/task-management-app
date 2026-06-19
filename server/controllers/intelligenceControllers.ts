@@ -37,6 +37,84 @@ function getCtx(req: AuthRequest): ExecutionContext {
   };
 }
 
+interface PageContextInput {
+  pageType?: string;
+  pageTitle?: string;
+  entityIds?: {
+    taskId?: string;
+    projectId?: string;
+    goalId?: string;
+    userId?: string;
+  };
+  entitySnapshot?: Record<string, unknown>;
+  preferredIntent?: string;
+}
+
+function buildPageContextPrefix(pageContext?: PageContextInput): string {
+  if (!pageContext) return "";
+  const parts: string[] = ["## Page Context"];
+  if (pageContext.pageType) parts.push(`Page: ${pageContext.pageType}`);
+  if (pageContext.pageTitle) parts.push(`Title: ${pageContext.pageTitle}`);
+  if (pageContext.entityIds && Object.keys(pageContext.entityIds).length > 0) {
+    parts.push(`Entity IDs: ${JSON.stringify(pageContext.entityIds)}`);
+  }
+  if (pageContext.entitySnapshot && Object.keys(pageContext.entitySnapshot).length > 0) {
+    parts.push(`Entity snapshot: ${JSON.stringify(pageContext.entitySnapshot)}`);
+  }
+  return parts.length > 1 ? `${parts.join("\n")}\n\n` : "";
+}
+
+async function dispatchIntent(
+  ctx: ExecutionContext,
+  intentName: string,
+  message: string,
+) {
+  switch (intentName) {
+    case "plan_project":
+      return generateProjectPlan(message, {
+        resourceId: memoryResourceId(ctx),
+        requestContext: createRequestContext(ctx),
+      });
+    case "breakdown_task":
+      return generateTaskBreakdown(message, {
+        resourceId: memoryResourceId(ctx),
+        requestContext: createRequestContext(ctx),
+      });
+    case "analyze_risks":
+      return analyzeRisks(message, {
+        resourceId: memoryResourceId(ctx),
+        requestContext: createRequestContext(ctx),
+      });
+    case "plan_sprint":
+      return generateSprintPlan(message, {
+        resourceId: memoryResourceId(ctx),
+        requestContext: createRequestContext(ctx),
+      });
+    case "generate_report":
+      return generateStatusReport(message, {
+        resourceId: memoryResourceId(ctx),
+        requestContext: createRequestContext(ctx),
+      });
+    case "generate_okrs":
+      return generateOkrs(message, {
+        resourceId: memoryResourceId(ctx),
+        requestContext: createRequestContext(ctx),
+      });
+    case "analyze_dependencies":
+      return runDependencyIntelligence(message, {
+        resourceId: memoryResourceId(ctx),
+        requestContext: createRequestContext(ctx),
+      });
+    case "portfolio_intelligence":
+      return generateExecutiveIntelligence(message, {
+        resourceId: memoryResourceId(ctx),
+        requestContext: createRequestContext(ctx),
+      });
+    default:
+      return null;
+  }
+}
+
 async function runWorkflowHandler(
   req: AuthRequest,
   res: Response,
@@ -294,70 +372,33 @@ export const orchestrate = async (
 ): Promise<void> => {
   try {
     const ctx = getCtx(req);
-    const { message } = req.body;
+    const { message, pageContext } = req.body as {
+      message: string;
+      pageContext?: PageContextInput;
+    };
     if (!message) {
       res.status(400).json({ message: "message is required" });
       return;
     }
 
-    const intent = await classifyIntent(message, {
+    const enrichedMessage = `${buildPageContextPrefix(pageContext)}${message}`;
+    const agentOptions = {
       resourceId: memoryResourceId(ctx),
       requestContext: createRequestContext(ctx),
-    });
+    };
 
-    let result: unknown = intent;
+    let intent: unknown;
+    let result: unknown;
 
-    switch ((intent as any)?.intent) {
-      case "plan_project":
-        result = await generateProjectPlan(message, {
-          resourceId: memoryResourceId(ctx),
-          requestContext: createRequestContext(ctx),
-        });
-        break;
-      case "breakdown_task":
-        result = await generateTaskBreakdown(message, {
-          resourceId: memoryResourceId(ctx),
-          requestContext: createRequestContext(ctx),
-        });
-        break;
-      case "analyze_risks":
-        result = await analyzeRisks(message, {
-          resourceId: memoryResourceId(ctx),
-          requestContext: createRequestContext(ctx),
-        });
-        break;
-      case "plan_sprint":
-        result = await generateSprintPlan(message, {
-          resourceId: memoryResourceId(ctx),
-          requestContext: createRequestContext(ctx),
-        });
-        break;
-      case "generate_report":
-        result = await generateStatusReport(message, {
-          resourceId: memoryResourceId(ctx),
-          requestContext: createRequestContext(ctx),
-        });
-        break;
-      case "generate_okrs":
-        result = await generateOkrs(message, {
-          resourceId: memoryResourceId(ctx),
-          requestContext: createRequestContext(ctx),
-        });
-        break;
-      case "analyze_dependencies":
-        result = await runDependencyIntelligence(message, {
-          resourceId: memoryResourceId(ctx),
-          requestContext: createRequestContext(ctx),
-        });
-        break;
-      case "portfolio_intelligence":
-        result = await generateExecutiveIntelligence(message, {
-          resourceId: memoryResourceId(ctx),
-          requestContext: createRequestContext(ctx),
-        });
-        break;
-      default:
-        break;
+    if (pageContext?.preferredIntent) {
+      intent = { intent: pageContext.preferredIntent, source: "quick_action" };
+      result = await dispatchIntent(ctx, pageContext.preferredIntent, enrichedMessage);
+    } else {
+      intent = await classifyIntent(enrichedMessage, agentOptions);
+      result = await dispatchIntent(ctx, (intent as any)?.intent, enrichedMessage);
+      if (result == null) {
+        result = intent;
+      }
     }
 
     res.status(200).json({
@@ -463,7 +504,11 @@ export const queryRag = async (
 ): Promise<void> => {
   try {
     const ctx = getCtx(req);
-    const { query, projectId } = req.body;
+    const { query, projectId, pageContext } = req.body as {
+      query: string;
+      projectId?: string;
+      pageContext?: PageContextInput;
+    };
     if (!query) {
       res.status(400).json({ message: "query is required" });
       return;
@@ -472,17 +517,37 @@ export const queryRag = async (
     const context = await assembleContext({
       orgId: ctx.orgId,
       query,
-      projectId,
+      projectId: projectId || pageContext?.entityIds?.projectId,
+      taskId: pageContext?.entityIds?.taskId,
+      goalId: pageContext?.entityIds?.goalId,
+      entitySnapshot: pageContext?.entitySnapshot,
     });
 
-    const result = await classifyIntent(
-      `${context.promptContext}\n\nUser question: ${query}`,
-      { resourceId: memoryResourceId(ctx), requestContext: createRequestContext(ctx) },
-    );
+    const enrichedMessage = `${buildPageContextPrefix(pageContext)}${context.promptContext}\n\nUser question: ${query}`;
+    const agentOptions = {
+      resourceId: memoryResourceId(ctx),
+      requestContext: createRequestContext(ctx),
+    };
+
+    let intent: unknown;
+    let result: unknown;
+
+    if (pageContext?.preferredIntent) {
+      intent = { intent: pageContext.preferredIntent, source: "quick_action" };
+      result = await dispatchIntent(ctx, pageContext.preferredIntent, enrichedMessage);
+    } else {
+      intent = await classifyIntent(enrichedMessage, agentOptions);
+      const intentName = (intent as any)?.intent;
+      if (intentName && intentName !== "general_query") {
+        result = await dispatchIntent(ctx, intentName, enrichedMessage);
+      } else {
+        result = intent;
+      }
+    }
 
     res.status(200).json({
       message: "Query processed",
-      data: { context, result },
+      data: { context, intent, result },
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
