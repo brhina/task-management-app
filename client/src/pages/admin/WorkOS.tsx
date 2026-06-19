@@ -2,6 +2,8 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Zap, AlertTriangle, Users, Lightbulb, RefreshCw, Target, TrendingUp } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
+import InlineAiButton from '../../components/assistant/InlineAiButton';
+import { usePageAssistant } from '../../hooks/usePageAssistant';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
@@ -19,6 +21,7 @@ function downloadJson(filename: string, data: unknown) {
 
 function WorkOS() {
   const { user, getEffectiveRole } = useContext(UserContext);
+  usePageAssistant({ pageType: 'workos', pageTitle: 'WorkOS' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<any>(null);
@@ -322,10 +325,20 @@ function WorkOS() {
             {/* Blocked Tasks */}
             {blockedTasks.length > 0 && (
               <div className="card !p-0 overflow-hidden">
-                <div className="px-4 py-3 border-b border-slate-700">
+                <div className="px-4 py-3 border-b border-slate-700 flex items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-rose-400">
                     Blocked Tasks ({blockedTasks.length})
                   </h3>
+                  <InlineAiButton
+                    action={{
+                      id: 'analyze-blocked',
+                      label: 'Analyze with AI',
+                      message:
+                        'Analyze blocked tasks and dependency bottlenecks across the organization.',
+                      preferredIntent: 'analyze_dependencies',
+                      loadingLabel: 'Analyzing blockers…',
+                    }}
+                  />
                 </div>
                 <div className="divide-y divide-slate-700/50">
                   {blockedTasks.map((t: any) => (

@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { FileText, Users, Folder, Target, Filter, Download, Info } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
+import { usePageAssistant } from '../../hooks/usePageAssistant';
 import { apiPaths } from '../../utils/apiPaths';
 import axios from '../../utils/axios';
 import PageShell from '../../components/common/PageShell';
@@ -22,6 +23,7 @@ interface ReportSummary {
 
 const Reports = () => {
   const { user, getEffectiveRole } = useContext(UserContext);
+  usePageAssistant({ pageType: 'reports', pageTitle: 'Reports' });
   const [loading, setLoading] = useState(false);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [message, setMessage] = useState('');

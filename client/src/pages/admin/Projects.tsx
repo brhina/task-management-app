@@ -6,6 +6,7 @@ import FilterToolbar from '../../components/common/FilterToolbar';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
+import { usePageAssistant } from '../../hooks/usePageAssistant';
 import { getStatusColor } from '../../constants/taskStatus';
 import type { Project, ProjectStatus } from '../../types';
 
@@ -21,6 +22,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 function Projects() {
   const { user, getEffectiveRole } = useContext(UserContext);
+  usePageAssistant({ pageType: 'projects', pageTitle: 'Projects' });
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
