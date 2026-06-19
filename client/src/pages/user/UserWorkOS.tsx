@@ -1,6 +1,7 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageShell from '../../components/common/PageShell';
+import { usePageAssistant } from '../../hooks/usePageAssistant';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
@@ -11,6 +12,7 @@ import type { Task } from '../../types';
 
 function UserWorkOS() {
   const { user } = useContext(UserContext);
+  usePageAssistant({ pageType: 'workos', pageTitle: 'My WorkOS' });
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

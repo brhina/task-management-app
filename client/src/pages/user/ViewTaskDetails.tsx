@@ -1,6 +1,8 @@
 import { useState, useEffect, useContext, useCallback, type FormEvent } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
+import { usePageAssistant } from '../../hooks/usePageAssistant';
+import InlineAiButton from '../../components/assistant/InlineAiButton';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { getStatusColor, getPriorityColor, TASK_STATUS } from '../../constants/taskStatus';
@@ -49,6 +51,20 @@ function ViewTaskDetails() {
   const [tasksForDeps, setTasksForDeps] = useState<Task[]>([]);
   const [prereqToAdd, setPrereqToAdd] = useState('');
   const [addingDep, setAddingDep] = useState(false);
+
+  usePageAssistant({
+    pageType: 'task-detail',
+    pageTitle: task?.title ?? 'Task Details',
+    entityIds: id ? { taskId: id, projectId: task?.projectId as string | undefined } : undefined,
+    entitySnapshot: task
+      ? {
+          title: task.title,
+          status: task.status,
+          description: task.description,
+          priority: task.priority,
+        }
+      : undefined,
+  });
 
   const fetchTaskDetails = useCallback(async () => {
     try {
@@ -247,6 +263,15 @@ function ViewTaskDetails() {
       }
       actions={
         <div className="flex gap-2">
+          <InlineAiButton
+            action={{
+              id: 'breakdown',
+              label: 'Break down',
+              message: `Break down task "${task.title}" into actionable subtasks with acceptance criteria.${task.description ? ` Description: ${task.description}` : ''}`,
+              preferredIntent: 'breakdown_task',
+              loadingLabel: 'Breaking down task…',
+            }}
+          />
           <Link
             to={isAdminRoute ? '/admin/manage-tasks' : '/user/my-tasks'}
             className="btn-secondary"

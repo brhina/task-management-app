@@ -10,6 +10,7 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core';
 import { UserContext } from '../../context/UserContext';
+import { usePageAssistant } from '../../hooks/usePageAssistant';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { getStatusColor, getPriorityColor, TASK_STATUS } from '../../constants/taskStatus';
@@ -56,6 +57,7 @@ const STATUS_OPTIONS = [
 
 function MyTasks() {
   const { user } = useContext(UserContext);
+  usePageAssistant({ pageType: 'tasks', pageTitle: 'My Tasks' });
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tasks, setTasks] = useState<Task[]>([]);
