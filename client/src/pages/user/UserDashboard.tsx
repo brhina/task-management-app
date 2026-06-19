@@ -9,7 +9,7 @@ import StatusChart from '../../components/insights/StatusChart';
 import PriorityChart from '../../components/insights/PriorityChart';
 import { getStatusColor, getPriorityColor } from '../../constants/taskStatus';
 import { isOverdue, getDaysUntilDue } from '../../utils/dateUtils';
-import { AlertCircle, ClipboardList, ChevronRight, Clock, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, ClipboardList, ChevronRight } from 'lucide-react';
 import type { DashboardData } from '../../types';
 
 function UserDashboard() {
@@ -240,57 +240,6 @@ function UserDashboard() {
 
           {/* Sidebar */}
           <div className="space-y-4">
-            {/* Quick Actions */}
-            <div className="card">
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
-                Quick Actions
-              </div>
-              <div className="space-y-2">
-                <Link
-                  to="/user/my-tasks"
-                  className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-700 hover:border-primary/40 hover:bg-slate-700/30 transition-all group"
-                >
-                  <div className="h-8 w-8 rounded-lg bg-blue-500/15 flex items-center justify-center">
-                    <ClipboardList className="w-4 h-4 text-blue-400" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-slate-200 group-hover:text-primary transition-colors">
-                      View My Tasks
-                    </div>
-                    <div className="text-[10px] text-slate-500">See all assigned tasks</div>
-                  </div>
-                </Link>
-                <Link
-                  to="/user/my-tasks?status=Pending"
-                  className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-700 hover:border-amber-400/40 hover:bg-slate-700/30 transition-all group"
-                >
-                  <div className="h-8 w-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
-                    <Clock className="w-4 h-4 text-amber-400" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-slate-200 group-hover:text-primary transition-colors">
-                      Pending Tasks
-                    </div>
-                    <div className="text-[10px] text-slate-500">Tasks waiting to start</div>
-                  </div>
-                </Link>
-                <Link
-                  to="/user/my-tasks?status=Completed"
-                  className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-700 hover:border-emerald-400/40 hover:bg-slate-700/30 transition-all group"
-                >
-                  <div className="h-8 w-8 rounded-lg bg-emerald-500/15 flex items-center justify-center">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-slate-200 group-hover:text-primary transition-colors">
-                      Completed
-                    </div>
-                    <div className="text-[10px] text-slate-500">Tasks you've finished</div>
-                  </div>
-                </Link>
-              </div>
-            </div>
-
             {/* Status Summary */}
             <div className="card">
               <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">

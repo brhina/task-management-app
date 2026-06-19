@@ -98,7 +98,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
           } ${isSidebarCollapsed ? 'md:w-[72px]' : 'md:w-72'} w-72`}
         >
         <div
-          className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-3'} px-2 h-16 border-b border-slate-700/60`}
+          className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-3'} px-2 h-12 border-b border-slate-700/60`}
         >
           <div className="bg-primary p-2.5 rounded-xl shadow shrink-0">
             <ClipboardList className="w-5 h-5 text-white" />
@@ -201,10 +201,10 @@ function AuthLayout({ children }: { children: ReactNode }) {
         </aside>
 
         <div
-          className={`flex-1 flex min-h-screen transition-all duration-200 ${isSidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-72'}`}
+          className={`flex-1 flex h-screen overflow-hidden transition-all duration-200 ${isSidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-72'}`}
         >
-          <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-            <header className="sticky top-0 z-30 flex items-center justify-between h-14 px-4 bg-sidebar/95 backdrop-blur border-b border-slate-700/70">
+          <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+            <header className="sticky top-0 z-30 flex items-center justify-between h-12 px-4 bg-sidebar/95 backdrop-blur border-b border-slate-700/70 shrink-0">
               <div className="flex items-center md:hidden">
                 <button
                   type="button"
@@ -220,7 +220,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
               <AssistantToggle />
             </header>
 
-            <main className="flex-1 min-w-0">
+            <main className="flex-1 min-w-0 overflow-y-auto">
               <div className="page">
                 <div className="page-container py-4">{children}</div>
               </div>

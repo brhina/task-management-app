@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, CheckCircle, Plus, ClipboardList, Folder, Users, ChevronRight } from 'lucide-react';
+import { AlertTriangle, CheckCircle, ClipboardList, ChevronRight } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { usePageAssistant } from '../../hooks/usePageAssistant';
 import api from '../../utils/axios';
@@ -112,7 +112,7 @@ function Dashboard() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {/* Urgent Tasks */}
           <div className="lg:col-span-2 card">
             <div className="flex items-center justify-between mb-3">
@@ -179,71 +179,6 @@ function Dashboard() {
                 })}
               </div>
             )}
-          </div>
-
-          {/* Quick Actions */}
-          <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
-              Quick Actions
-            </div>
-            <div className="space-y-2">
-              <Link
-                to="/admin/create-task"
-                className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-700 hover:border-primary/40 hover:bg-slate-700/30 transition-all group"
-              >
-                <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center">
-                  <Plus className="w-4 h-4 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-slate-200 group-hover:text-primary transition-colors">
-                    Create Task
-                  </div>
-                  <div className="text-[10px] text-slate-500">Assign to team members</div>
-                </div>
-              </Link>
-              <Link
-                to="/admin/manage-tasks"
-                className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-700 hover:border-blue-400/40 hover:bg-slate-700/30 transition-all group"
-              >
-                <div className="h-8 w-8 rounded-lg bg-blue-500/15 flex items-center justify-center">
-                  <ClipboardList className="w-4 h-4 text-blue-400" />
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-slate-200 group-hover:text-primary transition-colors">
-                    Manage Tasks
-                  </div>
-                  <div className="text-[10px] text-slate-500">View and update all tasks</div>
-                </div>
-              </Link>
-              <Link
-                to="/admin/projects"
-                className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-700 hover:border-violet-400/40 hover:bg-slate-700/30 transition-all group"
-              >
-                <div className="h-8 w-8 rounded-lg bg-violet-500/15 flex items-center justify-center">
-                  <Folder className="w-4 h-4 text-violet-400" />
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-slate-200 group-hover:text-primary transition-colors">
-                    Projects
-                  </div>
-                  <div className="text-[10px] text-slate-500">Manage project outcomes</div>
-                </div>
-              </Link>
-              <Link
-                to="/admin/manage-users"
-                className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-700 hover:border-emerald-400/40 hover:bg-slate-700/30 transition-all group"
-              >
-                <div className="h-8 w-8 rounded-lg bg-emerald-500/15 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-emerald-400" />
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-slate-200 group-hover:text-primary transition-colors">
-                    Team
-                  </div>
-                  <div className="text-[10px] text-slate-500">Manage team members</div>
-                </div>
-              </Link>
-            </div>
           </div>
         </div>
 

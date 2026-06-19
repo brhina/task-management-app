@@ -31,7 +31,7 @@ export default function AssistantResultView({ intent, result }: AssistantResultV
           <p className="text-sm text-slate-300">{breakdown.summary}</p>
           <div className="rounded-lg border border-app-border bg-white/5 p-3">
             <div className="text-xs text-slate-400 mb-2">
-              {breakdown.subtasks.length} subtasks · {breakdown.totalEstimatedHours}h total
+              {breakdown.subtasks?.length} subtasks · {breakdown.totalEstimatedHours}h total
             </div>
             <ul className="space-y-2">
               {breakdown.subtasks.map((st, i) => (
@@ -60,7 +60,7 @@ export default function AssistantResultView({ intent, result }: AssistantResultV
             {risks.riskLevel}
           </span>
           <p className="text-sm text-slate-300">{risks.summary}</p>
-          {risks.recommendations.length > 0 && (
+          {risks.recommendations?.length > 0 && (
             <ul className="text-sm text-slate-400 space-y-1">
               {risks.recommendations.map((r, i) => (
                 <li key={i}>• {r}</li>
@@ -79,7 +79,7 @@ export default function AssistantResultView({ intent, result }: AssistantResultV
         <div className="space-y-3">
           <p className="text-sm text-slate-300">{sprint.summary}</p>
           <ul className="text-sm text-slate-400 space-y-1">
-            {sprint.assignments.slice(0, 8).map((a, i) => (
+            {sprint.assignments?.slice(0, 8).map((a, i) => (
               <li key={i}>
                 {a.taskTitle} — {a.assigneeName || 'Unassigned'} ({a.effortHours}h)
               </li>
@@ -99,7 +99,7 @@ export default function AssistantResultView({ intent, result }: AssistantResultV
             <h4 className="text-sm font-semibold text-white">{report.title}</h4>
             <p className="text-sm text-slate-400 mt-1">{report.summary}</p>
           </div>
-          {report.highlights.length > 0 && (
+          {report.highlights?.length > 0 && (
             <ul className="text-sm text-slate-400 space-y-1">
               {report.highlights.map((h, i) => (
                 <li key={i}>• {h}</li>

@@ -1,8 +1,11 @@
-import { useState, type FormEvent } from 'react';
-import { Loader2, Send, X } from 'lucide-react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Loader2, Send, X, PanelRightOpen, PanelRightClose } from 'lucide-react';
 import { useAssistant } from '../../context/AssistantContext';
 import AssistantQuickActions from './AssistantQuickActions';
 import AssistantResultView from './AssistantResultView';
+
+const NARROW_W = 'max-w-[380px]';
+const WIDE_W = 'max-w-[560px]';
 
 export default function AssistantPanel() {
   const {
@@ -16,6 +19,16 @@ export default function AssistantPanel() {
     runQuickAction,
   } = useAssistant();
   const [input, setInput] = useState('');
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const mql = window.matchMedia('(max-width: 767px)');
+    if (!mql.matches) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [isOpen]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -35,25 +48,39 @@ export default function AssistantPanel() {
         onClick={() => setOpen(false)}
         aria-label="Close assistant"
       />
-      <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[380px] flex-col border-l border-app-border bg-app-panel shadow-2xl md:static md:z-auto md:shrink-0">
-        <div className="flex items-center justify-between gap-2 border-b border-app-border px-4 py-3">
+      <aside className={`fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-app-border bg-app-panel shadow-2xl transition-[max-width] duration-200 md:static md:z-auto md:shrink-0 md:h-full md:overflow-hidden ${expanded ? WIDE_W : NARROW_W}`}>
+        <div className="flex items-center justify-between gap-2 border-b border-app-border px-4 py-1.5">
           <div className="min-w-0">
             <h2 className="text-sm font-semibold text-white">AI Assistant</h2>
             {pageContext && (
               <p className="text-xs text-slate-500 truncate">{pageContext.pageTitle}</p>
             )}
           </div>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"
-            aria-label="Close panel"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-0.5">
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"
+              aria-label={expanded ? 'Collapse panel' : 'Expand panel'}
+              title={expanded ? 'Collapse' : 'Expand'}
+            >
+              {expanded ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"
+              aria-label="Close panel"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+        <div
+          className="min-h-0 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-app-border scrollbar-track-app-panel px-4 py-3 space-y-3"
+          onWheel={(e) => e.stopPropagation()}
+        >
           {messages.length === 0 && (
             <div className="rounded-lg border border-dashed border-app-border bg-white/5 p-4 text-center">
               <p className="text-sm text-slate-400">
