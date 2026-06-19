@@ -6,6 +6,7 @@ import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
 import FilterToolbar from '../../components/common/FilterToolbar';
+import { usePageAssistant } from '../../hooks/usePageAssistant';
 import type { User, Task, Project } from '../../types';
 
 interface UserWithTaskCounts extends User {
@@ -32,6 +33,7 @@ interface InviteModalState {
 
 function ManageUsers() {
   const { user, getEffectiveRole } = useContext(UserContext);
+  usePageAssistant({ pageType: 'manage-users', pageTitle: 'Manage Users' });
   const [users, setUsers] = useState<UserWithTaskCounts[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);

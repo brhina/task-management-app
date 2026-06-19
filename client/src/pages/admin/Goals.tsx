@@ -6,6 +6,7 @@ import FilterToolbar from '../../components/common/FilterToolbar';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
+import { usePageAssistant } from '../../hooks/usePageAssistant';
 import type { Goal, GoalTimeframe } from '../../types';
 
 const TIMEFRAMES: GoalTimeframe[] = ['Weekly', 'Monthly', 'Quarterly', 'Yearly', 'Custom'];
@@ -28,6 +29,7 @@ const TIMEFRAME_ICONS: Record<string, string> = {
 
 function Goals() {
   const { user, getEffectiveRole } = useContext(UserContext);
+  usePageAssistant({ pageType: 'goals', pageTitle: 'Goals' });
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

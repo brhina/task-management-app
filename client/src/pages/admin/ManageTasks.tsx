@@ -11,6 +11,7 @@ import {
 } from '@dnd-kit/core';
 import { LayoutGrid, List, Users, ClipboardList } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
+import { usePageAssistant } from '../../hooks/usePageAssistant';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
@@ -72,6 +73,11 @@ function ManageTasks() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlProjectId = searchParams.get('projectId') || '';
+  usePageAssistant({
+    pageType: 'tasks',
+    pageTitle: 'Manage Tasks',
+    entityIds: urlProjectId ? { projectId: urlProjectId } : undefined,
+  });
   const [tasks, setTasks] = useState<TaskWithAssignee[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
