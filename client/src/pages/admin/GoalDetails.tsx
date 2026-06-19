@@ -2,6 +2,7 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Folder, ChevronRight, ClipboardList } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
+import { usePageAssistant } from '../../hooks/usePageAssistant';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
@@ -24,6 +25,21 @@ function GoalDetails() {
   const [goal, setGoal] = useState<Goal | null>(null);
   const [linkedProjects, setLinkedProjects] = useState<Project[]>([]);
   const [linkedTasks, setLinkedTasks] = useState<Task[]>([]);
+
+  usePageAssistant({
+    pageType: 'goal-detail',
+    pageTitle: goal?.title ?? 'Goal Details',
+    entityIds: id ? { goalId: id } : undefined,
+    entitySnapshot: goal
+      ? {
+          title: goal.title,
+          objective: goal.objective,
+          metric: goal.metric,
+          timeframe: goal.timeframe,
+          targetValue: goal.targetValue,
+        }
+      : undefined,
+  });
 
   useEffect(() => {
     const fetchDetails = async () => {

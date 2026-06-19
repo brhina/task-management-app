@@ -2,6 +2,7 @@ import { useState, useEffect, useContext, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, CheckCircle, Plus, ClipboardList, Folder, Users, ChevronRight } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
+import { usePageAssistant } from '../../hooks/usePageAssistant';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
@@ -13,6 +14,7 @@ import type { DashboardData } from '../../types';
 
 function Dashboard() {
   const { user, getEffectiveRole } = useContext(UserContext);
+  usePageAssistant({ pageType: 'dashboard', pageTitle: 'Dashboard' });
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
