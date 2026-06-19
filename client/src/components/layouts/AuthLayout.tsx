@@ -67,6 +67,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
     return [
       { name: 'Dashboard', path: '/user/dashboard', icon: NavIcons.dashboard },
       { name: 'WorkOS', path: '/user/workos', icon: NavIcons.workos },
+      { name: 'Intelligence', path: '/user/intelligence', icon: NavIcons.intelligence },
       { name: 'My Tasks', path: '/user/my-tasks', icon: NavIcons.tasks },
     ];
   }, [user, effectiveRole]);
