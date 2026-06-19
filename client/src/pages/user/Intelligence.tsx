@@ -1,5 +1,13 @@
-import IntelligencePage from '../intelligence/IntelligencePage';
+import { useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAssistantOptional } from '../../context/AssistantContext';
 
 export default function UserIntelligence() {
-  return <IntelligencePage readOnly />;
+  const assistant = useAssistantOptional();
+
+  useEffect(() => {
+    assistant?.setOpen(true);
+  }, [assistant]);
+
+  return <Navigate to="/user/dashboard" replace />;
 }

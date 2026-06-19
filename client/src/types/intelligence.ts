@@ -1,5 +1,73 @@
 export type RecommendationStatus = 'pending' | 'accepted' | 'rejected';
 
+export type PageType =
+  | 'dashboard'
+  | 'workos'
+  | 'projects'
+  | 'project-create'
+  | 'goals'
+  | 'goal-detail'
+  | 'tasks'
+  | 'task-detail'
+  | 'reports'
+  | 'manage-users'
+  | 'profile';
+
+export type OrchestratorIntent =
+  | 'plan_project'
+  | 'breakdown_task'
+  | 'analyze_risks'
+  | 'plan_sprint'
+  | 'generate_report'
+  | 'generate_okrs'
+  | 'analyze_dependencies'
+  | 'portfolio_intelligence'
+  | 'general_query';
+
+export interface QuickAction {
+  id: string;
+  label: string;
+  message: string;
+  preferredIntent?: OrchestratorIntent;
+  loadingLabel?: string;
+}
+
+export interface PageAssistantContext {
+  pageType: PageType;
+  pageTitle: string;
+  entityIds?: {
+    taskId?: string;
+    projectId?: string;
+    goalId?: string;
+    userId?: string;
+  };
+  entitySnapshot?: Record<string, unknown>;
+  suggestedActions: QuickAction[];
+}
+
+export interface AssistantPageContextPayload {
+  pageType?: string;
+  pageTitle?: string;
+  entityIds?: {
+    taskId?: string;
+    projectId?: string;
+    goalId?: string;
+    userId?: string;
+  };
+  entitySnapshot?: Record<string, unknown>;
+  preferredIntent?: OrchestratorIntent;
+}
+
+export interface AssistantMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'error';
+  content: string;
+  timestamp: string;
+  intent?: string;
+  result?: unknown;
+  loadingLabel?: string;
+}
+
 export type IntelligenceTab =
   | 'overview'
   | 'planner'
