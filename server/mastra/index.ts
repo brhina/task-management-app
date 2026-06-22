@@ -7,7 +7,6 @@ import { statusReportAgent } from "./agents/status-report.js";
 import { okrAssistantAgent } from "./agents/okr-assistant.js";
 import { dependencyIntelligenceAgent } from "./agents/dependency-intelligence.js";
 import { executiveIntelligenceAgent } from "./agents/executive-intelligence.js";
-import { orchestratorAgent } from "./agents/orchestrator.js";
 import { getMongoDBStore } from "./config/memory.js";
 import { projectCreationWorkflow } from "./workflows/project-creation.workflow.js";
 import { riskMonitoringWorkflow } from "./workflows/risk-monitoring.workflow.js";
@@ -29,7 +28,6 @@ export function getMastra(): Mastra {
         okrAssistant: okrAssistantAgent,
         dependencyIntelligence: dependencyIntelligenceAgent,
         executiveIntelligence: executiveIntelligenceAgent,
-        orchestrator: orchestratorAgent,
       },
       workflows: {
         projectCreation: projectCreationWorkflow,

@@ -1,40 +1,75 @@
-import { Agent } from "@mastra/core/agent";
-import { DEFAULT_MODEL } from "../config/models.js";
-import { createAgentMemory } from "../config/memory.js";
-import { orchestratorIntentSchema } from "../schemas/orchestrator.schema.js";
-import { buildJsonInstructions, parseJsonResponse } from "../utils/json-response.js";
+import { OrchestratorIntent } from "../schemas/orchestrator.schema.js";
 
-export const orchestratorAgent = new Agent({
-  id: "orchestrator",
-  name: "Execution Intelligence Orchestrator",
-  instructions: `You are the supervisor agent for an execution intelligence platform.
-Classify user intent and route to the appropriate specialized agent or workflow.
-Intents: plan_project, breakdown_task, analyze_risks, plan_sprint, generate_report, generate_okrs, analyze_dependencies, portfolio_intelligence, general_query.
-Extract parameters from the user request for downstream agents.
-When page context is provided (page type, entity IDs, entity snapshot), use it to bias intent selection toward the most relevant agent.
-Never execute actions directly — only classify and route.
-Output ONLY valid JSON matching the schema below. No text outside the JSON.
-${buildJsonInstructions(orchestratorIntentSchema)}`,
-  model: DEFAULT_MODEL,
-  memory: createAgentMemory(),
-});
+const INTENT_PATTERNS: { intent: OrchestratorIntent["intent"]; patterns: RegExp[] }[] = [
+  {
+    intent: "plan_project",
+    patterns: [
+      /\b(plan|create|start|kick[\s-]?off|launch|new)\b.*\b(project|initiative|program)\b/i,
+      /\b(project)\b.*\b(plan|roadmap|proposal)\b/i,
+    ],
+  },
+  {
+    intent: "breakdown_task",
+    patterns: [
+      /\b(break[\s-]?down|split|decompose|subtask|subtask|sub[\s-]?task)\b/i,
+      /\b(task|story|ticket|work\s?item)\b.*\b(break|split|detail|refine)\b/i,
+    ],
+  },
+  {
+    intent: "analyze_risks",
+    patterns: [
+      /\b(risk|risk[s]?|blocker|threat|concern|issue)\b.*\b(analy|assess|review|identify|find)\b/i,
+      /\b(analy|assess|review)\b.*\b(risk|risk[s]?|blocker|threat)\b/i,
+    ],
+  },
+  {
+    intent: "plan_sprint",
+    patterns: [
+      /\b(sprint|iteration|cycle)\b.*\b(plan|schedule|organize|prep)\b/i,
+      /\b(plan|schedule|organize)\b.*\b(sprint|iteration|cycle)\b/i,
+      /\bsprint\s*planning\b/i,
+    ],
+  },
+  {
+    intent: "generate_report",
+    patterns: [
+      /\b(report|summary|status\s?update|dashboard|weekly|daily|executive)\b.*\b(generat|creat|build|produc)\b/i,
+      /\b(generat|creat|build|produc)\b.*\b(report|summary|status)\b/i,
+    ],
+  },
+  {
+    intent: "generate_okrs",
+    patterns: [
+      /\b(okr|objective|key\s?result|goal|metric|target|kr)\b/i,
+    ],
+  },
+  {
+    intent: "analyze_dependencies",
+    patterns: [
+      /\b(dependenc|dep|blocker|blocked|critical\s?path|prerequisite|waiting\s?on)\b/i,
+    ],
+  },
+  {
+    intent: "portfolio_intelligence",
+    patterns: [
+      /\b(portfolio|executive|strategic|overall|all\s?project|cross[\s-]?project)\b/i,
+      /\b(capacity|utilization|resource)\b.*\b(bottleneck|overview|across)\b/i,
+    ],
+  },
+];
 
-export async function classifyIntent(
-  prompt: string,
-  options?: { resourceId?: string; threadId?: string; requestContext?: any },
-) {
-  const result = await orchestratorAgent.generate(prompt, {
-    memory: options?.resourceId
-      ? {
-          resource: options.resourceId,
-          thread: options.threadId || options.resourceId,
-        }
-      : undefined,
-    requestContext: options?.requestContext,
-  });
-  try {
-    return parseJsonResponse(result.text, orchestratorIntentSchema);
-  } catch (e) {
-    throw new Error(`Failed to parse orchestrator intent: ${e instanceof Error ? e.message : e}`);
+export function classifyIntentLocal(
+  message: string,
+): OrchestratorIntent {
+  const lower = message.toLowerCase();
+
+  for (const { intent, patterns } of INTENT_PATTERNS) {
+    for (const pattern of patterns) {
+      if (pattern.test(lower) || pattern.test(message)) {
+        return { intent, confidence: 0.85, summary: "" };
+      }
+    }
   }
+
+  return { intent: "general_query", confidence: 0.5, summary: "" };
 }

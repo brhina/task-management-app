@@ -11,14 +11,8 @@ import { getExecutionContext } from "../types/tool-context.js";
 
 function safeGetCtx(context?: any) {
   try {
-    console.log("[tool-debug] context keys:", context ? Object.keys(context) : "null");
-    console.log("[tool-debug] requestContext type:", typeof context?.requestContext);
-    console.log("[tool-debug] requestContext:", context?.requestContext);
-    const ctx = getExecutionContext(context?.requestContext);
-    console.log("[tool-debug] resolved ctx:", ctx);
-    return ctx;
-  } catch (e) {
-    console.log("[tool-debug] getExecutionContext failed:", (e as Error).message);
+    return getExecutionContext(context?.requestContext);
+  } catch {
     return null;
   }
 }

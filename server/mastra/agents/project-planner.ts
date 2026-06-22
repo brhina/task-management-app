@@ -5,7 +5,7 @@ import { projectPlanSchema } from "../schemas/project-plan.schema.js";
 import { capacityTools } from "../tools/capacity-tools.js";
 import { projectTools } from "../tools/project-tools.js";
 import { taskTools } from "../tools/task-tools.js";
-import { buildJsonInstructions, parseJsonResponse } from "../utils/json-response.js";
+import { buildJsonInstructions, parseAgentJsonResult } from "../utils/json-response.js";
 
 export const projectPlannerAgent = new Agent({
   id: "project-planner",
@@ -14,6 +14,8 @@ export const projectPlannerAgent = new Agent({
 Generate complete, actionable project plans from natural language descriptions.
 Always call getProjects, getTasks, and getCapacity tools first to get real data.
 If a tool returns an error, proceed with the information you have — do NOT ask for context or refuse.
+After tool calls complete, your FINAL response must be ONLY the JSON plan object.
+Never respond with conversational text like "I'll help" or "Here is the plan".
 Always produce milestones, tasks with effort estimates, dependencies, and risks.
 Focus on deliverable outcomes, not generic advice.
 Output ONLY valid JSON matching the schema below. No text outside the JSON.
@@ -39,10 +41,7 @@ export async function generateProjectPlan(
         }
       : undefined,
     requestContext: options?.requestContext,
+    maxSteps: 8,
   });
-  try {
-    return parseJsonResponse(result.text, projectPlanSchema);
-  } catch (e) {
-    throw new Error(`Failed to parse project plan: ${e instanceof Error ? e.message : e}`);
-  }
+  return parseAgentJsonResult(result, projectPlanSchema, "project plan", prompt);
 }

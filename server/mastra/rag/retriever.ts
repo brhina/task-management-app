@@ -30,7 +30,7 @@ export async function retrieveChunks(params: {
     filter["metadata.projectId"] = params.projectId;
   }
 
-  const candidates = await KnowledgeChunk.find(filter).limit(200);
+  const candidates = await KnowledgeChunk.find(filter).limit(50);
 
   const scored = candidates
     .filter((c) => c.embedding && c.embedding.length > 0)

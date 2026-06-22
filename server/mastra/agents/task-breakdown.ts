@@ -3,7 +3,7 @@ import { DEFAULT_MODEL } from "../config/models.js";
 import { createAgentMemory } from "../config/memory.js";
 import { taskBreakdownSchema } from "../schemas/task-breakdown.schema.js";
 import { taskTools } from "../tools/task-tools.js";
-import { buildJsonInstructions, parseJsonResponse } from "../utils/json-response.js";
+import { buildJsonInstructions, parseAgentJsonResult } from "../utils/json-response.js";
 
 export const taskBreakdownAgent = new Agent({
   id: "task-breakdown",
@@ -36,9 +36,5 @@ export async function generateTaskBreakdown(
       : undefined,
     requestContext: options?.requestContext,
   });
-  try {
-    return parseJsonResponse(result.text, taskBreakdownSchema);
-  } catch (e) {
-    throw new Error(`Failed to parse task breakdown: ${e instanceof Error ? e.message : e}`);
-  }
+  return parseAgentJsonResult(result, taskBreakdownSchema, "task breakdown", prompt);
 }

@@ -4,7 +4,7 @@ import Task from "../../models/Task.js";
 import type { ExecutionContext } from "../config/context.js";
 
 export async function listProjects(ctx: ExecutionContext) {
-  return Project.find({ orgId: ctx.orgId }).sort({ createdAt: -1 });
+  return Project.find({ orgId: ctx.orgId }).sort({ createdAt: -1 }).limit(50);
 }
 
 export async function getProject(

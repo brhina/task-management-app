@@ -19,7 +19,8 @@ export async function listTasks(
 
   return Task.find(query)
     .populate("assignedTo", "name email")
-    .sort({ dueDate: 1 });
+    .sort({ dueDate: 1 })
+    .limit(100);
 }
 
 export async function getTask(ctx: ExecutionContext, taskId: string) {

@@ -9,7 +9,7 @@ import { generateStatusReport } from "../mastra/agents/status-report.js";
 import { generateOkrs } from "../mastra/agents/okr-assistant.js";
 import { runDependencyIntelligence } from "../mastra/agents/dependency-intelligence.js";
 import { generateExecutiveIntelligence } from "../mastra/agents/executive-intelligence.js";
-import { classifyIntent } from "../mastra/agents/orchestrator.js";
+import { classifyIntentLocal } from "../mastra/agents/orchestrator.js";
 import { assembleContext } from "../mastra/rag/context-assembler.js";
 import {
   completeWorkflowRun,
@@ -387,23 +387,12 @@ export const orchestrate = async (
       requestContext: createRequestContext(ctx),
     };
 
-    let intent: unknown;
-    let result: unknown;
-
-    if (pageContext?.preferredIntent) {
-      intent = { intent: pageContext.preferredIntent, source: "quick_action" };
-      result = await dispatchIntent(ctx, pageContext.preferredIntent, enrichedMessage);
-    } else {
-      intent = await classifyIntent(enrichedMessage, agentOptions);
-      result = await dispatchIntent(ctx, (intent as any)?.intent, enrichedMessage);
-      if (result == null) {
-        result = intent;
-      }
-    }
+    const intentName = pageContext?.preferredIntent || classifyIntentLocal(enrichedMessage).intent;
+    const result = await dispatchIntent(ctx, intentName, enrichedMessage);
 
     res.status(200).json({
       message: "Orchestration complete",
-      data: { intent, result },
+      data: { intent: { intent: intentName }, result },
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -529,25 +518,18 @@ export const queryRag = async (
       requestContext: createRequestContext(ctx),
     };
 
-    let intent: unknown;
+    const intentName = pageContext?.preferredIntent || classifyIntentLocal(enrichedMessage).intent;
     let result: unknown;
 
-    if (pageContext?.preferredIntent) {
-      intent = { intent: pageContext.preferredIntent, source: "quick_action" };
-      result = await dispatchIntent(ctx, pageContext.preferredIntent, enrichedMessage);
+    if (intentName && intentName !== "general_query") {
+      result = await dispatchIntent(ctx, intentName, enrichedMessage);
     } else {
-      intent = await classifyIntent(enrichedMessage, agentOptions);
-      const intentName = (intent as any)?.intent;
-      if (intentName && intentName !== "general_query") {
-        result = await dispatchIntent(ctx, intentName, enrichedMessage);
-      } else {
-        result = intent;
-      }
+      result = { intent: intentName, summary: "No specialized agent matched." };
     }
 
     res.status(200).json({
       message: "Query processed",
-      data: { context, intent, result },
+      data: { context, intent: { intent: intentName }, result },
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });

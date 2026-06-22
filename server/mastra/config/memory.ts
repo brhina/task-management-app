@@ -6,8 +6,6 @@ let sharedStore: MongoDBStore | null = null;
 
 export function getMongoDBStore(): MongoDBStore {
   if (!sharedStore) {
-    console.log("MONGO_URI =", process.env.MONGO_URI);
-console.log("NODE_ENV =", process.env.NODE_ENV);
     sharedStore = new MongoDBStore({
       id: "execution-intelligence",
       uri: process.env.MONGO_URI!,
