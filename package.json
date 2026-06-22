@@ -2,7 +2,6 @@
   "name": "task-manager",
   "version": "1.0.0",
   "description": "Full-stack task management application",
-  "main": "server/server.js",
   "scripts": {
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
     "server:dev": "cd server && npm run dev",
