@@ -10,7 +10,6 @@ export type AIWorkflowRunStatus =
 export interface IAIWorkflowRun {
   orgId: mongoose.Types.ObjectId;
   workflowId: string;
-  mastraRunId?: string;
   status: AIWorkflowRunStatus;
   input: Record<string, unknown>;
   output?: Record<string, unknown>;
@@ -44,7 +43,6 @@ const aiWorkflowRunSchema = new mongoose.Schema<IAIWorkflowRunDocument>(
       index: true,
     },
     workflowId: { type: String, required: true, index: true },
-    mastraRunId: { type: String, index: true },
     status: {
       type: String,
       enum: ["pending", "running", "completed", "failed", "suspended"],

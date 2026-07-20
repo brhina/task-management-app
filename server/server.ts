@@ -16,9 +16,7 @@ import workosRoutes from "./routes/workosRoutes.js";
 import automationRoutes from "./routes/automationRoutes.js";
 import orgMembershipRoutes from "./routes/orgMembershipRoutes.js";
 import orgRoutes from "./routes/orgRoutes.js";
-import intelligenceRoutes from "./routes/intelligenceRoutes.js";
 import { runLegacyOrgMigration } from "./services/legacyMigration.js";
-import { startRagChangeStreams } from "./services/ragChangeStreams.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,7 +46,6 @@ app.use("/api/workos", workosRoutes);
 app.use("/api/automation", automationRoutes);
 app.use("/api/org-membership", orgMembershipRoutes);
 app.use("/api/orgs", orgRoutes);
-app.use("/api/intelligence", intelligenceRoutes);
 
 app.get("/test-jwt", async (_req, res) => {
   try {
@@ -90,7 +87,6 @@ const startServer = async () => {
     );
 
     await runLegacyOrgMigration();
-    startRagChangeStreams();
 
     app.listen(PORT, () => {
       console.log(
