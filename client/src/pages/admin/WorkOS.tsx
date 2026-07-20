@@ -2,8 +2,6 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Zap, AlertTriangle, Users, Lightbulb, RefreshCw, Target, TrendingUp } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
-import InlineAiButton from '../../components/assistant/InlineAiButton';
-import { usePageAssistant } from '../../hooks/usePageAssistant';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
@@ -21,7 +19,6 @@ function downloadJson(filename: string, data: unknown) {
 
 function WorkOS() {
   const { user, getEffectiveRole } = useContext(UserContext);
-  usePageAssistant({ pageType: 'workos', pageTitle: 'WorkOS' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<any>(null);
@@ -82,7 +79,7 @@ function WorkOS() {
 
   if (loading) {
     return (
-      <PageShell title="WorkOS" subtitle="Computing org execution intelligence...">
+      <PageShell title="WorkOS" subtitle="Computing org data...">
         <div className="flex justify-center py-16">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
@@ -100,7 +97,7 @@ function WorkOS() {
   return (
     <PageShell
       title="WorkOS"
-      subtitle="Execution intelligence across priorities, risks, workload, and next-best-actions"
+      subtitle="Overview of priorities, risks, workload, and next-best-actions"
       actions={
         <div className="flex flex-wrap gap-2">
           {/* <button className="btn-secondary" type="button" onClick={fetchSummary}>Refresh</button> */}
@@ -329,16 +326,6 @@ function WorkOS() {
                   <h3 className="text-sm font-semibold text-rose-400">
                     Blocked Tasks ({blockedTasks.length})
                   </h3>
-                  <InlineAiButton
-                    action={{
-                      id: 'analyze-blocked',
-                      label: 'Analyze with AI',
-                      message:
-                        'Analyze blocked tasks and dependency bottlenecks across the organization.',
-                      preferredIntent: 'analyze_dependencies',
-                      loadingLabel: 'Analyzing blockers…',
-                    }}
-                  />
                 </div>
                 <div className="divide-y divide-slate-700/50">
                   {blockedTasks.map((t: any) => (

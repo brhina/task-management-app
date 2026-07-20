@@ -1,8 +1,6 @@
 import { useContext, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageShell from '../../components/common/PageShell';
-import InlineAiButton from '../../components/assistant/InlineAiButton';
-import { usePageAssistant } from '../../hooks/usePageAssistant';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
@@ -18,12 +16,6 @@ function CreateProject() {
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<ProjectStatus>('Active');
   const [creating, setCreating] = useState(false);
-
-  usePageAssistant({
-    pageType: 'project-create',
-    pageTitle: 'Create Project',
-    entitySnapshot: { name, description, status },
-  });
 
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
@@ -58,17 +50,6 @@ function CreateProject() {
     <PageShell
       title="Create Project"
       subtitle="Set up a new project to organize work"
-      actions={
-        <InlineAiButton
-          action={{
-            id: 'generate-plan',
-            label: 'Generate plan',
-            message: `Generate a full project plan for "${name || 'new project'}". ${description ? `Description: ${description}` : ''}`,
-            preferredIntent: 'plan_project',
-            loadingLabel: 'Generating plan…',
-          }}
-        />
-      }
     >
       <div className="space-y-4">
         {error && <div className="alert-error">{error}</div>}

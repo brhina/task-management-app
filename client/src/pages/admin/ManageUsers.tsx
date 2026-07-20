@@ -6,7 +6,6 @@ import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
 import FilterToolbar from '../../components/common/FilterToolbar';
-import { usePageAssistant } from '../../hooks/usePageAssistant';
 import type { User, Task, Project } from '../../types';
 
 interface UserWithTaskCounts extends User {
@@ -33,7 +32,6 @@ interface InviteModalState {
 
 function ManageUsers() {
   const { user, getEffectiveRole } = useContext(UserContext);
-  usePageAssistant({ pageType: 'manage-users', pageTitle: 'Manage Users' });
   const [users, setUsers] = useState<UserWithTaskCounts[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -312,7 +310,7 @@ function ManageUsers() {
   return (
     <PageShell
       title="Team Members"
-      subtitle="Workload intelligence and member performance"
+      subtitle="Team member management and workload overview"
       actions={
         <div className="flex gap-2">
           <button type="button" className="btn-secondary" onClick={fetchData}>

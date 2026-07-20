@@ -20,9 +20,6 @@ import Goals from './pages/admin/Goals';
 import CreateGoal from './pages/admin/CreateGoal';
 import GoalDetails from './pages/admin/GoalDetails';
 import WorkOS from './pages/admin/WorkOS';
-import Intelligence from './pages/admin/Intelligence';
-import UserIntelligence from './pages/user/Intelligence';
-
 import UserDashboard from './pages/user/UserDashboard';
 import UserWorkOS from './pages/user/UserWorkOS';
 import MyTasks from './pages/user/MyTasks';
@@ -283,16 +280,6 @@ function App() {
           }
         />
         <Route
-          path="/admin/intelligence"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <Intelligence />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
-        />
-        <Route
           path="/admin/workos"
           element={
             <AdminRouteWrapper>
@@ -319,16 +306,6 @@ function App() {
             <UserRouteWrapper>
               <AuthLayout>
                 <UserWorkOS />
-              </AuthLayout>
-            </UserRouteWrapper>
-          }
-        />
-        <Route
-          path="/user/intelligence"
-          element={
-            <UserRouteWrapper>
-              <AuthLayout>
-                <UserIntelligence />
               </AuthLayout>
             </UserRouteWrapper>
           }

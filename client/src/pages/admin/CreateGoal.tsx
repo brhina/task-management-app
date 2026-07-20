@@ -1,8 +1,6 @@
 import { useContext, useState, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import PageShell from '../../components/common/PageShell';
-import InlineAiButton from '../../components/assistant/InlineAiButton';
-import { usePageAssistant } from '../../hooks/usePageAssistant';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
@@ -63,12 +61,6 @@ function CreateGoal() {
   const [timeframe, setTimeframe] = useState<GoalTimeframe>('Quarterly');
   const [creating, setCreating] = useState(false);
 
-  usePageAssistant({
-    pageType: 'goals',
-    pageTitle: 'Create Goal',
-    entitySnapshot: { title, objective, metric, timeframe, targetValue },
-  });
-
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return setError('Goal title is required');
@@ -102,15 +94,6 @@ function CreateGoal() {
       subtitle="Define a measurable objective for your team"
       actions={
         <div className="flex gap-2">
-          <InlineAiButton
-            action={{
-              id: 'suggest-okrs',
-              label: 'Suggest OKRs',
-              message: `Suggest OKRs for timeframe ${timeframe}. ${objective ? `Objective: ${objective}` : ''} ${title ? `Title: ${title}` : ''}`,
-              preferredIntent: 'generate_okrs',
-              loadingLabel: 'Generating OKRs…',
-            }}
-          />
           <Link to="/admin/goals" className="btn-secondary">
             Back
           </Link>

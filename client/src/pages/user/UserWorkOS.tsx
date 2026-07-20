@@ -1,7 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageShell from '../../components/common/PageShell';
-import { usePageAssistant } from '../../hooks/usePageAssistant';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
@@ -12,7 +11,6 @@ import type { Task } from '../../types';
 
 function UserWorkOS() {
   const { user } = useContext(UserContext);
-  usePageAssistant({ pageType: 'workos', pageTitle: 'My WorkOS' });
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -88,7 +86,7 @@ function UserWorkOS() {
 
   if (loading) {
     return (
-      <PageShell title="My WorkOS" subtitle="Loading your productivity intelligence...">
+      <PageShell title="My WorkOS" subtitle="Loading your data...">
         <div className="flex justify-center py-16">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
@@ -99,7 +97,7 @@ function UserWorkOS() {
   return (
     <PageShell
       title="My WorkOS"
-      subtitle="Your personal productivity intelligence and task insights"
+      subtitle="Your personal task overview and insights"
       actions={
         <div className="flex gap-2">
           <button className="btn-secondary" onClick={fetchTasks}>

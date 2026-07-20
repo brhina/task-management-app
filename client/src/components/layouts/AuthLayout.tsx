@@ -1,9 +1,6 @@
 import { useContext, useState, useMemo, useCallback, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
-import { AssistantProvider } from '../../context/AssistantContext';
-import AssistantPanel from '../assistant/AssistantPanel';
-import AssistantToggle from '../assistant/AssistantToggle';
 import OrgSwitcher from '../common/OrgSwitcher';
 import {
   LayoutDashboard,
@@ -17,7 +14,6 @@ import {
   ChevronsLeft,
   Menu,
   ClipboardList,
-  Brain,
 } from 'lucide-react';
 
 const NavIcons: Record<string, ReactNode> = {
@@ -29,7 +25,6 @@ const NavIcons: Record<string, ReactNode> = {
   projects: <Folder className="w-5 h-5" />,
   goals: <Target className="w-5 h-5" />,
   workos: <Settings className="w-5 h-5" />,
-  intelligence: <Brain className="w-5 h-5" />,
 };
 
 interface NavLink {
@@ -59,7 +54,6 @@ function AuthLayout({ children }: { children: ReactNode }) {
       return [
         { name: 'Dashboard', path: '/admin/dashboard', icon: NavIcons.dashboard },
         { name: 'WorkOS', path: '/admin/workos', icon: NavIcons.workos },
-        { name: 'AI Hub', path: '/admin/intelligence', icon: NavIcons.intelligence },
         { name: 'Projects', path: '/admin/projects', icon: NavIcons.projects },
         { name: 'Goals', path: '/admin/goals', icon: NavIcons.goals },
         { name: 'Manage Users', path: '/admin/manage-users', icon: NavIcons.users },
@@ -81,7 +75,6 @@ function AuthLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AssistantProvider>
       <div className="flex min-h-screen bg-app-bg">
         {isSidebarOpen && (
           <button
@@ -217,7 +210,6 @@ function AuthLayout({ children }: { children: ReactNode }) {
                 <span className="ml-3 text-lg font-semibold text-white">Cadence</span>
               </div>
               <div className="hidden md:block" />
-              <AssistantToggle />
             </header>
 
             <main className="flex-1 min-w-0 overflow-y-auto">
@@ -227,10 +219,8 @@ function AuthLayout({ children }: { children: ReactNode }) {
             </main>
           </div>
 
-          <AssistantPanel />
         </div>
       </div>
-    </AssistantProvider>
   );
 }
 
