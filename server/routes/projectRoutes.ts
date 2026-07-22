@@ -7,13 +7,18 @@ import {
   updateProject,
   deleteProject,
 } from "../controllers/projectControllers.js";
+import {
+  validate,
+  createProjectSchema,
+  updateProjectSchema,
+} from "../middleware/validate.js";
 
 const router = express.Router();
 
 router.get("/", protect, listProjects);
 router.get("/:id", protect, getProjectById);
-router.post("/", protect, orgAdminOnly, createProject);
-router.put("/:id", protect, orgAdminOnly, updateProject);
+router.post("/", protect, orgAdminOnly, validate(createProjectSchema), createProject);
+router.put("/:id", protect, orgAdminOnly, validate(updateProjectSchema), updateProject);
 router.delete("/:id", protect, orgAdminOnly, deleteProject);
 
 export default router;

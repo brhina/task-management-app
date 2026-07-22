@@ -4,7 +4,7 @@ import User from "../models/User.js";
 import Organization from "../models/Organization.js";
 import OrgMembership from "../models/OrgMembership.js";
 import Invite from "../models/Invite.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/jwtUtils.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
 import { shortRandomId, slugify } from "../utils/slugUtils.js";

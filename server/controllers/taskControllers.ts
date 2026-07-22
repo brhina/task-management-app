@@ -1,5 +1,6 @@
 import { Response } from "express";
 import Task from "../models/Task.js";
+import Dependency from "../models/Dependency.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
 import mongoose from "mongoose";
 import { runAutomations } from "../services/automationRunner.js";
@@ -133,7 +134,7 @@ const createTask = async (req: AuthRequest, res: Response): Promise<void> => {
       priority,
       dueDate,
       assignedTo,
-      attachements,
+      attachments,
       todoCheckList,
       projectId,
       goalIds,
@@ -170,7 +171,7 @@ const createTask = async (req: AuthRequest, res: Response): Promise<void> => {
       blockersText,
       assignedTo,
       createdBy: req.user._id,
-      attachements,
+      attachments,
       todoCheckList,
     });
 
@@ -201,7 +202,7 @@ const updateTask = async (req: AuthRequest, res: Response): Promise<void> => {
     task.priority = req.body.priority || task.priority;
     task.dueDate = req.body.dueDate || task.dueDate;
     task.assignedTo = req.body.assignedTo || task.assignedTo;
-    task.attachments = req.body.attachements || task.attachments;
+    task.attachments = req.body.attachments || task.attachments;
     task.todoCheckList = req.body.todoCheckList || task.todoCheckList;
     task.projectId = req.body.projectId ?? task.projectId;
     task.goalIds = req.body.goalIds ?? task.goalIds;
@@ -217,6 +218,26 @@ const updateTask = async (req: AuthRequest, res: Response): Promise<void> => {
     }
 
     const updatedTask = await task.save();
+
+    if (req.orgId) {
+      await runAutomations({
+        orgId: req.orgId,
+        trigger: "task_status_changed",
+        task: updatedTask,
+      });
+      if (
+        req.body.status &&
+        req.body.status !== task.status &&
+        updatedTask.status === "Completed"
+      ) {
+        await runAutomations({
+          orgId: req.orgId,
+          trigger: "task_completed",
+          task: updatedTask,
+        });
+      }
+    }
+
     res
       .status(200)
       .json({ message: "Task updated successfully", data: updatedTask });
@@ -374,6 +395,22 @@ const updateTaskCheckList = async (
       _id: req.params.id,
       orgId: req.orgId,
     }).populate("assignedTo", "name email profileImageUrl");
+
+    if (req.orgId) {
+      await runAutomations({
+        orgId: req.orgId,
+        trigger: "task_status_changed",
+        task: updatedTask || task,
+      });
+      if (task.progress === 100 && totalCount > 0) {
+        await runAutomations({
+          orgId: req.orgId,
+          trigger: "task_completed",
+          task: updatedTask || task,
+        });
+      }
+    }
+
     res.status(200).json({
       message: "Task check list updated successfully",
       data: updatedTask,
@@ -402,6 +439,12 @@ const deleteTask = async (req: AuthRequest, res: Response): Promise<void> => {
     }
 
     await task.deleteOne();
+
+    await Dependency.deleteMany({
+      orgId: req.orgId,
+      $or: [{ fromTaskId: task._id }, { toTaskId: task._id }],
+    });
+
     res.status(200).json({ message: "Task deleted successfully" });
   } catch (error: any) {
     res.status(500).json({ message: error.message });

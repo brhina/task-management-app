@@ -9,12 +9,13 @@ import {
   linkGoalToProject,
   unlinkGoalFromProject,
 } from "../controllers/goalControllers.js";
+import { validate, createGoalSchema } from "../middleware/validate.js";
 
 const router = express.Router();
 
 router.get("/", protect, listGoals);
 router.get("/:id", protect, getGoalById);
-router.post("/", protect, orgAdminOnly, createGoal);
+router.post("/", protect, orgAdminOnly, validate(createGoalSchema), createGoal);
 router.put("/:id", protect, orgAdminOnly, updateGoal);
 router.delete("/:id", protect, orgAdminOnly, deleteGoal);
 

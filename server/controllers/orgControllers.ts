@@ -282,9 +282,25 @@ export const checkUserExists = async (
       email: email.trim().toLowerCase(),
     }).select("_id name email profileImageUrl");
 
+    if (!user) {
+      res.status(200).json({ exists: false, user: null });
+      return;
+    }
+
+    if (!req.orgId) {
+      res.status(200).json({ exists: false, user: null });
+      return;
+    }
+
+    const membership = await OrgMembership.findOne({
+      orgId: req.orgId,
+      userId: user._id,
+      status: "Active",
+    });
+
     res.status(200).json({
-      exists: !!user,
-      user: user || null,
+      exists: !!membership,
+      user: membership ? user : null,
     });
   } catch (error: any) {
     console.error("Check user error:", error.message);

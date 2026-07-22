@@ -9,16 +9,28 @@ import protect from "../middleware/authMiddleware.js";
 import upload from "../middleware/uploadMiddleware.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
 import { Response } from "express";
+import {
+  validate,
+  registerSchema,
+  loginSchema,
+  updateProfileSchema,
+} from "../middleware/validate.js";
 
 const router = express.Router();
 
-router.post("/login", loginUser);
-router.post("/register", registerUser);
+router.post("/login", validate(loginSchema), loginUser);
+router.post("/register", validate(registerSchema), registerUser);
 router.get("/profile", protect, getUserProfile);
-router.put("/profile/:id", protect, updateUserProfile);
+router.put(
+  "/profile/:id",
+  protect,
+  validate(updateProfileSchema),
+  updateUserProfile,
+);
 
 router.post(
   "/upload-image",
+  protect,
   upload.single("image"),
   (req: AuthRequest, res: Response) => {
     if (!req.file) {
