@@ -142,6 +142,8 @@ const taskSchema = new mongoose.Schema<ITaskDocument>(
   { timestamps: true },
 );
 
+taskSchema.index({ title: "text", description: "text", tags: "text", category: "text" });
+
 const Task = mongoose.model<ITaskDocument>("Task", taskSchema);
 
 export default Task;

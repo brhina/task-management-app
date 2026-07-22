@@ -66,6 +66,8 @@ const projectSchema = new mongoose.Schema<IProjectDocument>(
 
 projectSchema.index({ orgId: 1, name: 1 });
 
+projectSchema.index({ name: "text", description: "text" });
+
 const Project = mongoose.model<IProjectDocument>("Project", projectSchema);
 
 export default Project;

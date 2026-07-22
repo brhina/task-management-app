@@ -15,10 +15,42 @@ export const listGoals = async (
       return;
     }
 
-    const goals = await Goal.find({ orgId: req.orgId }).sort({ createdAt: -1 });
-    res
-      .status(200)
-      .json({ message: "Goals fetched successfully", data: goals });
+    const { search, page: pageStr, limit: limitStr } = req.query;
+    const page = Math.max(1, parseInt(pageStr as string, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(limitStr as string, 10) || 50));
+    const skip = (page - 1) * limit;
+
+    const filter: any = { orgId: req.orgId };
+    const isSearch = Boolean(search);
+
+    if (isSearch) {
+      filter.$text = { $search: search as string };
+    }
+
+    const projection = isSearch ? { score: { $meta: "textScore" } } : {};
+    const sortOptions: any = isSearch
+      ? { score: { $meta: "textScore" }, createdAt: -1 }
+      : { createdAt: -1 };
+
+    const total = await Goal.countDocuments(filter);
+
+    const goals = await Goal.find(filter, projection)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      message: "Goals fetched successfully",
+      data: {
+        goals,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
+    });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

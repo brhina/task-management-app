@@ -16,14 +16,36 @@ export const getAllUsers = async (
       return;
     }
 
+    const { search, page: pageStr, limit: limitStr } = req.query;
+    const page = Math.max(1, parseInt(pageStr as string, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(limitStr as string, 10) || 50));
+    const skip = (page - 1) * limit;
+
     const memberships = await OrgMembership.find({
-      orgId: req.orgId,
+      orgId: new mongoose.Types.ObjectId(req.orgId),
       status: "Active",
     });
     const userIds = memberships.map((m) => m.userId);
-    const users = await User.find({ _id: { $in: userIds } }).select(
-      "-password",
-    );
+
+    let filter: any = { _id: { $in: userIds } };
+    const isSearch = Boolean(search);
+
+    if (isSearch) {
+      filter.$text = { $search: search as string };
+    }
+
+    const total = await User.countDocuments(filter);
+
+    const projection = isSearch ? { score: { $meta: "textScore" } } : {};
+    const sortOptions: any = isSearch
+      ? { score: { $meta: "textScore" } }
+      : {};
+
+    const users = await User.find(filter, projection)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit)
+      .select("-password");
 
     const usersWithTaskCounts = await Promise.all(
       users.map(async (user) => {
@@ -55,7 +77,15 @@ export const getAllUsers = async (
         };
       }),
     );
-    res.status(200).json(usersWithTaskCounts);
+    res.status(200).json({
+      users: usersWithTaskCounts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error: any) {
     console.error("Error fetching users:", error.message);
     res.status(500).json({ message: "Server error" });

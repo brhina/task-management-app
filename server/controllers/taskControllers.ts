@@ -7,7 +7,11 @@ import { runAutomations } from "../services/automationRunner.js";
 
 const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { status, projectId } = req.query;
+    const { status, projectId, search, page: pageStr, limit: limitStr } = req.query;
+    const page = Math.max(1, parseInt(pageStr as string, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(limitStr as string, 10) || 50));
+    const skip = (page - 1) * limit;
+
     let filter: any = {};
 
     if (status) {
@@ -25,20 +29,30 @@ const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
 
     filter.orgId = new mongoose.Types.ObjectId(req.orgId);
 
-    let tasks;
-    if (req.membershipRole === "OrgAdmin") {
-      tasks = await Task.find(filter).populate(
-        "assignedTo",
-        "name email profileImageUrl",
-      );
-    } else {
-      tasks = await Task.find({ ...filter, assignedTo: req.user._id }).populate(
-        "assignedTo",
-        "name email profileImageUrl",
-      );
+    const isSearch = Boolean(search);
+
+    if (isSearch) {
+      filter.$text = { $search: search as string };
     }
 
-    tasks = await Promise.all(
+    let baseFilter = req.membershipRole === "OrgAdmin"
+      ? filter
+      : { ...filter, assignedTo: req.user._id };
+
+    const projection = isSearch ? { score: { $meta: "textScore" } } : {};
+    const sortOptions: any = isSearch
+      ? { score: { $meta: "textScore" }, createdAt: -1 }
+      : { createdAt: -1 };
+
+    const total = await Task.countDocuments(baseFilter);
+
+    let tasks = await Task.find(baseFilter, projection)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit)
+      .populate("assignedTo", "name email profileImageUrl");
+
+    const enrichedTasks = await Promise.all(
       tasks.map(async (task) => {
         const completedCount = task.todoCheckList.filter(
           (todo) => todo.isCompleted === true,
@@ -88,13 +102,19 @@ const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
     res.status(200).json({
       message: "Tasks fetched successfully",
       data: {
-        tasks,
+        tasks: enrichedTasks,
         statusSummary: {
           all: allTasks,
           pending: pendingTasks,
           inProgress: inProgressTasks,
           inReview: inReviewTasks,
           completed: completedTasks,
+        },
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
         },
       },
     });

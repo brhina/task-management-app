@@ -47,8 +47,8 @@ app.use(
 // Rate limiting using in-memory store (use Redis in production)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const RATE_LIMIT_MAX = 100; // requests per window
-const AUTH_RATE_LIMIT_MAX = 10; // stricter for auth endpoints
+const RATE_LIMIT_MAX = 500; // requests per window
+const AUTH_RATE_LIMIT_MAX = 50; // stricter for auth endpoints
 
 function rateLimit(maxRequests: number) {
   return (req: express.Request, res: express.Response, next: express.NextFunction): void => {

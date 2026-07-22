@@ -85,6 +85,8 @@ const goalSchema = new mongoose.Schema<IGoalDocument>(
 
 goalSchema.index({ orgId: 1, title: 1 });
 
+goalSchema.index({ title: "text", objective: "text" });
+
 const Goal = mongoose.model<IGoalDocument>("Goal", goalSchema);
 
 export default Goal;

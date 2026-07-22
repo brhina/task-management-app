@@ -13,12 +13,42 @@ export const listProjects = async (
       return;
     }
 
-    const projects = await Project.find({ orgId: req.orgId }).sort({
-      createdAt: -1,
+    const { search, page: pageStr, limit: limitStr } = req.query;
+    const page = Math.max(1, parseInt(pageStr as string, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(limitStr as string, 10) || 50));
+    const skip = (page - 1) * limit;
+
+    const filter: any = { orgId: req.orgId };
+    const isSearch = Boolean(search);
+
+    if (isSearch) {
+      filter.$text = { $search: search as string };
+    }
+
+    const projection = isSearch ? { score: { $meta: "textScore" } } : {};
+    const sortOptions: any = isSearch
+      ? { score: { $meta: "textScore" }, createdAt: -1 }
+      : { createdAt: -1 };
+
+    const total = await Project.countDocuments(filter);
+
+    const projects = await Project.find(filter, projection)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      message: "Projects fetched successfully",
+      data: {
+        projects,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
     });
-    res
-      .status(200)
-      .json({ message: "Projects fetched successfully", data: projects });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
