@@ -39,7 +39,7 @@ function Goals() {
       setLoading(true);
       setError('');
       const res = await api.get(apiPaths.GOALS.LIST);
-      setGoals(res.data?.data || []);
+      setGoals(res.data?.data?.goals || []);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load goals');
     } finally {

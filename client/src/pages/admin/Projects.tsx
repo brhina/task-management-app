@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Folder, ChevronRight } from 'lucide-react';
+import { Folder, ChevronRight, Pencil } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
 import FilterToolbar from '../../components/common/FilterToolbar';
 import api from '../../utils/axios';
@@ -32,7 +32,7 @@ function Projects() {
       setLoading(true);
       setError('');
       const res = await api.get(apiPaths.PROJECTS.LIST);
-      setProjects(res.data?.data || []);
+      setProjects(res.data?.data?.projects || []);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load projects');
     } finally {
@@ -171,7 +171,19 @@ function Projects() {
                         </span>
                       )}
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary transition-colors" />
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.location.href = `/admin/projects/edit/${p._id}`;
+                        }}
+                        className="p-1 text-slate-600 hover:text-slate-300 transition-colors"
+                        title="Edit project"
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </button>
+                      <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary transition-colors" />
+                    </div>
                   </div>
                 </Link>
               );

@@ -103,7 +103,7 @@ function MyTasks() {
   const fetchProjects = async () => {
     try {
       const response = await api.get(apiPaths.PROJECTS.LIST);
-      setProjects(response.data?.data || []);
+      setProjects(response.data?.data?.projects || []);
     } catch (err) {
       console.error('Error fetching projects:', err);
     }

@@ -11,13 +11,16 @@ import Landing from './pages/public/Landing';
 
 import Dashboard from './pages/admin/Dashboard';
 import CreateTask from './pages/admin/CreateTask';
+import EditTask from './pages/admin/EditTask';
 import ManageTasks from './pages/admin/ManageTasks';
 import ManageUsers from './pages/admin/ManageUsers';
 import Reports from './pages/admin/Reports';
 import Projects from './pages/admin/Projects';
 import CreateProject from './pages/admin/CreateProject';
+import EditProject from './pages/admin/EditProject';
 import Goals from './pages/admin/Goals';
 import CreateGoal from './pages/admin/CreateGoal';
+import EditGoal from './pages/admin/EditGoal';
 import GoalDetails from './pages/admin/GoalDetails';
 import WorkOS from './pages/admin/WorkOS';
 import UserDashboard from './pages/user/UserDashboard';
@@ -25,6 +28,7 @@ import UserWorkOS from './pages/user/UserWorkOS';
 import MyTasks from './pages/user/MyTasks';
 import ViewTaskDetails from './pages/user/ViewTaskDetails';
 import ProfileUpdate from './pages/user/ProfileUpdate';
+import NotFound from './pages/public/NotFound';
 
 import AuthLayout from './components/layouts/AuthLayout';
 import UserProvider from './context/UserContext';
@@ -190,6 +194,16 @@ function App() {
           }
         />
         <Route
+          path="/admin/edit-task/:id"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <EditTask />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
           path="/admin/manage-tasks"
           element={
             <AdminRouteWrapper>
@@ -250,6 +264,16 @@ function App() {
           }
         />
         <Route
+          path="/admin/projects/edit/:id"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <EditProject />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
           path="/admin/goals"
           element={
             <AdminRouteWrapper>
@@ -265,6 +289,16 @@ function App() {
             <AdminRouteWrapper>
               <AuthLayout>
                 <CreateGoal />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/admin/goals/edit/:id"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <EditGoal />
               </AuthLayout>
             </AdminRouteWrapper>
           }
@@ -344,7 +378,8 @@ function App() {
         <Route path="/admin" element={<AdminRedirectRoute user={user} />} />
         <Route path="/user" element={<UserRedirectRoute user={user} />} />
 
-        <Route path="*" element={<CatchAllRoute user={user} />} />
+        <Route path="/404" element={<NotFound />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

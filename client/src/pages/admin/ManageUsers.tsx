@@ -70,9 +70,9 @@ function ManageUsers() {
         api.get(apiPaths.TASKS.GET_ALL_TASKS),
         api.get(apiPaths.PROJECTS.LIST),
       ]);
-      setUsers(usersRes.data);
+      setUsers(usersRes.data?.users || usersRes.data);
       setTasks(tasksRes.data?.data?.tasks || []);
-      setProjects(projectsRes.data?.data || []);
+      setProjects(projectsRes.data?.data?.projects || []);
     } catch (err) {
       setError('Failed to load data');
     } finally {

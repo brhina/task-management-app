@@ -122,7 +122,7 @@ function ManageTasks() {
   const fetchUsers = async () => {
     try {
       const response = await api.get(apiPaths.USERS.GET_ALL_USERS);
-      setUsers(response.data);
+      setUsers(response.data?.users || response.data);
     } catch (err) {
       console.error('Error fetching users:', err);
     }
@@ -131,7 +131,7 @@ function ManageTasks() {
   const fetchProjects = async () => {
     try {
       const response = await api.get(apiPaths.PROJECTS.LIST);
-      setProjects(response.data?.data || []);
+      setProjects(response.data?.data?.projects || []);
     } catch (err) {
       console.error('Error fetching projects:', err);
     }
@@ -505,6 +505,12 @@ function ManageTasks() {
                           className="text-[10px] text-primary hover:text-primary-hover font-medium"
                         >
                           View
+                        </Link>
+                        <Link
+                          to={`/admin/edit-task/${task._id}`}
+                          className="text-[10px] text-slate-400 hover:text-slate-200 font-medium"
+                        >
+                          Edit
                         </Link>
                         <button
                           onClick={() => handleDeleteTask(task._id)}

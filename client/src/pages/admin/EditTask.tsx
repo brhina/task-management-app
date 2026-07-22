@@ -1,11 +1,13 @@
 import { useState, useEffect, useContext, useMemo, type FormEvent } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { Check, ChevronDown } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
-import type { Goal, Project, User } from '../../types';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { TASK_STATUS } from '../../constants/taskStatus';
+import type { Goal, Project, User, Task } from '../../types';
 
 interface TodoItem {
   text: string;
@@ -21,6 +23,13 @@ const PRIORITY_OPTIONS = [
     label: 'Critical',
     color: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
   },
+];
+
+const STATUS_FLOW = [
+  { value: TASK_STATUS.PENDING, label: 'Pending' },
+  { value: TASK_STATUS.IN_PROGRESS, label: 'In Progress' },
+  { value: TASK_STATUS.IN_REVIEW, label: 'In Review' },
+  { value: TASK_STATUS.COMPLETED, label: 'Completed' },
 ];
 
 const DATE_PRESETS = [
@@ -70,25 +79,28 @@ const DATE_PRESETS = [
   },
 ];
 
-function CreateTask() {
+function EditTask() {
   const { user, getEffectiveRole } = useContext(UserContext);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const urlProjectId = searchParams.get('projectId') || '';
+  const { id } = useParams<{ id: string }>();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{ type: 'assignee' | 'priority'; message: string } | null>(null);
+  const [pendingChange, setPendingChange] = useState<(() => void) | null>(null);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('Medium');
+  const [status, setStatus] = useState<string>(TASK_STATUS.PENDING);
   const [dueDate, setDueDate] = useState('');
   const [assignedTo, setAssignedTo] = useState('');
-  const [projectId, setProjectId] = useState(urlProjectId);
+  const [projectId, setProjectId] = useState('');
   const [goalIds, setGoalIds] = useState<string[]>([]);
   const [tags, setTags] = useState('');
   const [category, setCategory] = useState('');
@@ -96,22 +108,51 @@ function CreateTask() {
   const [effortHours, setEffortHours] = useState(1);
   const [todoItems, setTodoItems] = useState<TodoItem[]>([]);
 
+  const [originalAssignedTo, setOriginalAssignedTo] = useState('');
+  const [originalPriority, setOriginalPriority] = useState('Medium');
+
   const scopedProject = useMemo(
     () => projects.find((p) => p._id === projectId),
     [projects, projectId]
   );
 
   useEffect(() => {
+    if (!id) return;
+    setLoading(true);
     Promise.all([
       api.get(apiPaths.USERS.GET_ALL_USERS).then((r) => setUsers(r.data?.users || r.data)),
       api.get(apiPaths.PROJECTS.LIST).then((r) => setProjects(r.data?.data?.projects || [])),
       api.get(apiPaths.GOALS.LIST).then((r) => setGoals(r.data?.data?.goals || [])),
-    ]).catch(() => {});
-  }, []);
+      api.get(apiPaths.TASKS.GET_TASK_BY_ID.replace(':id', id)).then((r) => {
+        const task: Task = r.data.data;
+        setTitle(task.title);
+        setDescription(task.description || '');
+        setPriority(task.priority);
+        setStatus(task.status);
+        setDueDate(task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : '');
+        const assigneeId = typeof task.assignedTo === 'string' ? task.assignedTo : task.assignedTo?._id || '';
+        setAssignedTo(assigneeId);
+        setOriginalAssignedTo(assigneeId);
+        setOriginalPriority(task.priority);
+        const projId = typeof task.projectId === 'string' ? task.projectId : task.projectId?._id || '';
+        setProjectId(projId);
+        setGoalIds(task.goalIds || []);
+        setTags(task.tags?.join(', ') || '');
+        setCategory(task.category || '');
+        setImpactScore(task.impactScore ?? 5);
+        setEffortHours(task.effortHours ?? 1);
+        setTodoItems(task.todoCheckList || []);
+      }),
+    ])
+      .catch((err: any) => {
+        setError(err.response?.data?.message || 'Failed to load task');
+      })
+      .finally(() => setLoading(false));
+  }, [id]);
 
   const handleGoalToggle = (goalId: string) => {
     setGoalIds((prev) =>
-      prev.includes(goalId) ? prev.filter((id) => id !== goalId) : [...prev, goalId]
+      prev.includes(goalId) ? prev.filter((gid) => gid !== goalId) : [...prev, goalId]
     );
   };
 
@@ -124,6 +165,35 @@ function CreateTask() {
     setTodoItems(updated);
   };
 
+  const handleAssigneeChange = (newAssignee: string) => {
+    if (originalAssignedTo && newAssignee !== originalAssignedTo) {
+      setConfirmDialog({ type: 'assignee', message: 'Are you sure you want to change the assignee?' });
+      setPendingChange(() => () => setAssignedTo(newAssignee));
+    } else {
+      setAssignedTo(newAssignee);
+    }
+  };
+
+  const handlePriorityChange = (newPriority: string) => {
+    if (newPriority !== originalPriority) {
+      setConfirmDialog({ type: 'priority', message: 'Are you sure you want to change the priority?' });
+      setPendingChange(() => () => setPriority(newPriority));
+    } else {
+      setPriority(newPriority);
+    }
+  };
+
+  const confirmAction = () => {
+    if (pendingChange) pendingChange();
+    setConfirmDialog(null);
+    setPendingChange(null);
+  };
+
+  const cancelAction = () => {
+    setConfirmDialog(null);
+    setPendingChange(null);
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return setError('Title is required');
@@ -131,13 +201,14 @@ function CreateTask() {
     if (!assignedTo) return setError('Please assign to a user');
     if (!projectId) return setError('Please select a project');
 
-    setLoading(true);
+    setSubmitting(true);
     setError('');
     try {
-      await api.post(apiPaths.TASKS.CREATE_TASK, {
+      await api.put(apiPaths.TASKS.UPDATE_TASK.replace(':id', id || ''), {
         title: title.trim(),
         description: description.trim(),
         priority,
+        status,
         dueDate,
         assignedTo,
         projectId: projectId || undefined,
@@ -153,11 +224,11 @@ function CreateTask() {
         effortHours,
         todoCheckList: todoItems.filter((item) => item.text.trim()),
       });
-      navigate(projectId ? `/admin/manage-tasks?projectId=${projectId}` : '/admin/manage-tasks');
+      navigate(`/admin/task/${id}`);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create task');
+      setError(err.response?.data?.message || 'Failed to update task');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -166,51 +237,71 @@ function CreateTask() {
     return <PageShell title="Access Denied" subtitle="Admin only." />;
   }
 
+  if (loading) {
+    return (
+      <PageShell title="Edit Task" subtitle="Loading task...">
+        <div className="flex justify-center py-16">
+          <LoadingSpinner size="lg" text="Loading task data..." />
+        </div>
+      </PageShell>
+    );
+  }
+
   return (
     <PageShell
-      title={scopedProject ? `New Task in ${scopedProject.name}` : 'Create Task'}
+      title={scopedProject ? `Edit Task in ${scopedProject.name}` : 'Edit Task'}
       subtitle={
         scopedProject
-          ? scopedProject.description || 'Adding a task to this project'
-          : 'Fill in the details below'
+          ? scopedProject.description || 'Updating task details'
+          : 'Update the task details below'
       }
       actions={
         <div className="flex gap-2">
-          <Link
-            to={projectId ? `/admin/manage-tasks?projectId=${projectId}` : '/admin/projects'}
-            className="btn-secondary"
-          >
-            Cancel
+          <Link to={`/admin/task/${id}`} className="btn-secondary">
+            Back to Task
           </Link>
         </div>
       }
     >
+      {confirmDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="card max-w-sm w-full mx-4 space-y-4">
+            <div className="text-sm font-semibold text-slate-200">Confirm Change</div>
+            <p className="text-sm text-slate-400">{confirmDialog.message}</p>
+            <div className="flex justify-end gap-2">
+              <button onClick={cancelAction} className="btn-secondary text-sm">
+                Cancel
+              </button>
+              <button onClick={confirmAction} className="btn-primary text-sm">
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="max-w-7xl space-y-4">
         {error && <div className="alert-error">{error}</div>}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Project Selector (when not scoped) */}
-          {!urlProjectId && (
-            <div className="card">
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
-                Project *
-              </div>
-              <select
-                value={projectId}
-                onChange={(e) => setProjectId(e.target.value)}
-                className="input-dark w-full text-sm"
-                required
-              >
-                <option value="">Select a project</option>
-                {projects.map((p) => (
-                  <option key={p._id} value={p._id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+          <div className="card">
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+              Project *
             </div>
-          )}
+            <select
+              value={projectId}
+              onChange={(e) => setProjectId(e.target.value)}
+              className="input-dark w-full text-sm"
+              required
+            >
+              <option value="">Select a project</option>
+              {projects.map((p) => (
+                <option key={p._id} value={p._id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          {/* Title */}
           <div className="card">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
               Title *
@@ -237,11 +328,8 @@ function CreateTask() {
             />
           </div>
         </div>
-        {/* Description */}
 
-        {/* Priority & Date Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Priority */}
           <div className="card">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
               Priority
@@ -251,7 +339,7 @@ function CreateTask() {
                 <button
                   key={p.value}
                   type="button"
-                  onClick={() => setPriority(p.value)}
+                  onClick={() => handlePriorityChange(p.value)}
                   className={`flex-1 px-3 py-2 text-xs font-semibold rounded-lg border transition-all ${
                     priority === p.value
                       ? p.color + ' ring-1 ring-white/15'
@@ -264,7 +352,28 @@ function CreateTask() {
             </div>
           </div>
 
-          {/* Due Date */}
+          <div className="card">
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+              Status
+            </div>
+            <div className="flex gap-2">
+              {STATUS_FLOW.map((s) => (
+                <button
+                  key={s.value}
+                  type="button"
+                  onClick={() => setStatus(s.value)}
+                  className={`flex-1 px-3 py-2 text-xs font-semibold rounded-lg border transition-all ${
+                    status === s.value
+                      ? 'bg-primary/15 text-primary border-primary/30 ring-1 ring-white/15'
+                      : 'border-slate-700 text-slate-500 hover:text-slate-300 hover:border-slate-600'
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="card">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
               Due Date *
@@ -291,7 +400,6 @@ function CreateTask() {
           </div>
         </div>
 
-        {/* Assignee */}
         <div className="card">
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
             Assign To *
@@ -301,7 +409,7 @@ function CreateTask() {
               <button
                 key={u._id}
                 type="button"
-                onClick={() => setAssignedTo(u._id)}
+                onClick={() => handleAssigneeChange(u._id)}
                 className={`flex items-center gap-2.5 p-2.5 rounded-lg border text-left transition-all ${
                   assignedTo === u._id
                     ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
@@ -335,7 +443,6 @@ function CreateTask() {
           </div>
         </div>
 
-        {/* Checklist */}
         <div className="card">
           <div className="flex items-center justify-between mb-2">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
@@ -383,7 +490,6 @@ function CreateTask() {
           )}
         </div>
 
-        {/* Advanced Options */}
         <div className="card">
           <button
             type="button"
@@ -483,17 +589,13 @@ function CreateTask() {
           )}
         </div>
 
-        {/* Submit */}
         <div className="flex justify-end gap-2">
-          {/* <Link to={projectId ? `/admin/manage-tasks?projectId=${projectId}` : '/admin/manage-tasks'} className="btn-secondary">
-                        Cancel
-                    </Link> */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={submitting}
             className="btn-primary disabled:opacity-50 min-w-[140px]"
           >
-            {loading ? (
+            {submitting ? (
               <span className="flex items-center justify-center gap-2">
                 <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                   <circle
@@ -510,10 +612,10 @@ function CreateTask() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                   />
                 </svg>
-                Creating...
+                Updating...
               </span>
             ) : (
-              'Create Task'
+              'Update Task'
             )}
           </button>
         </div>
@@ -522,4 +624,4 @@ function CreateTask() {
   );
 }
 
-export default CreateTask;
+export default EditTask;

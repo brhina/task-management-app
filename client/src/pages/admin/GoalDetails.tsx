@@ -90,6 +90,9 @@ function GoalDetails() {
       }
       actions={
         <div className="flex gap-2">
+          <Link to={`/admin/goals/edit/${id}`} className="btn-secondary">
+            Edit Goal
+          </Link>
           <Link to="/admin/goals" className="btn-secondary">
             ← Back
           </Link>

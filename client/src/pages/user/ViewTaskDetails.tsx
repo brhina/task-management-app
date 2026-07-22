@@ -247,6 +247,11 @@ function ViewTaskDetails() {
       }
       actions={
         <div className="flex gap-2">
+          {getEffectiveRole() === 'OrgAdmin' && (
+            <Link to={`/admin/edit-task/${id}`} className="btn-secondary">
+              Edit
+            </Link>
+          )}
           <Link
             to={isAdminRoute ? '/admin/manage-tasks' : '/user/my-tasks'}
             className="btn-secondary"
