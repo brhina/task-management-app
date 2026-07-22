@@ -58,7 +58,7 @@ const automationRuleSchema = new mongoose.Schema<IAutomationRuleDocument>(
       type: [mongoose.Schema.Types.Mixed],
       required: true,
       default: [],
-    },
+    } as any,
   },
   { timestamps: true },
 );

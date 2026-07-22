@@ -76,7 +76,7 @@ export const getProjectSummary = async (
       return;
     }
     const orgId = req.orgId;
-    const projectId = req.params.id;
+    const projectId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     const cached = await maybeGetCachedSnapshot({
       orgId,
@@ -118,7 +118,7 @@ export const getUserSummary = async (
       return;
     }
     const orgId = req.orgId;
-    const userId = req.params.id;
+    const userId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     const cached = await maybeGetCachedSnapshot({
       orgId,

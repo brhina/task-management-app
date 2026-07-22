@@ -162,7 +162,7 @@ export const registerUser = async (
 
       res.status(201).json({
         message: "User created successfully",
-        token: generateToken(newUser._id as string),
+        token: generateToken(String(newUser._id)),
         activeOrgId: orgId,
         user: {
           _id: newUser._id,
@@ -206,7 +206,7 @@ export const loginUser = async (
     });
     res.status(200).json({
       message: "Logged in successfully",
-      token: generateToken(user._id as string),
+      token: generateToken(String(user._id)),
       activeOrgId: orgId,
       user: {
         _id: user._id,
@@ -293,7 +293,7 @@ export const updateUserProfile = async (
         email: updatedUser.email,
         role: updatedUser.role,
         profileImageUrl: updatedUser.profileImageUrl,
-        token: generateToken(updatedUser._id as string),
+        token: generateToken(String(updatedUser._id)),
       },
     });
   } catch (error: any) {
