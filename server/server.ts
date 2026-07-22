@@ -18,7 +18,16 @@ import workosRoutes from "./routes/workosRoutes.js";
 import automationRoutes from "./routes/automationRoutes.js";
 import orgMembershipRoutes from "./routes/orgMembershipRoutes.js";
 import orgRoutes from "./routes/orgRoutes.js";
+import timeEntryRoutes from "./routes/timeEntryRoutes.js";
+import taskTemplateRoutes from "./routes/taskTemplateRoutes.js";
+import customFieldRoutes from "./routes/customFieldRoutes.js";
+import sprintRoutes from "./routes/sprintRoutes.js";
+import milestoneRoutes from "./routes/milestoneRoutes.js";
+import keyResultRoutes from "./routes/keyResultRoutes.js";
+import resourceRoutes from "./routes/resourceRoutes.js";
 import { runLegacyOrgMigration } from "./services/legacyMigration.js";
+import { startRecurringTasksJob } from "./jobs/recurringTasks.js";
+import { ensureUploadsDir } from "./services/fileStorage.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -94,6 +103,13 @@ app.use("/api/workos", workosRoutes);
 app.use("/api/automation", automationRoutes);
 app.use("/api/org-membership", orgMembershipRoutes);
 app.use("/api/orgs", orgRoutes);
+app.use("/api/time-entries", timeEntryRoutes);
+app.use("/api/task-templates", taskTemplateRoutes);
+app.use("/api/custom-fields", customFieldRoutes);
+app.use("/api/sprints", sprintRoutes);
+app.use("/api/milestones", milestoneRoutes);
+app.use("/api/key-results", keyResultRoutes);
+app.use("/api/resources", resourceRoutes);
 
 // Health check endpoint
 app.get("/health", (_req, res) => {
@@ -130,6 +146,8 @@ const startServer = async () => {
     );
 
     await runLegacyOrgMigration();
+    await ensureUploadsDir();
+    startRecurringTasksJob();
 
     app.listen(PORT, () => {
       console.log(
