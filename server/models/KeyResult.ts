@@ -8,6 +8,7 @@ export interface IKeyResult {
   targetValue?: number;
   currentValue?: number;
   linkedProjectIds?: mongoose.Types.ObjectId[];
+  linkedTaskIds?: mongoose.Types.ObjectId[];
 }
 
 export interface IKeyResultDocument extends IKeyResult, mongoose.Document {
@@ -36,6 +37,7 @@ const keyResultSchema = new mongoose.Schema<IKeyResultDocument>(
     linkedProjectIds: [
       { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
     ],
+    linkedTaskIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }],
   },
   { timestamps: true },
 );

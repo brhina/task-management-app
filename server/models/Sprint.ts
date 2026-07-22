@@ -11,6 +11,7 @@ export interface ISprint {
   goalIds?: mongoose.Types.ObjectId[];
   capacityHours?: number;
   status: SprintStatus;
+  retrospectiveNotes?: string;
   createdBy: mongoose.Types.ObjectId;
 }
 
@@ -44,6 +45,7 @@ const sprintSchema = new mongoose.Schema<ISprintDocument>(
       default: "Planned",
       index: true,
     },
+    retrospectiveNotes: { type: String, trim: true },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
