@@ -1,0 +1,95 @@
+import { useEffect, useState, type FormEvent } from 'react';
+import PageShell from '../../components/common/PageShell';
+import api from '../../utils/axios';
+import { apiPaths } from '../../utils/apiPaths';
+import type { TaskTemplate } from '../../types';
+import { Trash2 } from 'lucide-react';
+
+export default function TaskTemplates() {
+  const [templates, setTemplates] = useState<TaskTemplate[]>([]);
+  const [name, setName] = useState('');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [error, setError] = useState('');
+
+  const load = async () => {
+    const res = await api.get(apiPaths.TASK_TEMPLATES.LIST);
+    setTemplates(res.data.data || []);
+  };
+
+  useEffect(() => {
+    load().catch((e) => setError(e.message));
+  }, []);
+
+  const create = async (e: FormEvent) => {
+    e.preventDefault();
+    await api.post(apiPaths.TASK_TEMPLATES.CREATE, {
+      name,
+      title,
+      description,
+      checklist: [],
+    });
+    setName('');
+    setTitle('');
+    setDescription('');
+    await load();
+  };
+
+  const remove = async (id: string) => {
+    await api.delete(apiPaths.TASK_TEMPLATES.DELETE.replace(':id', id));
+    await load();
+  };
+
+  return (
+    <PageShell title="Task Templates" subtitle="Reusable task blueprints">
+      {error && <div className="alert-error mb-4">{error}</div>}
+      <form onSubmit={create} className="card space-y-3 mb-6 max-w-xl">
+        <input
+          className="input-dark w-full text-sm"
+          placeholder="Template name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
+        <input
+          className="input-dark w-full text-sm"
+          placeholder="Task title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+        />
+        <textarea
+          className="input-dark w-full text-sm"
+          placeholder="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          required
+          rows={3}
+        />
+        <button type="submit" className="btn-primary">
+          Create template
+        </button>
+      </form>
+      <ul className="space-y-2">
+        {templates.map((t) => (
+          <li
+            key={t._id}
+            className="card flex items-center justify-between gap-3"
+          >
+            <div>
+              <div className="text-sm font-medium text-slate-200">{t.name}</div>
+              <div className="text-xs text-slate-500">{t.title}</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => remove(t._id)}
+              className="text-slate-500 hover:text-red-400"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </PageShell>
+  );
+}

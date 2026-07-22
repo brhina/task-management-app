@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Folder, ChevronRight, Pencil } from 'lucide-react';
+import { Folder, ChevronRight, Pencil, GanttChart, Timer } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
 import FilterToolbar from '../../components/common/FilterToolbar';
 import api from '../../utils/axios';
@@ -172,6 +172,22 @@ function Projects() {
                       )}
                     </div>
                     <div className="flex items-center gap-1">
+                      <Link
+                        to={`/admin/projects/${p._id}/gantt`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-1 text-slate-600 hover:text-cyan-400 transition-colors"
+                        title="Gantt"
+                      >
+                        <GanttChart className="w-3.5 h-3.5" />
+                      </Link>
+                      <Link
+                        to={`/admin/projects/${p._id}/sprints`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-1 text-slate-600 hover:text-cyan-400 transition-colors"
+                        title="Sprints"
+                      >
+                        <Timer className="w-3.5 h-3.5" />
+                      </Link>
                       <button
                         onClick={(e) => {
                           e.preventDefault();

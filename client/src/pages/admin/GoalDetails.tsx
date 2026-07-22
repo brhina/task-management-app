@@ -6,7 +6,7 @@ import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
 import { getStatusColor, getPriorityColor } from '../../constants/taskStatus';
-import type { Goal, Project, Task } from '../../types';
+import type { Goal, Project, Task, KeyResult } from '../../types';
 
 const TIMEFRAME_COLORS: Record<string, string> = {
   Weekly: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
@@ -24,16 +24,27 @@ function GoalDetails() {
   const [goal, setGoal] = useState<Goal | null>(null);
   const [linkedProjects, setLinkedProjects] = useState<Project[]>([]);
   const [linkedTasks, setLinkedTasks] = useState<Task[]>([]);
+  const [keyResults, setKeyResults] = useState<KeyResult[]>([]);
+  const [okrTree, setOkrTree] = useState<any>(null);
+  const [krTitle, setKrTitle] = useState('');
+  const [krTarget, setKrTarget] = useState(100);
+  const [krMetric, setKrMetric] = useState('');
 
   useEffect(() => {
     const fetchDetails = async () => {
       try {
         setLoading(true);
         setError('');
-        const res = await api.get(apiPaths.GOALS.GET_BY_ID.replace(':id', id || ''));
+        const [res, krRes, treeRes] = await Promise.all([
+          api.get(apiPaths.GOALS.GET_BY_ID.replace(':id', id || '')),
+          api.get(apiPaths.KEY_RESULTS.LIST, { params: { objectiveId: id } }),
+          api.get(apiPaths.GOALS.OKR_TREE.replace(':id', id || '')),
+        ]);
         setGoal(res.data?.data?.goal || null);
         setLinkedProjects(res.data?.data?.linkedProjects || []);
         setLinkedTasks(res.data?.data?.linkedTasks || []);
+        setKeyResults(krRes.data?.data || []);
+        setOkrTree(treeRes.data?.data || null);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to load goal');
       } finally {
@@ -42,6 +53,29 @@ function GoalDetails() {
     };
     fetchDetails();
   }, [id]);
+
+  const addKeyResult = async () => {
+    if (!krTitle.trim() || !id) return;
+    await api.post(apiPaths.KEY_RESULTS.CREATE, {
+      objectiveId: id,
+      title: krTitle.trim(),
+      metric: krMetric || undefined,
+      targetValue: krTarget,
+      currentValue: 0,
+    });
+    setKrTitle('');
+    const krRes = await api.get(apiPaths.KEY_RESULTS.LIST, {
+      params: { objectiveId: id },
+    });
+    setKeyResults(krRes.data?.data || []);
+    const treeRes = await api.get(apiPaths.GOALS.OKR_TREE.replace(':id', id));
+    setOkrTree(treeRes.data?.data || null);
+  };
+
+  const deleteKeyResult = async (krId: string) => {
+    await api.delete(apiPaths.KEY_RESULTS.DELETE.replace(':id', krId));
+    setKeyResults((prev) => prev.filter((k) => k._id !== krId));
+  };
 
   const taskStats = useMemo(() => {
     const total = linkedTasks.length;
@@ -125,6 +159,95 @@ function GoalDetails() {
                 <span>{goal.currentValue ?? 0} current</span>
                 <span>{goal.targetValue} target</span>
               </div>
+            </div>
+          )}
+
+          {/* Key Results */}
+          <div className="card space-y-3">
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+              Key Results ({keyResults.length})
+            </div>
+            {keyResults.map((kr) => (
+              <div
+                key={kr._id}
+                className="border border-slate-700/50 rounded-lg p-3"
+              >
+                <div className="flex justify-between gap-2 mb-2">
+                  <div>
+                    <div className="text-sm text-slate-200 font-medium">{kr.title}</div>
+                    {kr.metric && (
+                      <div className="text-xs text-slate-500">{kr.metric}</div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="text-xs text-slate-500 hover:text-red-400"
+                    onClick={() => deleteKeyResult(kr._id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+                <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden mb-1">
+                  <div
+                    className="h-full bg-violet-500"
+                    style={{ width: `${kr.progressPercent ?? 0}%` }}
+                  />
+                </div>
+                <div className="text-xs text-slate-500">
+                  {kr.currentValue ?? 0} / {kr.targetValue ?? '—'} ·{' '}
+                  {kr.progressPercent ?? 0}%
+                </div>
+              </div>
+            ))}
+            <div className="flex flex-wrap gap-2 pt-2">
+              <input
+                className="input-dark text-sm flex-1 min-w-[140px]"
+                placeholder="Key result title"
+                value={krTitle}
+                onChange={(e) => setKrTitle(e.target.value)}
+              />
+              <input
+                className="input-dark text-sm w-28"
+                placeholder="Metric"
+                value={krMetric}
+                onChange={(e) => setKrMetric(e.target.value)}
+              />
+              <input
+                type="number"
+                className="input-dark text-sm w-24"
+                value={krTarget}
+                onChange={(e) => setKrTarget(Number(e.target.value))}
+              />
+              <button type="button" className="btn-primary text-sm" onClick={addKeyResult}>
+                Add KR
+              </button>
+            </div>
+          </div>
+
+          {/* OKR alignment */}
+          {okrTree && (
+            <div className="card">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                OKR alignment
+              </div>
+              <div className="text-sm text-slate-300 mb-2">Goal → Key Results → Projects → Tasks</div>
+              <ul className="space-y-2 text-xs text-slate-400">
+                {(okrTree.keyResults || []).map((kr: any) => (
+                  <li key={kr._id} className="border-l-2 border-violet-500/40 pl-3">
+                    <span className="text-slate-200">{kr.title}</span> ({kr.progressPercent ?? 0}%)
+                    <ul className="mt-1 ml-2 space-y-0.5">
+                      {(kr.projects || []).map((p: any) => (
+                        <li key={p._id}>Project: {p.name}</li>
+                      ))}
+                      {(kr.tasks || []).map((t: any) => (
+                        <li key={t._id}>
+                          Task: {t.title} · {t.status}
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 

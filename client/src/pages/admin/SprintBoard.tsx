@@ -1,0 +1,114 @@
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from '@dnd-kit/core';
+import PageShell from '../../components/common/PageShell';
+import TaskBoard from '../../components/tasks/TaskBoard';
+import TaskCard from '../../components/tasks/TaskCard';
+import api from '../../utils/axios';
+import { apiPaths } from '../../utils/apiPaths';
+import type { Sprint, Task, TaskStatus } from '../../types';
+
+export default function SprintBoard() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [sprint, setSprint] = useState<Sprint | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [velocity, setVelocity] = useState({
+    completedTasks: 0,
+    totalTasks: 0,
+    velocityHours: 0,
+  });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+  );
+
+  const load = useCallback(async () => {
+    if (!id) return;
+    const res = await api.get(apiPaths.SPRINTS.GET.replace(':id', id));
+    setSprint(res.data.data.sprint);
+    setTasks(res.data.data.tasks || []);
+    setVelocity(
+      res.data.data.velocity || {
+        completedTasks: 0,
+        totalTasks: 0,
+        velocityHours: 0,
+      },
+    );
+  }, [id]);
+
+  useEffect(() => {
+    load().catch(console.error);
+  }, [load]);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const task = tasks.find((t) => t._id === event.active.id);
+    setActiveTask(task || null);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    setActiveTask(null);
+    const { active, over } = event;
+    if (!over) return;
+    const newStatus = String(over.id) as TaskStatus;
+    const taskId = String(active.id);
+    const task = tasks.find((t) => t._id === taskId);
+    if (!task || task.status === newStatus) return;
+    setTasks((prev) =>
+      prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t)),
+    );
+    try {
+      await api.put(apiPaths.TASKS.UPDATE_TASK_STATUS.replace(':id', taskId), {
+        status: newStatus,
+      });
+      await load();
+    } catch (err) {
+      console.error(err);
+      await load();
+    }
+  };
+
+  return (
+    <PageShell
+      title={sprint ? `Sprint board — ${sprint.name}` : 'Sprint board'}
+      subtitle={
+        sprint
+          ? `${velocity.completedTasks}/${velocity.totalTasks} done · velocity ${velocity.velocityHours}h`
+          : 'Loading…'
+      }
+      actions={
+        sprint ? (
+          <Link
+            to={`/admin/projects/${sprint.projectId}/sprints`}
+            className="btn-secondary"
+          >
+            Back to sprints
+          </Link>
+        ) : null
+      }
+    >
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <TaskBoard
+          tasks={tasks}
+          onTaskClick={(taskId) => navigate(`/admin/task/${taskId}`)}
+        />
+        <DragOverlay>
+          {activeTask ? <TaskCard task={activeTask} /> : null}
+        </DragOverlay>
+      </DndContext>
+    </PageShell>
+  );
+}

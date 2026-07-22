@@ -42,6 +42,23 @@ export interface TodoItem {
   isCompleted: boolean;
 }
 
+export interface TaskAttachment {
+  _id: string;
+  url: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  uploadedBy: string;
+  uploadedAt: string;
+}
+
+export interface TaskRecurrence {
+  frequency: 'daily' | 'weekly' | 'monthly';
+  interval: number;
+  nextRunAt: string;
+  endDate?: string;
+}
+
 export interface Task {
   _id: string;
   title: string;
@@ -49,6 +66,7 @@ export interface Task {
   priority: TaskPriority;
   status: TaskStatus;
   dueDate: string;
+  startDate?: string;
   assignedTo: User | string;
   createdBy: string;
   projectId?: string | { _id: string; name?: string };
@@ -58,13 +76,104 @@ export interface Task {
   impactScore?: number;
   effortHours?: number;
   collaborators?: string[];
-  attachments: string[];
+  attachments: (string | TaskAttachment)[];
   todoCheckList: TodoItem[];
   progress: number;
+  parentTaskId?: string;
+  sortOrder?: number;
+  sprintId?: string;
+  customFields?: Record<string, unknown>;
+  recurrence?: TaskRecurrence | null;
   completedCount?: number;
   totalCount?: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TaskComment {
+  _id: string;
+  content: string;
+  userId: User | string;
+  mentions?: User[];
+  createdAt: string;
+}
+
+export interface TaskActivityItem {
+  _id: string;
+  action: string;
+  field?: string;
+  from?: string;
+  to?: string;
+  actorId: User | string;
+  createdAt: string;
+}
+
+export interface TimeEntry {
+  _id: string;
+  taskId: string | Task;
+  userId: User | string;
+  startTime: string;
+  endTime?: string;
+  description?: string;
+  billable: boolean;
+  running: boolean;
+}
+
+export interface TaskTemplate {
+  _id: string;
+  name: string;
+  title: string;
+  description: string;
+  priority: TaskPriority;
+  tags?: string[];
+  category?: string;
+  impactScore?: number;
+  effortHours?: number;
+  checklist: TodoItem[];
+  customFields?: Record<string, unknown>;
+}
+
+export interface CustomFieldDefinition {
+  _id: string;
+  key: string;
+  label: string;
+  type: 'text' | 'number' | 'date' | 'select' | 'multi-select';
+  options?: string[];
+  required?: boolean;
+}
+
+export interface Sprint {
+  _id: string;
+  projectId: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  capacityHours?: number;
+  status: 'Planned' | 'Active' | 'Completed' | 'Cancelled';
+  retrospectiveNotes?: string;
+}
+
+export interface Milestone {
+  _id: string;
+  projectId: string;
+  title: string;
+  description?: string;
+  targetDate: string;
+  status: 'Planned' | 'In Progress' | 'Completed' | 'At Risk';
+  taskIds?: string[];
+  progress?: number;
+}
+
+export interface KeyResult {
+  _id: string;
+  objectiveId: string;
+  title: string;
+  metric?: string;
+  targetValue?: number;
+  currentValue?: number;
+  linkedProjectIds?: string[];
+  linkedTaskIds?: string[];
+  progressPercent?: number;
 }
 
 export interface StatusSummary {

@@ -5,7 +5,7 @@ import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
-import type { Goal, Project, User } from '../../types';
+import type { Goal, Project, User, TaskTemplate, CustomFieldDefinition } from '../../types';
 
 interface TodoItem {
   text: string;
@@ -95,6 +95,13 @@ function CreateTask() {
   const [impactScore, setImpactScore] = useState(5);
   const [effortHours, setEffortHours] = useState(1);
   const [todoItems, setTodoItems] = useState<TodoItem[]>([]);
+  const [startDate, setStartDate] = useState('');
+  const [templates, setTemplates] = useState<TaskTemplate[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const [recurrenceEnabled, setRecurrenceEnabled] = useState(false);
+  const [recurrenceFreq, setRecurrenceFreq] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
+  const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDefinition[]>([]);
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, unknown>>({});
 
   const scopedProject = useMemo(
     () => projects.find((p) => p._id === projectId),
@@ -106,8 +113,26 @@ function CreateTask() {
       api.get(apiPaths.USERS.GET_ALL_USERS).then((r) => setUsers(r.data?.users || r.data)),
       api.get(apiPaths.PROJECTS.LIST).then((r) => setProjects(r.data?.data?.projects || [])),
       api.get(apiPaths.GOALS.LIST).then((r) => setGoals(r.data?.data?.goals || [])),
+      api.get(apiPaths.TASK_TEMPLATES.LIST).then((r) => setTemplates(r.data?.data || [])),
+      api.get(apiPaths.CUSTOM_FIELDS.LIST).then((r) => setCustomFieldDefs(r.data?.data || [])),
     ]).catch(() => {});
   }, []);
+
+  const applyTemplate = async (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    if (!templateId) return;
+    const t = templates.find((x) => x._id === templateId);
+    if (!t) return;
+    setTitle(t.title);
+    setDescription(t.description);
+    setPriority(t.priority || 'Medium');
+    setTags((t.tags || []).join(', '));
+    setCategory(t.category || '');
+    setImpactScore(t.impactScore ?? 5);
+    setEffortHours(t.effortHours ?? 1);
+    setTodoItems((t.checklist || []).map((c) => ({ text: c.text, isCompleted: false })));
+    setCustomFieldValues((t.customFields as Record<string, unknown>) || {});
+  };
 
   const handleGoalToggle = (goalId: string) => {
     setGoalIds((prev) =>
@@ -139,6 +164,7 @@ function CreateTask() {
         description: description.trim(),
         priority,
         dueDate,
+        startDate: startDate || undefined,
         assignedTo,
         projectId: projectId || undefined,
         goalIds: goalIds.length > 0 ? goalIds : undefined,
@@ -152,6 +178,14 @@ function CreateTask() {
         impactScore,
         effortHours,
         todoCheckList: todoItems.filter((item) => item.text.trim()),
+        customFields: customFieldValues,
+        recurrence: recurrenceEnabled
+          ? {
+              frequency: recurrenceFreq,
+              interval: 1,
+              nextRunAt: new Date(dueDate).toISOString(),
+            }
+          : null,
       });
       navigate(projectId ? `/admin/manage-tasks?projectId=${projectId}` : '/admin/manage-tasks');
     } catch (err: any) {
@@ -187,6 +221,25 @@ function CreateTask() {
     >
       <form onSubmit={handleSubmit} className="max-w-7xl space-y-4">
         {error && <div className="alert-error">{error}</div>}
+        {templates.length > 0 && (
+          <div className="card">
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+              From template
+            </div>
+            <select
+              value={selectedTemplateId}
+              onChange={(e) => applyTemplate(e.target.value)}
+              className="input-dark w-full text-sm"
+            >
+              <option value="">None — start blank</option>
+              {templates.map((t) => (
+                <option key={t._id} value={t._id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Project Selector (when not scoped) */}
           {!urlProjectId && (
@@ -290,6 +343,91 @@ function CreateTask() {
             </div>
           </div>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="card">
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+              Start date
+            </div>
+            <input
+              type="datetime-local"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="input-dark w-full text-sm"
+            />
+          </div>
+          <div className="card">
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+              Recurring
+            </div>
+            <label className="flex items-center gap-2 text-sm text-slate-300 mb-2">
+              <input
+                type="checkbox"
+                checked={recurrenceEnabled}
+                onChange={(e) => setRecurrenceEnabled(e.target.checked)}
+              />
+              Enable recurrence
+            </label>
+            {recurrenceEnabled && (
+              <select
+                value={recurrenceFreq}
+                onChange={(e) =>
+                  setRecurrenceFreq(e.target.value as 'daily' | 'weekly' | 'monthly')
+                }
+                className="input-dark w-full text-sm"
+              >
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            )}
+          </div>
+        </div>
+
+        {customFieldDefs.length > 0 && (
+          <div className="card space-y-3">
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+              Custom fields
+            </div>
+            {customFieldDefs.map((f) => (
+              <div key={f._id}>
+                <label className="text-xs text-slate-400 mb-1 block">{f.label}</label>
+                {f.type === 'select' ? (
+                  <select
+                    className="input-dark w-full text-sm"
+                    value={String(customFieldValues[f.key] ?? '')}
+                    onChange={(e) =>
+                      setCustomFieldValues((prev) => ({
+                        ...prev,
+                        [f.key]: e.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">Select…</option>
+                    {(f.options || []).map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type={f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : 'text'}
+                    className="input-dark w-full text-sm"
+                    value={String(customFieldValues[f.key] ?? '')}
+                    onChange={(e) =>
+                      setCustomFieldValues((prev) => ({
+                        ...prev,
+                        [f.key]:
+                          f.type === 'number' ? Number(e.target.value) : e.target.value,
+                      }))
+                    }
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Assignee */}
         <div className="card">

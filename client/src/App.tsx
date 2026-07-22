@@ -23,6 +23,12 @@ import CreateGoal from './pages/admin/CreateGoal';
 import EditGoal from './pages/admin/EditGoal';
 import GoalDetails from './pages/admin/GoalDetails';
 import WorkOS from './pages/admin/WorkOS';
+import TaskTemplates from './pages/admin/TaskTemplates';
+import CustomFields from './pages/admin/CustomFields';
+import ProjectGantt from './pages/admin/ProjectGantt';
+import ProjectSprints from './pages/admin/ProjectSprints';
+import SprintBoard from './pages/admin/SprintBoard';
+import Resources from './pages/admin/Resources';
 import UserDashboard from './pages/user/UserDashboard';
 import UserWorkOS from './pages/user/UserWorkOS';
 import MyTasks from './pages/user/MyTasks';
@@ -319,6 +325,66 @@ function App() {
             <AdminRouteWrapper>
               <AuthLayout>
                 <WorkOS />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/admin/task-templates"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <TaskTemplates />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/admin/custom-fields"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <CustomFields />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/admin/resources"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <Resources />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/admin/projects/:id/gantt"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <ProjectGantt />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/admin/projects/:id/sprints"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <ProjectSprints />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/admin/sprints/:id/board"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <SprintBoard />
               </AuthLayout>
             </AdminRouteWrapper>
           }

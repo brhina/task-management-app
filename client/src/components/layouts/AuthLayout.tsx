@@ -14,6 +14,9 @@ import {
   ChevronsLeft,
   Menu,
   ClipboardList,
+  FileText,
+  SlidersHorizontal,
+  UsersRound,
 } from 'lucide-react';
 
 const NavIcons: Record<string, ReactNode> = {
@@ -25,6 +28,9 @@ const NavIcons: Record<string, ReactNode> = {
   projects: <Folder className="w-5 h-5" />,
   goals: <Target className="w-5 h-5" />,
   workos: <Settings className="w-5 h-5" />,
+  templates: <FileText className="w-5 h-5" />,
+  fields: <SlidersHorizontal className="w-5 h-5" />,
+  resources: <UsersRound className="w-5 h-5" />,
 };
 
 interface NavLink {
@@ -56,6 +62,9 @@ function AuthLayout({ children }: { children: ReactNode }) {
         { name: 'WorkOS', path: '/admin/workos', icon: NavIcons.workos },
         { name: 'Projects', path: '/admin/projects', icon: NavIcons.projects },
         { name: 'Goals', path: '/admin/goals', icon: NavIcons.goals },
+        { name: 'Resources', path: '/admin/resources', icon: NavIcons.resources },
+        { name: 'Templates', path: '/admin/task-templates', icon: NavIcons.templates },
+        { name: 'Custom Fields', path: '/admin/custom-fields', icon: NavIcons.fields },
         { name: 'Manage Users', path: '/admin/manage-users', icon: NavIcons.users },
         { name: 'Reports', path: '/admin/reports', icon: NavIcons.reports },
       ];
