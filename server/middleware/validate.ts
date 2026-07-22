@@ -28,8 +28,8 @@ export const createTaskSchema = z.object({
   description: z.string().min(1, "Description is required").max(2000),
   priority: z.enum(["Low", "Medium", "High", "Critical"]).optional(),
   dueDate: z.string().nonempty("Due date is required"),
+  startDate: z.string().optional(),
   assignedTo: z.string().nonempty("Assignee is required"),
-  attachments: z.array(z.string()).optional(),
   todoCheckList: z
     .array(
       z.object({
@@ -46,6 +46,19 @@ export const createTaskSchema = z.object({
   effortHours: z.number().min(0).optional(),
   collaborators: z.array(z.string()).optional(),
   blockersText: z.array(z.string()).optional(),
+  parentTaskId: z.string().optional(),
+  sortOrder: z.number().optional(),
+  sprintId: z.string().optional().nullable(),
+  customFields: z.record(z.unknown()).optional(),
+  recurrence: z
+    .object({
+      frequency: z.enum(["daily", "weekly", "monthly"]),
+      interval: z.number().min(1).optional(),
+      nextRunAt: z.string(),
+      endDate: z.string().optional(),
+    })
+    .nullable()
+    .optional(),
 });
 
 export const updateTaskSchema = z.object({
@@ -54,8 +67,8 @@ export const updateTaskSchema = z.object({
   priority: z.enum(["Low", "Medium", "High", "Critical"]).optional(),
   status: z.enum(["Pending", "In Progress", "In Review", "Completed"]).optional(),
   dueDate: z.string().optional(),
+  startDate: z.string().optional().nullable(),
   assignedTo: z.string().optional(),
-  attachments: z.array(z.string()).optional(),
   todoCheckList: z
     .array(
       z.object({
@@ -73,6 +86,19 @@ export const updateTaskSchema = z.object({
   collaborators: z.array(z.string()).optional(),
   blockersText: z.array(z.string()).optional(),
   progress: z.number().min(0).max(100).optional(),
+  parentTaskId: z.string().optional().nullable(),
+  sortOrder: z.number().optional(),
+  sprintId: z.string().optional().nullable(),
+  customFields: z.record(z.unknown()).optional(),
+  recurrence: z
+    .object({
+      frequency: z.enum(["daily", "weekly", "monthly"]),
+      interval: z.number().min(1).optional(),
+      nextRunAt: z.string(),
+      endDate: z.string().optional(),
+    })
+    .nullable()
+    .optional(),
 });
 
 export const updateTaskStatusSchema = z.object({
