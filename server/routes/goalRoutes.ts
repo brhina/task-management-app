@@ -9,11 +9,13 @@ import {
   linkGoalToProject,
   unlinkGoalFromProject,
 } from "../controllers/goalControllers.js";
+import { getOkrTree } from "../controllers/keyResultControllers.js";
 import { validate, createGoalSchema } from "../middleware/validate.js";
 
 const router = express.Router();
 
 router.get("/", protect, listGoals);
+router.get("/:id/okr-tree", protect, getOkrTree);
 router.get("/:id", protect, getGoalById);
 router.post("/", protect, orgAdminOnly, validate(createGoalSchema), createGoal);
 router.put("/:id", protect, orgAdminOnly, updateGoal);

@@ -11,7 +11,22 @@ import {
   updateTaskAssignee,
   updateTaskCheckList,
   deleteTask,
+  uploadTaskAttachment,
+  deleteTaskAttachment,
+  listSubtasks,
+  reorderSubtasks,
 } from "../controllers/taskControllers.js";
+import {
+  listComments,
+  createComment,
+  deleteComment,
+  listActivity,
+} from "../controllers/commentControllers.js";
+import {
+  startTimer,
+  stopTimer,
+} from "../controllers/timeEntryControllers.js";
+import { saveTaskAsTemplate } from "../controllers/taskTemplateControllers.js";
 import {
   validate,
   createTaskSchema,
@@ -19,6 +34,7 @@ import {
   updateTaskStatusSchema,
   updateTaskChecklistSchema,
 } from "../middleware/validate.js";
+import { taskUpload } from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
@@ -42,5 +58,30 @@ router.put(
   validate(updateTaskChecklistSchema),
   updateTaskCheckList,
 );
+
+router.get("/:id/comments", protect, listComments);
+router.post("/:id/comments", protect, createComment);
+router.delete("/:id/comments/:commentId", protect, deleteComment);
+router.get("/:id/activity", protect, listActivity);
+
+router.post(
+  "/:id/attachments",
+  protect,
+  taskUpload.single("file"),
+  uploadTaskAttachment,
+);
+router.delete(
+  "/:id/attachments/:attachmentId",
+  protect,
+  orgAdminOnly,
+  deleteTaskAttachment,
+);
+
+router.get("/:id/subtasks", protect, listSubtasks);
+router.put("/:id/subtasks/reorder", protect, orgAdminOnly, reorderSubtasks);
+
+router.post("/:id/timer/start", protect, startTimer);
+router.post("/:id/timer/stop", protect, stopTimer);
+router.post("/:id/save-as-template", protect, orgAdminOnly, saveTaskAsTemplate);
 
 export default router;
