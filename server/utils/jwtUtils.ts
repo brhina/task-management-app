@@ -1,7 +1,13 @@
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET: string =
-  process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
+const JWT_SECRET: string = (() => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error(
+      "JWT_SECRET environment variable is required. Generate one with: node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\"",
+    );
+  }
+  return process.env.JWT_SECRET;
+})();
 
 export const generateToken = (id: string): string => {
   return jwt.sign({ id }, JWT_SECRET, {

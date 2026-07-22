@@ -1,6 +1,8 @@
 import "./config/loadEnv.js";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
@@ -23,6 +25,16 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: process.env.NODE_ENV === "production" ? undefined : false,
+}));
+
+// Request logging
+if (process.env.NODE_ENV !== "test") {
+  app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+}
+
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
@@ -32,10 +44,46 @@ app.use(
   }),
 );
 
+// Rate limiting using in-memory store (use Redis in production)
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const RATE_LIMIT_MAX = 100; // requests per window
+const AUTH_RATE_LIMIT_MAX = 10; // stricter for auth endpoints
+
+function rateLimit(maxRequests: number) {
+  return (req: express.Request, res: express.Response, next: express.NextFunction): void => {
+    const key = `${req.ip || req.socket.remoteAddress || "unknown"}`;
+    const now = Date.now();
+    const record = rateLimitStore.get(key);
+
+    if (!record || now > record.resetAt) {
+      rateLimitStore.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+      next();
+      return;
+    }
+
+    record.count++;
+    if (record.count > maxRequests) {
+      res.status(429).json({
+        message: "Too many requests. Please try again later.",
+        retryAfter: Math.ceil((record.resetAt - now) / 1000),
+      });
+      return;
+    }
+    next();
+  };
+}
+
+// General rate limit
+app.use(rateLimit(RATE_LIMIT_MAX));
+
+// Stricter rate limit for auth endpoints
+const authRateLimit = rateLimit(AUTH_RATE_LIMIT_MAX);
+
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRateLimit, authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/reports", reportRoutes);
@@ -47,14 +95,9 @@ app.use("/api/automation", automationRoutes);
 app.use("/api/org-membership", orgMembershipRoutes);
 app.use("/api/orgs", orgRoutes);
 
-app.get("/test-jwt", async (_req, res) => {
-  try {
-    const { testJWT } = await import("./utils/testJwt.js");
-    const result = testJWT();
-    res.json({ message: "JWT test completed", success: result });
-  } catch (error: any) {
-    res.status(500).json({ message: "JWT test failed", error: error.message });
-  }
+// Health check endpoint
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 if (process.env.NODE_ENV === "production") {
