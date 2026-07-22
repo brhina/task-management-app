@@ -34,7 +34,7 @@ const STATUS_FLOW = [
 ];
 
 function ViewTaskDetails() {
-  const { user } = useContext(UserContext);
+  const { user, getEffectiveRole } = useContext(UserContext);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -85,8 +85,8 @@ function ViewTaskDetails() {
   useEffect(() => {
     fetchTaskDetails();
     fetchDependencies();
-    if (user?.role === 'Admin') fetchTasksForDependencyPicker();
-  }, [fetchTaskDetails, fetchDependencies, fetchTasksForDependencyPicker, user?.role]);
+    if (getEffectiveRole() === 'OrgAdmin') fetchTasksForDependencyPicker();
+  }, [fetchTaskDetails, fetchDependencies, fetchTasksForDependencyPicker, getEffectiveRole]);
 
   const handleStatusUpdate = async (newStatus: string) => {
     try {
@@ -383,7 +383,7 @@ function ViewTaskDetails() {
                             {d.fromTaskId?.status} • {d.type}
                           </div>
                         </div>
-                        {user?.role === 'Admin' && (
+                        {getEffectiveRole() === 'OrgAdmin' && (
                           <button
                             onClick={() => handleRemoveDependency(d._id)}
                             className="text-rose-400 hover:text-rose-300 text-xs shrink-0"
@@ -417,7 +417,7 @@ function ViewTaskDetails() {
                             {d.toTaskId?.status} • {d.type}
                           </div>
                         </div>
-                        {user?.role === 'Admin' && (
+                        {getEffectiveRole() === 'OrgAdmin' && (
                           <button
                             onClick={() => handleRemoveDependency(d._id)}
                             className="text-rose-400 hover:text-rose-300 text-xs shrink-0"
@@ -432,7 +432,7 @@ function ViewTaskDetails() {
               </div>
             </div>
 
-            {user?.role === 'Admin' && (
+            {getEffectiveRole() === 'OrgAdmin' && (
               <div className="mt-3 pt-3 border-t border-slate-700/50">
                 <div className="flex gap-2">
                   <select
