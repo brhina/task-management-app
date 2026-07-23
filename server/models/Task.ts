@@ -34,6 +34,7 @@ export interface ITask {
   dueDate: Date;
   startDate?: Date;
   projectId?: mongoose.Types.ObjectId;
+  teamId?: mongoose.Types.ObjectId;
   goalIds?: mongoose.Types.ObjectId[];
   tags?: string[];
   category?: string;
@@ -137,6 +138,12 @@ const taskSchema = new mongoose.Schema<ITaskDocument>(
     projectId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
+      required: false,
+      index: true,
+    },
+    teamId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Team",
       required: false,
       index: true,
     },

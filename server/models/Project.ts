@@ -12,6 +12,7 @@ export interface IProject {
   name: string;
   description?: string;
   ownerId: mongoose.Types.ObjectId;
+  teamId?: mongoose.Types.ObjectId;
   status: ProjectStatus;
   startDate?: Date;
   targetDate?: Date;
@@ -44,6 +45,12 @@ const projectSchema = new mongoose.Schema<IProjectDocument>(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
+    },
+    teamId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Team",
+      required: false,
       index: true,
     },
     status: {
