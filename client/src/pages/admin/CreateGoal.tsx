@@ -1,9 +1,8 @@
-import { useContext, useState, type FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import PageShell from '../../components/common/PageShell';
+import { useContext, useState, useEffect, type FormEvent } from 'react';
+import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
-import { UserContext } from '../../context/UserContext';
+import Modal from '../../components/common/Modal';
 import type { GoalTimeframe } from '../../types';
 
 const TIMEFRAMES: {
@@ -13,46 +12,21 @@ const TIMEFRAMES: {
   color: string;
   icon: string;
 }[] = [
-  {
-    value: 'Weekly',
-    label: 'Weekly',
-    desc: '7-day sprint goals',
-    color: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
-    icon: 'W',
-  },
-  {
-    value: 'Monthly',
-    label: 'Monthly',
-    desc: '30-day milestones',
-    color: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-    icon: 'M',
-  },
-  {
-    value: 'Quarterly',
-    label: 'Quarterly',
-    desc: '90-day objectives',
-    color: 'bg-violet-500/15 text-violet-400 border-violet-500/30',
-    icon: 'Q',
-  },
-  {
-    value: 'Yearly',
-    label: 'Yearly',
-    desc: 'Annual vision',
-    color: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-    icon: 'Y',
-  },
-  {
-    value: 'Custom',
-    label: 'Custom',
-    desc: 'Flexible timeline',
-    color: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
-    icon: 'C',
-  },
+  { value: 'Weekly', label: 'Weekly', desc: '7-day sprint goals', color: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30', icon: 'W' },
+  { value: 'Monthly', label: 'Monthly', desc: '30-day milestones', color: 'bg-blue-500/15 text-blue-400 border-blue-500/30', icon: 'M' },
+  { value: 'Quarterly', label: 'Quarterly', desc: '90-day objectives', color: 'bg-violet-500/15 text-violet-400 border-violet-500/30', icon: 'Q' },
+  { value: 'Yearly', label: 'Yearly', desc: 'Annual vision', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30', icon: 'Y' },
+  { value: 'Custom', label: 'Custom', desc: 'Flexible timeline', color: 'bg-slate-500/15 text-slate-400 border-slate-500/30', icon: 'C' },
 ];
 
-function CreateGoal() {
-  const { user, canAccessAdminSuite, hasPermission } = useContext(UserContext);
-  const navigate = useNavigate();
+interface CreateGoalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onCreated?: () => void;
+}
+
+function CreateGoal({ isOpen, onClose, onCreated }: CreateGoalProps) {
+  const { hasPermission } = useContext(UserContext);
   const [error, setError] = useState('');
   const [title, setTitle] = useState('');
   const [objective, setObjective] = useState('');
@@ -60,6 +34,17 @@ function CreateGoal() {
   const [targetValue, setTargetValue] = useState<number | ''>('');
   const [timeframe, setTimeframe] = useState<GoalTimeframe>('Quarterly');
   const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setTitle('');
+      setObjective('');
+      setMetric('');
+      setTargetValue('');
+      setTimeframe('Quarterly');
+      setError('');
+    }
+  }, [isOpen]);
 
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
@@ -75,33 +60,51 @@ function CreateGoal() {
         timeframe,
         targetValue: targetValue === '' ? undefined : Number(targetValue),
       });
-      navigate('/admin/goals');
+      onCreated?.();
+      onClose();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to create goal');
     } finally {
       setCreating(false);
     }
   };
-  if (!user || !canAccessAdminSuite()) {
-    return <PageShell title="Access Denied" subtitle="Admin only." />;
-  }
 
   return (
-    <PageShell
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
       title="Create Goal"
       subtitle="Define a measurable objective for your team"
-      actions={
-        <div className="flex gap-2">
-          <Link to="/admin/goals" className="btn-secondary">
-            Back
-          </Link>
-        </div>
+      maxWidth="max-w-3xl"
+      footer={
+        <>
+          <button onClick={onClose} className="btn-secondary">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="create-goal-form"
+            disabled={creating || !hasPermission('goal:manage')}
+            className="btn-primary disabled:opacity-50 min-w-[140px]"
+          >
+            {creating ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Creating...
+              </span>
+            ) : (
+              'Create Goal'
+            )}
+          </button>
+        </>
       }
     >
-      <form onSubmit={handleCreate} className="max-w-7xl space-y-4">
+      <form id="create-goal-form" onSubmit={handleCreate} className="space-y-4">
         {error && <div className="alert-error">{error}</div>}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          {/* Goal Title */}
           <div className="card">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
               Goal Title *
@@ -115,8 +118,6 @@ function CreateGoal() {
               autoFocus
             />
           </div>
-
-          {/* Objective */}
           <div className="card">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
               Objective
@@ -130,7 +131,6 @@ function CreateGoal() {
             />
           </div>
         </div>
-        {/* Timeframe Selector */}
         <div className="card">
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
             Timeframe
@@ -162,8 +162,6 @@ function CreateGoal() {
             ))}
           </div>
         </div>
-
-        {/* Metric & Target */}
         <div className="card">
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
             Measurement
@@ -187,9 +185,7 @@ function CreateGoal() {
                 type="number"
                 min={0}
                 value={targetValue}
-                onChange={(e) =>
-                  setTargetValue(e.target.value === '' ? '' : Number(e.target.value))
-                }
+                onChange={(e) => setTargetValue(e.target.value === '' ? '' : Number(e.target.value))}
                 className="input-dark w-full text-sm"
                 placeholder="e.g., 7"
               />
@@ -206,43 +202,8 @@ function CreateGoal() {
             </div>
           )}
         </div>
-
-        {/* Submit */}
-        <div className="flex justify-end gap-2">
-          <Link to="/admin/goals" className="btn-secondary">
-            Cancel
-          </Link>
-          <button
-            type="submit"
-            disabled={creating || !hasPermission('goal:manage')}
-            className="btn-primary disabled:opacity-50 min-w-[140px]"
-          >
-            {creating ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
-                Creating...
-              </span>
-            ) : (
-              'Create Goal'
-            )}
-          </button>
-        </div>
       </form>
-    </PageShell>
+    </Modal>
   );
 }
 

@@ -7,6 +7,7 @@ import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
 import StatusChart from '../../components/insights/StatusChart';
 import PriorityChart from '../../components/insights/PriorityChart';
+import CreateTask from './CreateTask';
 import { getStatusColor, getPriorityColor } from '../../constants/taskStatus';
 import { isOverdue, getDaysUntilDue, getRelativeTime } from '../../utils/dateUtils';
 import type { DashboardData } from '../../types';
@@ -16,6 +17,7 @@ function Dashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showCreateTask, setShowCreateTask] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -75,9 +77,13 @@ function Dashboard() {
           <Link to="/admin/workos" className="btn-secondary">
             WorkOS
           </Link>
-          <Link to="/admin/create-task" className="btn-primary">
+          <button
+            type="button"
+            onClick={() => setShowCreateTask(true)}
+            className="btn-primary"
+          >
             Create Task
-          </Link>
+          </button>
         </div>
       }
     >
@@ -244,6 +250,11 @@ function Dashboard() {
           )}
         </div>
       </div>
+      <CreateTask
+        isOpen={showCreateTask}
+        onClose={() => setShowCreateTask(false)}
+        onCreated={fetchDashboardData}
+      />
     </PageShell>
   );
 }

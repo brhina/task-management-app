@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState, useContext, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
+import Modal from '../../components/common/Modal';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
@@ -20,6 +22,8 @@ export default function ProjectSprints() {
   const [retro, setRetro] = useState('');
   const [msTitle, setMsTitle] = useState('');
   const [msDate, setMsDate] = useState('');
+  const [showCreateSprint, setShowCreateSprint] = useState(false);
+  const [showCreateMilestone, setShowCreateMilestone] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -49,6 +53,10 @@ export default function ProjectSprints() {
       capacityHours,
     });
     setName('');
+    setStartDate('');
+    setEndDate('');
+    setCapacityHours(40);
+    setShowCreateSprint(false);
     await load();
   };
 
@@ -60,6 +68,8 @@ export default function ProjectSprints() {
       targetDate: msDate,
     });
     setMsTitle('');
+    setMsDate('');
+    setShowCreateMilestone(false);
     await load();
   };
 
@@ -95,6 +105,24 @@ export default function ProjectSprints() {
       subtitle="Plan iterations and track milestones"
       actions={
         <div className="flex gap-2">
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => setShowCreateSprint(true)}
+            disabled={!hasPermission('project:update')}
+          >
+            <Plus className="w-4 h-4 inline mr-1" />
+            New sprint
+          </button>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => setShowCreateMilestone(true)}
+            disabled={!hasPermission('project:update')}
+          >
+            <Plus className="w-4 h-4 inline mr-1" />
+            New milestone
+          </button>
           <Link to={`/admin/projects/${id}/gantt`} className="btn-secondary">
             Gantt
           </Link>
@@ -104,68 +132,6 @@ export default function ProjectSprints() {
         </div>
       }
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <form onSubmit={createSprint} className="card space-y-2">
-          <div className="text-xs font-semibold text-slate-400 uppercase">
-            New sprint
-          </div>
-          <input
-            className="input-dark w-full text-sm"
-            placeholder="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-          <input
-            type="date"
-            className="input-dark w-full text-sm"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            required
-          />
-          <input
-            type="date"
-            className="input-dark w-full text-sm"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            required
-          />
-          <input
-            type="number"
-            className="input-dark w-full text-sm"
-            value={capacityHours}
-            onChange={(e) => setCapacityHours(Number(e.target.value))}
-            placeholder="Capacity hours"
-          />
-          <button type="submit" className="btn-primary" disabled={!hasPermission('project:update')}>
-            Create sprint
-          </button>
-        </form>
-
-        <form onSubmit={createMilestone} className="card space-y-2">
-          <div className="text-xs font-semibold text-slate-400 uppercase">
-            New milestone
-          </div>
-          <input
-            className="input-dark w-full text-sm"
-            placeholder="Title"
-            value={msTitle}
-            onChange={(e) => setMsTitle(e.target.value)}
-            required
-          />
-          <input
-            type="date"
-            className="input-dark w-full text-sm"
-            value={msDate}
-            onChange={(e) => setMsDate(e.target.value)}
-            required
-          />
-          <button type="submit" className="btn-primary" disabled={!hasPermission('project:update')}>
-            Create milestone
-          </button>
-        </form>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-slate-200">Sprints</h3>
@@ -258,6 +224,106 @@ export default function ProjectSprints() {
           ))}
         </div>
       </div>
+
+      <Modal
+        isOpen={showCreateSprint}
+        onClose={() => setShowCreateSprint(false)}
+        title="Create Sprint"
+        subtitle="Add a new sprint to this project"
+        footer={
+          <>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setShowCreateSprint(false)}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="create-sprint-form"
+              className="btn-primary"
+              disabled={!hasPermission('project:update')}
+            >
+              Create sprint
+            </button>
+          </>
+        }
+      >
+        <form id="create-sprint-form" onSubmit={createSprint} className="space-y-4">
+          <input
+            className="input-dark w-full text-sm"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+          <input
+            type="date"
+            className="input-dark w-full text-sm"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            required
+          />
+          <input
+            type="date"
+            className="input-dark w-full text-sm"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            required
+          />
+          <input
+            type="number"
+            className="input-dark w-full text-sm"
+            value={capacityHours}
+            onChange={(e) => setCapacityHours(Number(e.target.value))}
+            placeholder="Capacity hours"
+          />
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={showCreateMilestone}
+        onClose={() => setShowCreateMilestone(false)}
+        title="Create Milestone"
+        subtitle="Add a new milestone to this project"
+        footer={
+          <>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setShowCreateMilestone(false)}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="create-milestone-form"
+              className="btn-primary"
+              disabled={!hasPermission('project:update')}
+            >
+              Create milestone
+            </button>
+          </>
+        }
+      >
+        <form id="create-milestone-form" onSubmit={createMilestone} className="space-y-4">
+          <input
+            className="input-dark w-full text-sm"
+            placeholder="Title"
+            value={msTitle}
+            onChange={(e) => setMsTitle(e.target.value)}
+            required
+          />
+          <input
+            type="date"
+            className="input-dark w-full text-sm"
+            value={msDate}
+            onChange={(e) => setMsDate(e.target.value)}
+            required
+          />
+        </form>
+      </Modal>
     </PageShell>
   );
 }

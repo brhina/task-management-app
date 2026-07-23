@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import { Plus, UsersRound, Trash2 } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import PageShell from '../../components/common/PageShell';
+import Modal from '../../components/common/Modal';
 import axios from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 
@@ -40,6 +41,7 @@ const Teams = () => {
     parentTeamId: '',
   });
   const [selectedDashboard, setSelectedDashboard] = useState<any>(null);
+  const [showCreateTeam, setShowCreateTeam] = useState(false);
 
   const canView = hasPermission('team:view');
   const canManage = hasPermission('team:manage');
@@ -86,6 +88,7 @@ const Teams = () => {
         parentTeamId: form.parentTeamId || undefined,
       });
       setForm({ name: '', description: '', leadId: '', memberIds: [], parentTeamId: '' });
+      setShowCreateTeam(false);
       await fetchTeams();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to create team');
@@ -124,75 +127,18 @@ const Teams = () => {
     <PageShell
       title="Teams & Departments"
       subtitle="Organize members into teams with hierarchy and team-level reporting."
+      actions={
+        canManage ? (
+          <button type="button" onClick={() => setShowCreateTeam(true)} className="btn-primary">
+            <Plus className="w-4 h-4 inline mr-1" /> Create Team
+          </button>
+        ) : undefined
+      }
     >
       <div className="space-y-6">
         {error && (
           <div className="bg-rose-500/10 border border-rose-500/30 rounded-lg px-4 py-3 text-sm text-rose-400">
             {error}
-          </div>
-        )}
-
-        {canManage && (
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 space-y-3">
-            <h3 className="text-white font-semibold flex items-center gap-2">
-              <Plus className="w-4 h-4" /> Create team
-            </h3>
-            <div className="grid md:grid-cols-2 gap-3">
-              <input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Team name"
-                className="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"
-              />
-              <select
-                value={form.parentTeamId}
-                onChange={(e) => setForm({ ...form, parentTeamId: e.target.value })}
-                className="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"
-              >
-                <option value="">No parent team</option>
-                {teams.map((t) => (
-                  <option key={t._id} value={t._id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-              <input
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Description"
-                className="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white md:col-span-2"
-              />
-              <select
-                value={form.leadId}
-                onChange={(e) => setForm({ ...form, leadId: e.target.value })}
-                className="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"
-              >
-                <option value="">Select lead</option>
-                {users.map((u) => (
-                  <option key={u._id} value={u._id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="max-h-32 overflow-y-auto grid sm:grid-cols-2 gap-1">
-              {users.map((u) => (
-                <label key={u._id} className="flex items-center gap-2 text-xs text-slate-300">
-                  <input
-                    type="checkbox"
-                    checked={form.memberIds.includes(u._id)}
-                    onChange={() => toggleMember(u._id)}
-                  />
-                  {u.name}
-                </label>
-              ))}
-            </div>
-            <button
-              onClick={handleCreate}
-              className="px-4 py-2 bg-primary hover:bg-primary-hover rounded-lg text-sm font-medium text-white"
-            >
-              Create team
-            </button>
           </div>
         )}
 
@@ -282,6 +228,84 @@ const Teams = () => {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={showCreateTeam}
+        onClose={() => {
+          setShowCreateTeam(false);
+          setForm({ name: '', description: '', leadId: '', memberIds: [], parentTeamId: '' });
+        }}
+        title="Create Team"
+        subtitle="Set up a new team with members and a lead"
+        footer={
+          <>
+            <button onClick={() => setShowCreateTeam(false)} className="btn-secondary">
+              Cancel
+            </button>
+            <button onClick={handleCreate} className="btn-primary">
+              Create Team
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-3">
+            <input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="Team name"
+              className="input-dark w-full text-sm"
+            />
+            <select
+              value={form.parentTeamId}
+              onChange={(e) => setForm({ ...form, parentTeamId: e.target.value })}
+              className="input-dark w-full text-sm"
+            >
+              <option value="">No parent team</option>
+              {teams.map((t) => (
+                <option key={t._id} value={t._id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+            <input
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Description"
+              className="input-dark w-full text-sm md:col-span-2"
+            />
+            <select
+              value={form.leadId}
+              onChange={(e) => setForm({ ...form, leadId: e.target.value })}
+              className="input-dark w-full text-sm"
+            >
+              <option value="">Select lead</option>
+              {users.map((u) => (
+                <option key={u._id} value={u._id}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+              Members
+            </div>
+            <div className="max-h-32 overflow-y-auto grid sm:grid-cols-2 gap-1">
+              {users.map((u) => (
+                <label key={u._id} className="flex items-center gap-2 text-xs text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={form.memberIds.includes(u._id)}
+                    onChange={() => toggleMember(u._id)}
+                  />
+                  {u.name}
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Modal>
     </PageShell>
   );
 };

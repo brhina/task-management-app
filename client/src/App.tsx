@@ -10,16 +10,13 @@ import SignUp from './pages/auth/SignUp';
 import Landing from './pages/public/Landing';
 
 import Dashboard from './pages/admin/Dashboard';
-import CreateTask from './pages/admin/CreateTask';
 import EditTask from './pages/admin/EditTask';
 import ManageTasks from './pages/admin/ManageTasks';
 import ManageUsers from './pages/admin/ManageUsers';
 import Reports from './pages/admin/Reports';
 import Projects from './pages/admin/Projects';
-import CreateProject from './pages/admin/CreateProject';
 import EditProject from './pages/admin/EditProject';
 import Goals from './pages/admin/Goals';
-import CreateGoal from './pages/admin/CreateGoal';
 import EditGoal from './pages/admin/EditGoal';
 import GoalDetails from './pages/admin/GoalDetails';
 import WorkOS from './pages/admin/WorkOS';
@@ -199,16 +196,6 @@ function App() {
           }
         />
         <Route
-          path="/admin/create-task"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <CreateTask />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
-        />
-        <Route
           path="/admin/edit-task/:id"
           element={
             <AdminRouteWrapper>
@@ -269,16 +256,6 @@ function App() {
           }
         />
         <Route
-          path="/admin/projects/create"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <CreateProject />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
-        />
-        <Route
           path="/admin/projects/edit/:id"
           element={
             <AdminRouteWrapper>
@@ -294,16 +271,6 @@ function App() {
             <AdminRouteWrapper>
               <AuthLayout>
                 <Goals />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
-        />
-        <Route
-          path="/admin/goals/create"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <CreateGoal />
               </AuthLayout>
             </AdminRouteWrapper>
           }

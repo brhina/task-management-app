@@ -1,15 +1,21 @@
 import { useState, useEffect, useContext, useMemo, type FormEvent } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Check, ChevronDown } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
-import PageShell from '../../components/common/PageShell';
+import Modal from '../../components/common/Modal';
 import type { Goal, Project, User, TaskTemplate, CustomFieldDefinition } from '../../types';
 
 interface TodoItem {
   text: string;
   isCompleted: boolean;
+}
+
+interface CreateTaskProps {
+  isOpen: boolean;
+  onClose: () => void;
+  defaultProjectId?: string;
+  onCreated?: () => void;
 }
 
 const PRIORITY_OPTIONS = [
@@ -70,11 +76,8 @@ const DATE_PRESETS = [
   },
 ];
 
-function CreateTask() {
-  const { user, canAccessAdminSuite, hasPermission } = useContext(UserContext);
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const urlProjectId = searchParams.get('projectId') || '';
+function CreateTask({ isOpen, onClose, defaultProjectId = '', onCreated }: CreateTaskProps) {
+  const { hasPermission } = useContext(UserContext);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -88,7 +91,7 @@ function CreateTask() {
   const [priority, setPriority] = useState('Medium');
   const [dueDate, setDueDate] = useState('');
   const [assignedTo, setAssignedTo] = useState('');
-  const [projectId, setProjectId] = useState(urlProjectId);
+  const [projectId, setProjectId] = useState(defaultProjectId);
   const [goalIds, setGoalIds] = useState<string[]>([]);
   const [tags, setTags] = useState('');
   const [category, setCategory] = useState('');
@@ -103,20 +106,41 @@ function CreateTask() {
   const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDefinition[]>([]);
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, unknown>>({});
 
+  useEffect(() => {
+    if (isOpen) {
+      setTitle('');
+      setDescription('');
+      setPriority('Medium');
+      setDueDate('');
+      setAssignedTo('');
+      setProjectId(defaultProjectId);
+      setGoalIds([]);
+      setTags('');
+      setCategory('');
+      setImpactScore(5);
+      setEffortHours(1);
+      setTodoItems([]);
+      setStartDate('');
+      setSelectedTemplateId('');
+      setRecurrenceEnabled(false);
+      setCustomFieldValues({});
+      setShowAdvanced(false);
+      setError('');
+
+      Promise.all([
+        api.get(apiPaths.USERS.GET_ALL_USERS).then((r) => setUsers(r.data?.users || r.data)),
+        api.get(apiPaths.PROJECTS.LIST).then((r) => setProjects(r.data?.data?.projects || [])),
+        api.get(apiPaths.GOALS.LIST).then((r) => setGoals(r.data?.data?.goals || [])),
+        api.get(apiPaths.TASK_TEMPLATES.LIST).then((r) => setTemplates(r.data?.data || [])),
+        api.get(apiPaths.CUSTOM_FIELDS.LIST).then((r) => setCustomFieldDefs(r.data?.data || [])),
+      ]).catch(() => {});
+    }
+  }, [isOpen, defaultProjectId]);
+
   const scopedProject = useMemo(
     () => projects.find((p) => p._id === projectId),
     [projects, projectId]
   );
-
-  useEffect(() => {
-    Promise.all([
-      api.get(apiPaths.USERS.GET_ALL_USERS).then((r) => setUsers(r.data?.users || r.data)),
-      api.get(apiPaths.PROJECTS.LIST).then((r) => setProjects(r.data?.data?.projects || [])),
-      api.get(apiPaths.GOALS.LIST).then((r) => setGoals(r.data?.data?.goals || [])),
-      api.get(apiPaths.TASK_TEMPLATES.LIST).then((r) => setTemplates(r.data?.data || [])),
-      api.get(apiPaths.CUSTOM_FIELDS.LIST).then((r) => setCustomFieldDefs(r.data?.data || [])),
-    ]).catch(() => {});
-  }, []);
 
   const applyTemplate = async (templateId: string) => {
     setSelectedTemplateId(templateId);
@@ -187,37 +211,49 @@ function CreateTask() {
             }
           : null,
       });
-      navigate(projectId ? `/admin/manage-tasks?projectId=${projectId}` : '/admin/manage-tasks');
+      onCreated?.();
+      onClose();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to create task');
     } finally {
       setLoading(false);
     }
   };
-  if (!user || !canAccessAdminSuite()) {
-    return <PageShell title="Access Denied" subtitle="Admin only." />;
-  }
 
   return (
-    <PageShell
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
       title={scopedProject ? `New Task in ${scopedProject.name}` : 'Create Task'}
-      subtitle={
-        scopedProject
-          ? scopedProject.description || 'Adding a task to this project'
-          : 'Fill in the details below'
-      }
-      actions={
-        <div className="flex gap-2">
-          <Link
-            to={projectId ? `/admin/manage-tasks?projectId=${projectId}` : '/admin/projects'}
-            className="btn-secondary"
-          >
+      subtitle={scopedProject ? scopedProject.description || 'Adding a task to this project' : 'Fill in the details below'}
+      maxWidth="max-w-4xl"
+      footer={
+        <>
+          <button onClick={onClose} className="btn-secondary">
             Cancel
-          </Link>
-        </div>
+          </button>
+          <button
+            type="submit"
+            form="create-task-form"
+            disabled={loading || !hasPermission('task:create')}
+            className="btn-primary disabled:opacity-50 min-w-[140px]"
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Creating...
+              </span>
+            ) : (
+              'Create Task'
+            )}
+          </button>
+        </>
       }
     >
-      <form onSubmit={handleSubmit} className="max-w-7xl space-y-4">
+      <form id="create-task-form" onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="alert-error">{error}</div>}
         {templates.length > 0 && (
           <div className="card">
@@ -239,8 +275,7 @@ function CreateTask() {
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Project Selector (when not scoped) */}
-          {!urlProjectId && (
+          {!defaultProjectId && (
             <div className="card">
               <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
                 Project *
@@ -260,8 +295,6 @@ function CreateTask() {
               </select>
             </div>
           )}
-
-          {/* Title */}
           <div className="card">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
               Title *
@@ -288,11 +321,7 @@ function CreateTask() {
             />
           </div>
         </div>
-        {/* Description */}
-
-        {/* Priority & Date Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Priority */}
           <div className="card">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
               Priority
@@ -314,8 +343,6 @@ function CreateTask() {
               ))}
             </div>
           </div>
-
-          {/* Due Date */}
           <div className="card">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
               Due Date *
@@ -341,7 +368,6 @@ function CreateTask() {
             </div>
           </div>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="card">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
@@ -369,9 +395,7 @@ function CreateTask() {
             {recurrenceEnabled && (
               <select
                 value={recurrenceFreq}
-                onChange={(e) =>
-                  setRecurrenceFreq(e.target.value as 'daily' | 'weekly' | 'monthly')
-                }
+                onChange={(e) => setRecurrenceFreq(e.target.value as 'daily' | 'weekly' | 'monthly')}
                 className="input-dark w-full text-sm"
               >
                 <option value="daily">Daily</option>
@@ -381,7 +405,6 @@ function CreateTask() {
             )}
           </div>
         </div>
-
         {customFieldDefs.length > 0 && (
           <div className="card space-y-3">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
@@ -395,13 +418,10 @@ function CreateTask() {
                     className="input-dark w-full text-sm"
                     value={String(customFieldValues[f.key] ?? '')}
                     onChange={(e) =>
-                      setCustomFieldValues((prev) => ({
-                        ...prev,
-                        [f.key]: e.target.value,
-                      }))
+                      setCustomFieldValues((prev) => ({ ...prev, [f.key]: e.target.value }))
                     }
                   >
-                    <option value="">Select…</option>
+                    <option value="">Select...</option>
                     {(f.options || []).map((o) => (
                       <option key={o} value={o}>
                         {o}
@@ -416,8 +436,7 @@ function CreateTask() {
                     onChange={(e) =>
                       setCustomFieldValues((prev) => ({
                         ...prev,
-                        [f.key]:
-                          f.type === 'number' ? Number(e.target.value) : e.target.value,
+                        [f.key]: f.type === 'number' ? Number(e.target.value) : e.target.value,
                       }))
                     }
                   />
@@ -426,8 +445,6 @@ function CreateTask() {
             ))}
           </div>
         )}
-
-        {/* Assignee */}
         <div className="card">
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
             Assign To *
@@ -470,8 +487,6 @@ function CreateTask() {
             ))}
           </div>
         </div>
-
-        {/* Checklist */}
         <div className="card">
           <div className="flex items-center justify-between mb-2">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
@@ -511,15 +526,13 @@ function CreateTask() {
                     onClick={() => removeTodoItem(idx)}
                     className="opacity-0 group-hover:opacity-100 text-rose-400 hover:text-rose-300 text-xs transition-opacity"
                   >
-                    ✕
+                    x
                   </button>
                 </div>
               ))}
             </div>
           )}
         </div>
-
-        {/* Advanced Options */}
         <div className="card">
           <button
             type="button"
@@ -527,11 +540,8 @@ function CreateTask() {
             className="w-full flex items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wide"
           >
             <span>Advanced Options</span>
-            <ChevronDown
-              className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
-            />
+            <ChevronDown className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
           </button>
-
           {showAdvanced && (
             <div className="mt-4 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -560,7 +570,6 @@ function CreateTask() {
                   />
                 </div>
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-1">
@@ -591,7 +600,6 @@ function CreateTask() {
                   />
                 </div>
               </div>
-
               {goals.length > 0 && (
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-2">
@@ -618,43 +626,8 @@ function CreateTask() {
             </div>
           )}
         </div>
-
-        {/* Submit */}
-        <div className="flex justify-end gap-2">
-          {/* <Link to={projectId ? `/admin/manage-tasks?projectId=${projectId}` : '/admin/manage-tasks'} className="btn-secondary">
-                        Cancel
-                    </Link> */}
-          <button
-            type="submit"
-            disabled={loading || !hasPermission('task:create')}
-            className="btn-primary disabled:opacity-50 min-w-[140px]"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
-                Creating...
-              </span>
-            ) : (
-              'Create Task'
-            )}
-          </button>
-        </div>
       </form>
-    </PageShell>
+    </Modal>
   );
 }
 

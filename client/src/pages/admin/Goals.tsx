@@ -6,6 +6,7 @@ import FilterToolbar from '../../components/common/FilterToolbar';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
+import CreateGoal from './CreateGoal';
 import type { Goal, GoalTimeframe } from '../../types';
 
 const TIMEFRAMES: GoalTimeframe[] = ['Weekly', 'Monthly', 'Quarterly', 'Yearly', 'Custom'];
@@ -33,6 +34,7 @@ function Goals() {
   const [error, setError] = useState('');
   const [timeframeFilter, setTimeframeFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showCreateGoal, setShowCreateGoal] = useState(false);
 
   const fetchGoals = async () => {
     try {
@@ -74,9 +76,13 @@ function Goals() {
       subtitle="Align projects and tasks to measurable outcomes"
       actions={
         <div className="flex gap-2">
-          <Link to="/admin/goals/create" className="btn-primary">
+          <button
+            type="button"
+            onClick={() => setShowCreateGoal(true)}
+            className="btn-primary"
+          >
             Create Goal
-          </Link>
+          </button>
           <button type="button" className="btn-secondary" onClick={fetchGoals}>
             Refresh
           </button>
@@ -182,6 +188,11 @@ function Goals() {
           </div>
         )}
       </div>
+      <CreateGoal
+        isOpen={showCreateGoal}
+        onClose={() => setShowCreateGoal(false)}
+        onCreated={fetchGoals}
+      />
     </PageShell>
   );
 }

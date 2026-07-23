@@ -19,6 +19,7 @@ import FilterToolbar from '../../components/common/FilterToolbar';
 import TaskBoard from '../../components/tasks/TaskBoard';
 import TaskCard from '../../components/tasks/TaskCard';
 import UserDropZone from '../../components/tasks/UserDropZone';
+import CreateTask from './CreateTask';
 import { getStatusColor, getPriorityColor } from '../../constants/taskStatus';
 import { isOverdue, getDaysUntilDue } from '../../utils/dateUtils';
 import type { Task, User, TaskStatus, Project } from '../../types';
@@ -85,6 +86,7 @@ function ManageTasks() {
   const [viewMode, setViewMode] = useState<'board' | 'list'>('board');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'status' | 'assignee'>('dueDate');
+  const [showCreateTask, setShowCreateTask] = useState(false);
   const [statusSummary, setStatusSummary] = useState<StatusSummary>({
     all: 0,
     pending: 0,
@@ -297,16 +299,13 @@ function ManageTasks() {
       }
       actions={
         <div className="flex gap-2">
-          <Link
-            to={
-              isProjectScoped && urlProjectId
-                ? `/admin/create-task?projectId=${urlProjectId}`
-                : '/admin/create-task'
-            }
+          <button
+            type="button"
+            onClick={() => setShowCreateTask(true)}
             className="btn-primary"
           >
             Create Task
-          </Link>
+          </button>
         </div>
       }
     >
@@ -565,6 +564,12 @@ function ManageTasks() {
           </div>
         )}
       </div>
+      <CreateTask
+        isOpen={showCreateTask}
+        onClose={() => setShowCreateTask(false)}
+        defaultProjectId={urlProjectId}
+        onCreated={fetchTasks}
+      />
     </PageShell>
   );
 }

@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import { Plus, Shield, Trash2 } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import PageShell from '../../components/common/PageShell';
+import Modal from '../../components/common/Modal';
 import axios from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { PERMISSIONS, ROLE_LABELS, type Permission } from '../../constants/permissions';
@@ -27,11 +28,14 @@ const RolesPermissions = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [creating, setCreating] = useState(false);
+  const [showCreateRole, setShowCreateRole] = useState(false);
   const [form, setForm] = useState({
     name: '',
     description: '',
     permissions: [] as string[],
   });
+
+  const resetForm = () => setForm({ name: '', description: '', permissions: [] });
 
   const canManage = hasPermission('role:manage');
 
@@ -78,6 +82,7 @@ const RolesPermissions = () => {
     try {
       await axios.post(apiPaths.ROLES.CREATE, form);
       setForm({ name: '', description: '', permissions: [] });
+      setShowCreateRole(false);
       await fetchRoles();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to create role');
@@ -108,44 +113,12 @@ const RolesPermissions = () => {
           </div>
         )}
 
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-          <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-            <Plus className="w-4 h-4" /> Create custom role
-          </h3>
-          <div className="grid md:grid-cols-2 gap-3 mb-3">
-            <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Role name"
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"
-            />
-            <input
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              placeholder="Description (optional)"
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"
-            />
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-4 max-h-48 overflow-y-auto">
-            {PERMISSIONS.map((p) => (
-              <label key={p} className="flex items-center gap-2 text-xs text-slate-300">
-                <input
-                  type="checkbox"
-                  checked={form.permissions.includes(p)}
-                  onChange={() => togglePerm(p)}
-                />
-                {p}
-              </label>
-            ))}
-          </div>
-          <button
-            onClick={handleCreate}
-            disabled={creating}
-            className="px-4 py-2 bg-primary hover:bg-primary-hover rounded-lg text-sm font-medium text-white disabled:opacity-50"
-          >
-            {creating ? 'Creating...' : 'Create role'}
-          </button>
-        </div>
+        <button
+          onClick={() => setShowCreateRole(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover rounded-lg text-sm font-medium text-white"
+        >
+          <Plus className="w-4 h-4" /> Create custom role
+        </button>
 
         {loading ? (
           <p className="text-slate-400 text-sm">Loading roles...</p>
@@ -229,6 +202,68 @@ const RolesPermissions = () => {
           </>
         )}
       </div>
+
+      <Modal
+        isOpen={showCreateRole}
+        onClose={() => {
+          setShowCreateRole(false);
+          resetForm();
+        }}
+        title="Create custom role"
+        subtitle="Define a new role and assign permissions."
+        footer={
+          <>
+            <button
+              onClick={() => {
+                setShowCreateRole(false);
+                resetForm();
+              }}
+              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium text-slate-300"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreate}
+              disabled={creating}
+              className="px-4 py-2 bg-primary hover:bg-primary-hover rounded-lg text-sm font-medium text-white disabled:opacity-50"
+            >
+              {creating ? 'Creating...' : 'Create role'}
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-3">
+            <input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="Role name"
+              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"
+            />
+            <input
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Description (optional)"
+              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"
+            />
+          </div>
+          <div>
+            <p className="text-sm text-slate-400 mb-2">Permissions</p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+              {PERMISSIONS.map((p) => (
+                <label key={p} className="flex items-center gap-2 text-xs text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={form.permissions.includes(p)}
+                    onChange={() => togglePerm(p)}
+                  />
+                  {p}
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Modal>
     </PageShell>
   );
 };

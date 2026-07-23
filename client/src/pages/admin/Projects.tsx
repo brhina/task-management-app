@@ -6,6 +6,7 @@ import FilterToolbar from '../../components/common/FilterToolbar';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
+import CreateProject from './CreateProject';
 import { getStatusColor } from '../../constants/taskStatus';
 import type { Project, ProjectStatus } from '../../types';
 
@@ -26,6 +27,7 @@ function Projects() {
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showCreateProject, setShowCreateProject] = useState(false);
 
   const fetchProjects = async () => {
     try {
@@ -66,9 +68,13 @@ function Projects() {
       subtitle="Organize work into outcomes and timelines"
       actions={
         <div className="flex gap-2">
-          <Link to="/admin/projects/create" className="btn-primary">
+          <button
+            type="button"
+            onClick={() => setShowCreateProject(true)}
+            className="btn-primary"
+          >
             Create Project
-          </Link>
+          </button>
           <button type="button" className="btn-secondary" onClick={fetchProjects}>
             Refresh
           </button>
@@ -205,6 +211,11 @@ function Projects() {
           </div>
         )}
       </div>
+      <CreateProject
+        isOpen={showCreateProject}
+        onClose={() => setShowCreateProject(false)}
+        onCreated={fetchProjects}
+      />
     </PageShell>
   );
 }
