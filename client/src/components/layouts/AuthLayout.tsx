@@ -67,42 +67,42 @@ function AuthLayout({ children }: { children: ReactNode }) {
 
     if (canAccessAdminSuite()) {
       const links: NavLink[] = [
-        { name: 'Dashboard', path: '/admin/dashboard', icon: NavIcons.dashboard },
-        { name: 'WorkOS', path: '/admin/workos', icon: NavIcons.workos },
-        { name: 'Projects', path: '/admin/projects', icon: NavIcons.projects },
-        { name: 'Goals', path: '/admin/goals', icon: NavIcons.goals },
-        { name: 'Resources', path: '/admin/resources', icon: NavIcons.resources },
+        { name: 'Dashboard', path: '/dashboard', icon: NavIcons.dashboard },
+        { name: 'WorkOS', path: '/settings/workos', icon: NavIcons.workos },
+        { name: 'Projects', path: '/projects', icon: NavIcons.projects },
+        { name: 'Goals', path: '/goals', icon: NavIcons.goals },
+        { name: 'Resources', path: '/resources', icon: NavIcons.resources },
       ];
       if (hasPermission('team:view')) {
-        links.push({ name: 'Teams', path: '/admin/teams', icon: NavIcons.teams });
+        links.push({ name: 'Teams', path: '/teams', icon: NavIcons.teams });
       }
       links.push(
-        { name: 'Templates', path: '/admin/task-templates', icon: NavIcons.templates },
-        { name: 'Custom Fields', path: '/admin/custom-fields', icon: NavIcons.fields },
-        { name: 'Notifications', path: '/admin/notification-settings', icon: NavIcons.notifications },
+        { name: 'Templates', path: '/tasks/templates', icon: NavIcons.templates },
+        { name: 'Custom Fields', path: '/settings/custom-fields', icon: NavIcons.fields },
+        { name: 'Notifications', path: '/settings/notifications', icon: NavIcons.notifications },
       );
       if (hasPermission('member:manage') || hasPermission('member:invite')) {
-        links.push({ name: 'Manage Users', path: '/admin/manage-users', icon: NavIcons.users });
+        links.push({ name: 'Manage Users', path: '/users', icon: NavIcons.users });
       }
       if (hasPermission('role:manage')) {
-        links.push({ name: 'Roles', path: '/admin/roles', icon: NavIcons.roles });
+        links.push({ name: 'Roles', path: '/settings/roles', icon: NavIcons.roles });
       }
       if (hasPermission('org:audit')) {
-        links.push({ name: 'Audit Log', path: '/admin/audit-log', icon: NavIcons.audit });
+        links.push({ name: 'Audit Log', path: '/audit', icon: NavIcons.audit });
       }
       if (hasPermission('report:view')) {
-        links.push({ name: 'Reports', path: '/admin/reports', icon: NavIcons.reports });
+        links.push({ name: 'Reports', path: '/reports', icon: NavIcons.reports });
       }
       return links;
     }
 
     return [
-      { name: 'Dashboard', path: '/user/dashboard', icon: NavIcons.dashboard },
-      { name: 'WorkOS', path: '/user/workos', icon: NavIcons.workos },
-      { name: 'My Tasks', path: '/user/my-tasks', icon: NavIcons.tasks },
+      { name: 'Dashboard', path: '/dashboard', icon: NavIcons.dashboard },
+      { name: 'WorkOS', path: '/settings/workos', icon: NavIcons.workos },
+      { name: 'My Tasks', path: '/tasks', icon: NavIcons.tasks },
       {
         name: 'Notifications',
-        path: '/user/notification-settings',
+        path: '/settings/notifications',
         icon: NavIcons.notifications,
       },
     ];
@@ -204,7 +204,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
           </button>
           <div className="relative">
             <Link
-              to="/user/profile"
+              to="/users/profile"
               onClick={closeSidebar}
               className={`flex items-center w-full px-2 py-2 rounded-xl hover:bg-white/5 transition-colors ${isSidebarCollapsed ? 'justify-center' : 'gap-3'}`}
               title={isSidebarCollapsed ? user.name : undefined}

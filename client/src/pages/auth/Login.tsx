@@ -67,11 +67,7 @@ function Login() {
       const response = await api.post(apiPaths.AUTH.login, formData);
       const { user, token, activeOrgId } = response.data;
       updateUser({ ...user, token, activeOrgId });
-      if (user.role === 'Admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/user/dashboard');
-      }
+      navigate('/dashboard');
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || err.message || 'An error occurred during login';

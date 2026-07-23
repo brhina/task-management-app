@@ -7,8 +7,7 @@ function NotFound() {
   const { user, getEffectiveRole } = useContext(UserContext);
   const effectiveRole = getEffectiveRole();
 
-  const dashboardPath =
-    user && effectiveRole === 'OrgAdmin' ? '/admin/dashboard' : '/user/dashboard';
+  const dashboardPath = '/dashboard';
 
   return (
     <div className="min-h-screen bg-app-bg flex items-center justify-center px-4">

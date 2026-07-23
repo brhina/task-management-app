@@ -11,10 +11,7 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const settingsPath =
-    getEffectiveRole() === 'OrgAdmin' || location.pathname.startsWith('/admin')
-      ? '/admin/notification-settings'
-      : '/user/notification-settings';
+  const settingsPath = '/settings/notifications';
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {

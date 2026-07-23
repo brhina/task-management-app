@@ -3,44 +3,46 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { UserContext } from './context/UserContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import LoadingSpinner from './components/common/LoadingSpinner';
-import { ROLES } from './constants/roles';
 
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
 import Landing from './pages/public/Landing';
-
-import Dashboard from './pages/admin/Dashboard';
-import EditTask from './pages/admin/EditTask';
-import ManageTasks from './pages/admin/ManageTasks';
-import ManageUsers from './pages/admin/ManageUsers';
-import Reports from './pages/admin/Reports';
-import Projects from './pages/admin/Projects';
-import EditProject from './pages/admin/EditProject';
-import Goals from './pages/admin/Goals';
-import EditGoal from './pages/admin/EditGoal';
-import GoalDetails from './pages/admin/GoalDetails';
-import WorkOS from './pages/admin/WorkOS';
-import TaskTemplates from './pages/admin/TaskTemplates';
-import CustomFields from './pages/admin/CustomFields';
-import ProjectGantt from './pages/admin/ProjectGantt';
-import ProjectSprints from './pages/admin/ProjectSprints';
-import SprintBoard from './pages/admin/SprintBoard';
-import Resources from './pages/admin/Resources';
-import RolesPermissions from './pages/admin/RolesPermissions';
-import Teams from './pages/admin/Teams';
-import AuditLog from './pages/admin/AuditLog';
-import UserDashboard from './pages/user/UserDashboard';
-import UserWorkOS from './pages/user/UserWorkOS';
-import MyTasks from './pages/user/MyTasks';
-import ViewTaskDetails from './pages/user/ViewTaskDetails';
-import ProfileUpdate from './pages/user/ProfileUpdate';
 import NotFound from './pages/public/NotFound';
+
+import Dashboard from './pages/dashboard/Dashboard';
+
+import ManageTasks from './pages/tasks/ManageTasks';
+import EditTask from './pages/tasks/EditTask';
+import ViewTaskDetails from './pages/tasks/ViewTaskDetails';
+import TaskTemplates from './pages/tasks/TaskTemplates';
+
+import Projects from './pages/projects/Projects';
+import EditProject from './pages/projects/EditProject';
+import ProjectGantt from './pages/projects/ProjectGantt';
+import ProjectSprints from './pages/projects/ProjectSprints';
+import SprintBoard from './pages/projects/SprintBoard';
+
+import Goals from './pages/goals/Goals';
+import EditGoal from './pages/goals/EditGoal';
+import GoalDetails from './pages/goals/GoalDetails';
+
+import ManageUsers from './pages/users/ManageUsers';
+import ProfileUpdate from './pages/users/ProfileUpdate';
+
+import WorkOS from './pages/settings/WorkOS';
+import RolesPermissions from './pages/settings/RolesPermissions';
+import CustomFields from './pages/settings/CustomFields';
+import NotificationSettings from './pages/settings/NotificationSettings';
+
+import Reports from './pages/reports/Reports';
+import Resources from './pages/resources/Resources';
+import Teams from './pages/teams/Teams';
+import AuditLog from './pages/audit/AuditLog';
 
 import AuthLayout from './components/layouts/AuthLayout';
 import UserProvider from './context/UserContext';
 import { SocketProvider } from './context/SocketContext';
 import type { User } from './types';
-import NotificationSettings from './pages/user/NotificationSettings';
 import { ADMIN_SUITE_ROLES, SYSTEM_ROLES } from './constants/permissions';
 
 interface PrivateRouteProps {
@@ -66,11 +68,9 @@ const PrivateRoute = ({ children, allowedRoles = [] }: PrivateRouteProps) => {
   }
 
   if (allowedRoles.length > 0 && (!effectiveRole || !allowedRoles.includes(effectiveRole))) {
-    // Custom roles with admin-suite permissions can still enter admin routes
     const adminGate = allowedRoles.some((r) => ADMIN_SUITE_ROLES.includes(r as any));
     if (!(adminGate && canAccessAdminSuite())) {
-      const redirectTo = canAccessAdminSuite() ? '/admin/dashboard' : '/user/dashboard';
-      return <Navigate to={redirectTo} replace />;
+      return <Navigate to="/dashboard" replace />;
     }
   }
 
@@ -111,66 +111,29 @@ interface RouteComponentProps {
 }
 
 const LoginRoute = React.memo(({ user }: RouteComponentProps) => {
-  const { canAccessAdminSuite } = useContext(UserContext);
   if (user) {
-    return (
-      <Navigate
-        to={canAccessAdminSuite() ? '/admin/dashboard' : '/user/dashboard'}
-        replace
-      />
-    );
+    return <Navigate to="/dashboard" replace />;
   }
   return <Login />;
 }, userEqual);
 
 const SignUpRoute = React.memo(({ user }: RouteComponentProps) => {
-  const { canAccessAdminSuite } = useContext(UserContext);
   if (user) {
-    return (
-      <Navigate
-        to={canAccessAdminSuite() ? '/admin/dashboard' : '/user/dashboard'}
-        replace
-      />
-    );
+    return <Navigate to="/dashboard" replace />;
   }
   return <SignUp />;
 }, userEqual);
 
 const HomeRoute = React.memo(({ user }: RouteComponentProps) => {
-  const { canAccessAdminSuite } = useContext(UserContext);
   if (user) {
-    return canAccessAdminSuite() ? (
-      <Navigate to="/admin/dashboard" replace />
-    ) : (
-      <Navigate to="/user/dashboard" replace />
-    );
+    return <Navigate to="/dashboard" replace />;
   }
   return <Landing />;
 }, userEqual);
 
-const AdminRedirectRoute = React.memo(({ user }: RouteComponentProps) => {
-  const { canAccessAdminSuite } = useContext(UserContext);
-  if (user && canAccessAdminSuite()) {
-    return <Navigate to="/admin/dashboard" replace />;
-  }
-  return <Navigate to="/login" replace />;
-}, userEqual);
-
-const UserRedirectRoute = React.memo(({ user }: RouteComponentProps) => {
-  if (user) {
-    return <Navigate to="/user/dashboard" replace />;
-  }
-  return <Navigate to="/login" replace />;
-}, userEqual);
-
 const CatchAllRoute = React.memo(({ user }: RouteComponentProps) => {
-  const { canAccessAdminSuite } = useContext(UserContext);
   if (user) {
-    return canAccessAdminSuite() ? (
-      <Navigate to="/admin/dashboard" replace />
-    ) : (
-      <Navigate to="/user/dashboard" replace />
-    );
+    return <Navigate to="/dashboard" replace />;
   }
   return <Navigate to="/login" replace />;
 }, userEqual);
@@ -185,28 +148,31 @@ function App() {
         <Route path="/login" element={<LoginRoute user={user} />} />
         <Route path="/signup" element={<SignUpRoute user={user} />} />
 
+        {/* Dashboard - accessible by all authenticated users */}
         <Route
-          path="/admin/dashboard"
+          path="/dashboard"
           element={
-            <AdminRouteWrapper>
+            <UserRouteWrapper>
               <AuthLayout>
                 <Dashboard />
               </AuthLayout>
-            </AdminRouteWrapper>
+            </UserRouteWrapper>
           }
         />
+
+        {/* Tasks */}
         <Route
-          path="/admin/edit-task/:id"
+          path="/tasks"
           element={
-            <AdminRouteWrapper>
+            <UserRouteWrapper>
               <AuthLayout>
-                <EditTask />
+                <ManageTasks />
               </AuthLayout>
-            </AdminRouteWrapper>
+            </UserRouteWrapper>
           }
         />
         <Route
-          path="/admin/manage-tasks"
+          path="/tasks/create"
           element={
             <AdminRouteWrapper>
               <AuthLayout>
@@ -216,37 +182,39 @@ function App() {
           }
         />
         <Route
-          path="/admin/task/:id"
+          path="/tasks/:id"
           element={
-            <AdminRouteWrapper>
+            <UserRouteWrapper>
               <AuthLayout>
                 <ViewTaskDetails />
               </AuthLayout>
-            </AdminRouteWrapper>
+            </UserRouteWrapper>
           }
         />
         <Route
-          path="/admin/manage-users"
+          path="/tasks/:id/edit"
           element={
             <AdminRouteWrapper>
               <AuthLayout>
-                <ManageUsers />
+                <EditTask />
               </AuthLayout>
             </AdminRouteWrapper>
           }
         />
         <Route
-          path="/admin/reports"
+          path="/tasks/templates"
           element={
             <AdminRouteWrapper>
               <AuthLayout>
-                <Reports />
+                <TaskTemplates />
               </AuthLayout>
             </AdminRouteWrapper>
           }
         />
+
+        {/* Projects */}
         <Route
-          path="/admin/projects"
+          path="/projects"
           element={
             <AdminRouteWrapper>
               <AuthLayout>
@@ -256,7 +224,7 @@ function App() {
           }
         />
         <Route
-          path="/admin/projects/edit/:id"
+          path="/projects/:id/edit"
           element={
             <AdminRouteWrapper>
               <AuthLayout>
@@ -266,77 +234,7 @@ function App() {
           }
         />
         <Route
-          path="/admin/goals"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <Goals />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
-        />
-        <Route
-          path="/admin/goals/edit/:id"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <EditGoal />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
-        />
-        <Route
-          path="/admin/goals/:id"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <GoalDetails />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
-        />
-        <Route
-          path="/admin/workos"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <WorkOS />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
-        />
-        <Route
-          path="/admin/task-templates"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <TaskTemplates />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
-        />
-        <Route
-          path="/admin/custom-fields"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <CustomFields />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
-        />
-        <Route
-          path="/admin/resources"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <Resources />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
-        />
-        <Route
-          path="/admin/projects/:id/gantt"
+          path="/projects/:id/gantt"
           element={
             <AdminRouteWrapper>
               <AuthLayout>
@@ -346,7 +244,7 @@ function App() {
           }
         />
         <Route
-          path="/admin/projects/:id/sprints"
+          path="/projects/:id/sprints"
           element={
             <AdminRouteWrapper>
               <AuthLayout>
@@ -356,7 +254,7 @@ function App() {
           }
         />
         <Route
-          path="/admin/sprints/:id/board"
+          path="/sprints/:id/board"
           element={
             <AdminRouteWrapper>
               <AuthLayout>
@@ -365,18 +263,84 @@ function App() {
             </AdminRouteWrapper>
           }
         />
+
+        {/* Goals */}
         <Route
-          path="/admin/teams"
+          path="/goals"
           element={
             <AdminRouteWrapper>
               <AuthLayout>
-                <Teams />
+                <Goals />
               </AuthLayout>
             </AdminRouteWrapper>
           }
         />
         <Route
-          path="/admin/roles"
+          path="/goals/create"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <Goals />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/goals/:id"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <GoalDetails />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/goals/:id/edit"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <EditGoal />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+
+        {/* Users */}
+        <Route
+          path="/users"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <ManageUsers />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/users/profile"
+          element={
+            <UserRouteWrapper>
+              <AuthLayout>
+                <ProfileUpdate />
+              </AuthLayout>
+            </UserRouteWrapper>
+          }
+        />
+
+        {/* Settings */}
+        <Route
+          path="/settings/workos"
+          element={
+            <UserRouteWrapper>
+              <AuthLayout>
+                <WorkOS />
+              </AuthLayout>
+            </UserRouteWrapper>
+          }
+        />
+        <Route
+          path="/settings/roles"
           element={
             <AdminRouteWrapper>
               <AuthLayout>
@@ -386,7 +350,59 @@ function App() {
           }
         />
         <Route
-          path="/admin/audit-log"
+          path="/settings/custom-fields"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <CustomFields />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/settings/notifications"
+          element={
+            <UserRouteWrapper>
+              <AuthLayout>
+                <NotificationSettings />
+              </AuthLayout>
+            </UserRouteWrapper>
+          }
+        />
+
+        {/* Other admin pages */}
+        <Route
+          path="/teams"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <Teams />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <Reports />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/resources"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <Resources />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/audit"
           element={
             <AdminRouteWrapper>
               <AuthLayout>
@@ -396,82 +412,8 @@ function App() {
           }
         />
 
-        <Route
-          path="/user/dashboard"
-          element={
-            <UserRouteWrapper>
-              <AuthLayout>
-                <UserDashboard />
-              </AuthLayout>
-            </UserRouteWrapper>
-          }
-        />
-        <Route
-          path="/user/workos"
-          element={
-            <UserRouteWrapper>
-              <AuthLayout>
-                <UserWorkOS />
-              </AuthLayout>
-            </UserRouteWrapper>
-          }
-        />
-        <Route
-          path="/user/my-tasks"
-          element={
-            <UserRouteWrapper>
-              <AuthLayout>
-                <MyTasks />
-              </AuthLayout>
-            </UserRouteWrapper>
-          }
-        />
-        <Route
-          path="/user/task/:id"
-          element={
-            <UserRouteWrapper>
-              <AuthLayout>
-                <ViewTaskDetails />
-              </AuthLayout>
-            </UserRouteWrapper>
-          }
-        />
-        <Route
-          path="/user/profile"
-          element={
-            <UserRouteWrapper>
-              <AuthLayout>
-                <ProfileUpdate />
-              </AuthLayout>
-            </UserRouteWrapper>
-          }
-        />
-        <Route
-          path="/user/notification-settings"
-          element={
-            <UserRouteWrapper>
-              <AuthLayout>
-                <NotificationSettings />
-              </AuthLayout>
-            </UserRouteWrapper>
-          }
-        />
-        <Route
-          path="/admin/notification-settings"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <NotificationSettings />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
-        />
-
-        <Route path="/admin" element={<AdminRedirectRoute user={user} />} />
-        <Route path="/user" element={<UserRedirectRoute user={user} />} />
-
         <Route path="/404" element={<NotFound />} />
-        <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<CatchAllRoute user={user} />} />
       </Routes>
     </Router>
   );
