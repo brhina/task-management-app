@@ -1,5 +1,5 @@
 import express from "express";
-import protect, { orgAdminOnly } from "../middleware/authMiddleware.js";
+import protect, { requirePermission } from "../middleware/authMiddleware.js";
 import {
   getDashboardTasks,
   getUserDashboardTasks,
@@ -42,16 +42,16 @@ router.get("/dashboard-tasks", protect, getDashboardTasks);
 router.get("/user-dashboard-tasks", protect, getUserDashboardTasks);
 router.get("/", protect, getTasks);
 router.get("/:id", protect, getTaskById);
-router.post("/", protect, orgAdminOnly, validate(createTaskSchema), createTask);
-router.put("/:id", protect, orgAdminOnly, validate(updateTaskSchema), updateTask);
-router.delete("/:id", protect, orgAdminOnly, deleteTask);
+router.post("/", protect, requirePermission("task:create"), validate(createTaskSchema), createTask);
+router.put("/:id", protect, requirePermission("task:update"), validate(updateTaskSchema), updateTask);
+router.delete("/:id", protect, requirePermission("task:delete"), deleteTask);
 router.put(
   "/:id/status",
   protect,
   validate(updateTaskStatusSchema),
   updateTaskStatus,
 );
-router.put("/:id/assignee", protect, orgAdminOnly, updateTaskAssignee);
+router.put("/:id/assignee", protect, requirePermission("task:assign"), updateTaskAssignee);
 router.put(
   "/:id/todo",
   protect,
@@ -73,15 +73,15 @@ router.post(
 router.delete(
   "/:id/attachments/:attachmentId",
   protect,
-  orgAdminOnly,
+  requirePermission("task:update"),
   deleteTaskAttachment,
 );
 
 router.get("/:id/subtasks", protect, listSubtasks);
-router.put("/:id/subtasks/reorder", protect, orgAdminOnly, reorderSubtasks);
+router.put("/:id/subtasks/reorder", protect, requirePermission("task:update"), reorderSubtasks);
 
 router.post("/:id/timer/start", protect, startTimer);
 router.post("/:id/timer/stop", protect, stopTimer);
-router.post("/:id/save-as-template", protect, orgAdminOnly, saveTaskAsTemplate);
+router.post("/:id/save-as-template", protect, requirePermission("template:manage"), saveTaskAsTemplate);
 
 export default router;

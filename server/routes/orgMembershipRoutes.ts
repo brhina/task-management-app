@@ -1,4 +1,5 @@
 import express from "express";
+import protect, { requirePermission } from "../middleware/authMiddleware.js";
 import {
   getMyOrgs,
   leaveOrg,
@@ -8,25 +9,29 @@ import {
   updateMemberRole,
   removeMember,
 } from "../controllers/orgMembershipControllers.js";
-import protect, { orgAdminOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router.get("/my-orgs", protect, getMyOrgs);
 router.post("/:orgId/leave", protect, leaveOrg);
-router.post("/:orgId/invite", protect, orgAdminOnly, generateInviteToken);
+router.post(
+  "/:orgId/invite",
+  protect,
+  requirePermission("member:invite"),
+  generateInviteToken,
+);
 router.post("/join", protect, joinOrgByInvite);
 router.get("/:orgId/members", protect, getOrgMembers);
 router.put(
   "/:orgId/members/:memberId/role",
   protect,
-  orgAdminOnly,
+  requirePermission("member:manage"),
   updateMemberRole,
 );
 router.delete(
   "/:orgId/members/:memberId",
   protect,
-  orgAdminOnly,
+  requirePermission("member:manage"),
   removeMember,
 );
 
