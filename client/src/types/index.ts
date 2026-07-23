@@ -4,7 +4,7 @@ export type TaskPriority = 'Low' | 'Medium' | 'High' | 'Critical';
 
 export type TaskStatus = 'Pending' | 'In Progress' | 'In Review' | 'Completed';
 
-export type OrgRole = 'OrgAdmin' | 'OrgMember';
+export type OrgRole = 'Owner' | 'OrgAdmin' | 'Manager' | 'OrgMember' | 'Viewer' | 'Custom';
 
 export interface OrgMembership {
   _id: string;
@@ -13,6 +13,8 @@ export interface OrgMembership {
   plan?: string;
   membershipId: string;
   role: OrgRole;
+  customRoleId?: string | null;
+  customRoleName?: string | null;
   capacityHoursPerWeek?: number;
   joinedAt?: string;
   orgId?: string;
@@ -280,7 +282,10 @@ export interface UserContextType {
     userData: User & { token?: string; activeOrgId?: string; orgs?: OrgMembership[] }
   ) => void;
   clearUser: () => void;
-  getEffectiveRole: () => 'OrgAdmin' | 'OrgMember' | null;
+  getEffectiveRole: () => OrgRole | null;
+  permissions: string[];
+  hasPermission: (permission: string) => boolean;
+  canAccessAdminSuite: () => boolean;
 }
 
 export type ProjectStatus = 'Planned' | 'Active' | 'Paused' | 'Completed' | 'Archived';

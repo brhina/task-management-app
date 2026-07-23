@@ -18,7 +18,7 @@ function downloadJson(filename: string, data: unknown) {
 }
 
 function WorkOS() {
-  const { user, getEffectiveRole } = useContext(UserContext);
+  const { user, canAccessAdminSuite, hasPermission } = useContext(UserContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<any>(null);
@@ -69,9 +69,7 @@ function WorkOS() {
       setRunningDaily(false);
     }
   };
-
-  const effectiveRole = getEffectiveRole();
-  if (!user || effectiveRole !== 'OrgAdmin') {
+  if (!user || !canAccessAdminSuite()) {
     return (
       <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
     );
@@ -105,14 +103,15 @@ function WorkOS() {
             className="btn-secondary disabled:opacity-50"
             type="button"
             onClick={handleRunDaily}
-            disabled={runningDaily}
+            disabled={runningDaily || !hasPermission('automation:manage')}
           >
             {runningDaily ? 'Running…' : 'Run summary'}
           </button>
           <button
-            className="btn-primary"
+            className="btn-primary disabled:opacity-50"
             type="button"
             onClick={() => downloadJson('workos-summary.json', data)}
+            disabled={!hasPermission('automation:manage')}
           >
             Download
           </button>

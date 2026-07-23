@@ -10,6 +10,7 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core';
 import { UserContext } from '../../context/UserContext';
+import { useSocket } from '../../context/SocketContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { getStatusColor, getPriorityColor, TASK_STATUS } from '../../constants/taskStatus';
@@ -55,7 +56,8 @@ const STATUS_OPTIONS = [
 ];
 
 function MyTasks() {
-  const { user } = useContext(UserContext);
+  const { user, hasPermission } = useContext(UserContext);
+  const { socket } = useSocket();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -99,6 +101,17 @@ function MyTasks() {
     fetchTasks();
     fetchProjects();
   }, [fetchTasks]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const onTaskUpdated = () => {
+      fetchTasks();
+    };
+    socket.on('task_updated', onTaskUpdated);
+    return () => {
+      socket.off('task_updated', onTaskUpdated);
+    };
+  }, [socket, fetchTasks]);
 
   const fetchProjects = async () => {
     try {
@@ -160,6 +173,7 @@ function MyTasks() {
 
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
+      if (!hasPermission('task:update')) return;
       const { active, over } = event;
       setActiveTask(null);
       if (!over) return;
@@ -371,6 +385,7 @@ function MyTasks() {
                         value={task.status}
                         onChange={(e) => handleStatusUpdate(task._id, e.target.value)}
                         className="input-dark text-[10px] py-1 px-2 w-24 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
+                        disabled={!hasPermission('task:update')}
                       >
                         <option value={TASK_STATUS.PENDING}>{TASK_STATUS.PENDING}</option>
                         <option value={TASK_STATUS.IN_PROGRESS}>{TASK_STATUS.IN_PROGRESS}</option>

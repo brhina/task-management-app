@@ -12,6 +12,8 @@ import TaskActivityFeed from '../../components/tasks/TaskActivityFeed';
 import TaskAttachments from '../../components/tasks/TaskAttachments';
 import TaskTimeTracking from '../../components/tasks/TaskTimeTracking';
 import TaskSubtasks from '../../components/tasks/TaskSubtasks';
+import MentionText from '../../components/common/MentionText';
+import { useSocket } from '../../context/SocketContext';
 import { X, Check } from 'lucide-react';
 import type { Task, TodoItem, User } from '../../types';
 
@@ -39,7 +41,7 @@ const STATUS_FLOW = [
 ];
 
 function ViewTaskDetails() {
-  const { user, getEffectiveRole } = useContext(UserContext);
+  const { user, hasPermission } = useContext(UserContext);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -56,6 +58,8 @@ function ViewTaskDetails() {
   const [addingDep, setAddingDep] = useState(false);
   const [members, setMembers] = useState<User[]>([]);
   const [savingTemplate, setSavingTemplate] = useState(false);
+  const [viewers, setViewers] = useState<Array<{ userId: string; name?: string }>>([]);
+  const { socket } = useSocket();
 
   const fetchTaskDetails = useCallback(async () => {
     try {
@@ -111,14 +115,50 @@ function ViewTaskDetails() {
     fetchTaskDetails();
     fetchDependencies();
     fetchMembers();
-    if (getEffectiveRole() === 'OrgAdmin') fetchTasksForDependencyPicker();
+    if (hasPermission('task:update')) fetchTasksForDependencyPicker();
   }, [
     fetchTaskDetails,
     fetchDependencies,
     fetchTasksForDependencyPicker,
     fetchMembers,
-    getEffectiveRole,
+    hasPermission,
   ]);
+
+  // Presence: announce viewing this task
+  useEffect(() => {
+    if (!socket || !id || !user) return;
+    socket.emit('viewing_task', { taskId: id, name: user.name });
+
+    const onPresence = (p: {
+      userId: string;
+      name?: string;
+      viewingTaskId: string | null;
+    }) => {
+      setViewers((prev) => {
+        if (p.viewingTaskId === id) {
+          if (prev.some((v) => v.userId === p.userId)) return prev;
+          return [...prev, { userId: p.userId, name: p.name }];
+        }
+        return prev.filter((v) => v.userId !== p.userId);
+      });
+    };
+    socket.on('presence_update', onPresence);
+
+    api
+      .get(apiPaths.NOTIFICATIONS.PRESENCE, { params: { taskId: id } })
+      .then((r) => {
+        const list = (r.data.data || []).filter(
+          (v: any) => String(v.userId) !== String(user._id),
+        );
+        setViewers(list);
+      })
+      .catch(() => {});
+
+    return () => {
+      socket.emit('leave_task');
+      socket.off('presence_update', onPresence);
+    };
+  }, [socket, id, user]);
 
   const handleSaveAsTemplate = async () => {
     if (!id) return;
@@ -269,7 +309,11 @@ function ViewTaskDetails() {
       title={task.title}
       subtitle={
         <>
-          {task.description && <p className="text-slate-300 text-sm mb-2">{task.description}</p>}
+          {task.description && (
+            <p className="text-slate-300 text-sm mb-2">
+              <MentionText text={task.description} />
+            </p>
+          )}
           {/* <div className="flex items-center gap-2 flex-wrap">
                         <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${getPriorityColor(task.priority)}`}>
                             {task.priority}
@@ -292,7 +336,7 @@ function ViewTaskDetails() {
       }
       actions={
         <div className="flex gap-2 flex-wrap">
-          {getEffectiveRole() === 'OrgAdmin' && (
+          {hasPermission('task:update') && (
             <>
               <button
                 type="button"
@@ -317,6 +361,17 @@ function ViewTaskDetails() {
       }
     >
       {error && <div className="alert-error mb-4">{error}</div>}
+
+      {viewers.length > 0 && (
+        <div className="mb-3 text-xs text-slate-400 flex items-center gap-2">
+          <span className="inline-flex w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          Also viewing:{' '}
+          {viewers
+            .filter((v) => String(v.userId) !== String(user?._id))
+            .map((v) => v.name || 'Someone')
+            .join(', ') || 'others'}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left Column - Main Content */}
@@ -368,7 +423,7 @@ function ViewTaskDetails() {
                   </span>
                   <button
                     onClick={() => handleDeleteChecklistItem(index)}
-                    disabled={updating}
+                    disabled={updating || !hasPermission('task:update')}
                     className="opacity-0 group-hover:opacity-100 p-0.5 text-rose-400 hover:text-rose-300 transition-opacity disabled:opacity-50"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -389,7 +444,7 @@ function ViewTaskDetails() {
                 />
                 <button
                   type="submit"
-                  disabled={!newChecklistItem.trim() || updating}
+                  disabled={!newChecklistItem.trim() || updating || !hasPermission('task:update')}
                   className="btn-primary px-3 py-1.5 text-sm disabled:opacity-50"
                 >
                   Add
@@ -405,19 +460,19 @@ function ViewTaskDetails() {
                   Cancel
                 </button>
               </form>
-            ) : (
+            ) : hasPermission('task:update') ? (
               <button
                 onClick={() => setShowAddChecklist(true)}
                 className="mt-3 w-full px-3 py-1.5 border border-dashed border-slate-600 rounded-lg text-xs text-slate-400 hover:border-primary/50 hover:text-primary transition-colors"
               >
                 + Add item
               </button>
-            )}
+            ) : null}
           </div>
 
           <TaskSubtasks
             parentId={task._id}
-            isAdmin={getEffectiveRole() === 'OrgAdmin'}
+            isAdmin={hasPermission('task:update')}
             detailBasePath={isAdminRoute ? '/admin/task' : '/user/task'}
             onProgressChange={fetchTaskDetails}
           />
@@ -425,16 +480,18 @@ function ViewTaskDetails() {
           <TaskAttachments
             task={task}
             onUpdated={fetchTaskDetails}
-            canDelete={getEffectiveRole() === 'OrgAdmin'}
+            canDelete={hasPermission('task:update')}
+            canUpload={hasPermission('task:update')}
           />
 
           <TaskComments
             taskId={task._id}
             members={members}
-            canDelete={getEffectiveRole() === 'OrgAdmin'}
+            canDelete={hasPermission('task:update')}
+            canPost={hasPermission('task:update')}
           />
 
-          <TaskTimeTracking taskId={task._id} />
+          <TaskTimeTracking taskId={task._id} canEdit={hasPermission('task:update')} />
 
           {/* Dependencies */}
           <div className="card">
@@ -464,7 +521,7 @@ function ViewTaskDetails() {
                             {d.fromTaskId?.status} • {d.type}
                           </div>
                         </div>
-                        {getEffectiveRole() === 'OrgAdmin' && (
+                        {hasPermission('task:update') && (
                           <button
                             onClick={() => handleRemoveDependency(d._id)}
                             className="text-rose-400 hover:text-rose-300 text-xs shrink-0"
@@ -498,7 +555,7 @@ function ViewTaskDetails() {
                             {d.toTaskId?.status} • {d.type}
                           </div>
                         </div>
-                        {getEffectiveRole() === 'OrgAdmin' && (
+                        {hasPermission('task:update') && (
                           <button
                             onClick={() => handleRemoveDependency(d._id)}
                             className="text-rose-400 hover:text-rose-300 text-xs shrink-0"
@@ -513,7 +570,7 @@ function ViewTaskDetails() {
               </div>
             </div>
 
-            {getEffectiveRole() === 'OrgAdmin' && (
+            {hasPermission('task:update') && (
               <div className="mt-3 pt-3 border-t border-slate-700/50">
                 <div className="flex gap-2">
                   <select
@@ -559,7 +616,7 @@ function ViewTaskDetails() {
                   key={s.value}
                   type="button"
                   onClick={() => handleStatusUpdate(s.value)}
-                  disabled={updating || task.status === s.value}
+                  disabled={updating || task.status === s.value || !hasPermission('task:update')}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all ${
                     task.status === s.value
                       ? s.color + ' ring-1 ring-white/10'
@@ -603,6 +660,7 @@ function ViewTaskDetails() {
                 value={task.progress || 0}
                 onChange={(e) => handleProgressUpdate(Number(e.target.value))}
                 className="flex-1 h-2 bg-slate-700 rounded-full appearance-none cursor-pointer accent-primary"
+                disabled={!hasPermission('task:update')}
               />
               <span className="text-sm font-bold text-slate-200 tabular-nums w-10 text-right">
                 {task.progress || 0}%
