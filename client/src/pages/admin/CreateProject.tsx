@@ -9,7 +9,7 @@ import type { ProjectStatus } from '../../types';
 const STATUS_OPTIONS: ProjectStatus[] = ['Planned', 'Active', 'Paused', 'Completed', 'Archived'];
 
 function CreateProject() {
-  const { user, getEffectiveRole } = useContext(UserContext);
+  const { user, canAccessAdminSuite, hasPermission } = useContext(UserContext);
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [name, setName] = useState('');
@@ -38,9 +38,7 @@ function CreateProject() {
       setCreating(false);
     }
   };
-
-  const effectiveRole = getEffectiveRole();
-  if (!user || effectiveRole !== 'OrgAdmin') {
+  if (!user || !canAccessAdminSuite()) {
     return (
       <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
     );
@@ -104,7 +102,7 @@ function CreateProject() {
             >
               Cancel
             </button>
-            <button className="btn-primary disabled:opacity-50" disabled={creating} type="submit">
+            <button className="btn-primary disabled:opacity-50" disabled={creating || !hasPermission('project:create')} type="submit">
               {creating ? 'Creating...' : 'Create Project'}
             </button>
           </div>

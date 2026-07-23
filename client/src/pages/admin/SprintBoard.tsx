@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useContext } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   DndContext,
@@ -14,9 +14,11 @@ import TaskBoard from '../../components/tasks/TaskBoard';
 import TaskCard from '../../components/tasks/TaskCard';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
+import { UserContext } from '../../context/UserContext';
 import type { Sprint, Task, TaskStatus } from '../../types';
 
 export default function SprintBoard() {
+  const { hasPermission } = useContext(UserContext);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [sprint, setSprint] = useState<Sprint | null>(null);
@@ -56,6 +58,7 @@ export default function SprintBoard() {
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
+    if (!hasPermission('task:update')) return;
     setActiveTask(null);
     const { active, over } = event;
     if (!over) return;

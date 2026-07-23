@@ -22,7 +22,7 @@ interface ProjectResponse {
 }
 
 function EditProject() {
-  const { user, getEffectiveRole } = useContext(UserContext);
+  const { user, canAccessAdminSuite, hasPermission } = useContext(UserContext);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
@@ -85,9 +85,7 @@ function EditProject() {
       setSaving(false);
     }
   };
-
-  const effectiveRole = getEffectiveRole();
-  if (!user || effectiveRole !== 'OrgAdmin') {
+  if (!user || !canAccessAdminSuite()) {
     return (
       <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
     );
@@ -183,7 +181,7 @@ function EditProject() {
               >
                 Cancel
               </button>
-              <button className="btn-primary disabled:opacity-50" disabled={saving} type="submit">
+              <button className="btn-primary disabled:opacity-50" disabled={saving || !hasPermission('project:update')} type="submit">
                 {saving ? 'Saving...' : 'Update Project'}
               </button>
             </div>

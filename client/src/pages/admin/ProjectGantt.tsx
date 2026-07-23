@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useContext } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import PageShell from '../../components/common/PageShell';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
+import { UserContext } from '../../context/UserContext';
 import type { Milestone, Task } from '../../types';
 
 interface GanttDep {
@@ -16,6 +17,7 @@ function dayMs(d: Date) {
 }
 
 export default function ProjectGantt() {
+  const { hasPermission } = useContext(UserContext);
   const { id } = useParams<{ id: string }>();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
@@ -209,11 +211,13 @@ export default function ProjectGantt() {
                         type="button"
                         className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize bg-cyan-300/50"
                         onMouseDown={(e) => onBarMouseDown(e, t._id, 'start')}
+                        disabled={!hasPermission('task:update')}
                       />
                       <button
                         type="button"
                         className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize bg-cyan-300/50"
                         onMouseDown={(e) => onBarMouseDown(e, t._id, 'end')}
+                        disabled={!hasPermission('task:update')}
                       />
                     </div>
                   </div>

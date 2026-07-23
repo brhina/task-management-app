@@ -20,7 +20,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 function Projects() {
-  const { user, getEffectiveRole } = useContext(UserContext);
+  const { user, canAccessAdminSuite } = useContext(UserContext);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -54,9 +54,7 @@ function Projects() {
       return matchesStatus && matchesSearch;
     });
   }, [projects, statusFilter, searchTerm]);
-
-  const effectiveRole = getEffectiveRole();
-  if (!user || effectiveRole !== 'OrgAdmin') {
+  if (!user || !canAccessAdminSuite()) {
     return (
       <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
     );

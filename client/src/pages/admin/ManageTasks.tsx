@@ -11,6 +11,7 @@ import {
 } from '@dnd-kit/core';
 import { LayoutGrid, List, Users, ClipboardList } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
+import { useSocket } from '../../context/SocketContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
@@ -68,7 +69,8 @@ const STATUS_OPTIONS = [
 ];
 
 function ManageTasks() {
-  const { user, getEffectiveRole } = useContext(UserContext);
+  const { user, canAccessAdminSuite, hasPermission } = useContext(UserContext);
+  const { socket } = useSocket();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlProjectId = searchParams.get('projectId') || '';
@@ -102,6 +104,41 @@ function ManageTasks() {
     fetchUsers();
     fetchProjects();
   }, [statusFilter, projectFilter]);
+
+  // Live board updates from other users
+  useEffect(() => {
+    if (!socket) return;
+    const onTaskUpdated = (payload: {
+      taskId: string;
+      action: string;
+      task?: TaskWithAssignee;
+    }) => {
+      if (!payload.task) {
+        fetchTasks();
+        return;
+      }
+      const t = payload.task;
+      if (projectFilter && String((t as any).projectId) !== projectFilter) {
+        // still refresh summaries
+        fetchTasks();
+        return;
+      }
+      setTasks((prev) => {
+        const idx = prev.findIndex((x) => x._id === payload.taskId);
+        if (payload.action === 'created' && idx === -1) {
+          return [t, ...prev];
+        }
+        if (idx === -1) return prev;
+        const next = [...prev];
+        next[idx] = { ...next[idx], ...t };
+        return next;
+      });
+    };
+    socket.on('task_updated', onTaskUpdated);
+    return () => {
+      socket.off('task_updated', onTaskUpdated);
+    };
+  }, [socket, projectFilter]);
 
   const fetchTasks = async () => {
     try {
@@ -246,9 +283,7 @@ function ManageTasks() {
     },
     [filteredTasks]
   );
-
-  const effectiveRole = getEffectiveRole();
-  if (!user || effectiveRole !== 'OrgAdmin') {
+  if (!user || !canAccessAdminSuite()) {
     return (
       <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
     );
@@ -492,6 +527,7 @@ function ManageTasks() {
                         value={task.status}
                         onChange={(e) => handleStatusUpdate(task._id, e.target.value)}
                         className="input-dark text-[10px] py-1 px-2 w-24 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
+                        disabled={!hasPermission('task:update')}
                       >
                         <option value="Pending">Pending</option>
                         <option value="In Progress">In Progress</option>
@@ -512,12 +548,14 @@ function ManageTasks() {
                         >
                           Edit
                         </Link>
-                        <button
-                          onClick={() => handleDeleteTask(task._id)}
-                          className="text-[10px] text-rose-400 hover:text-rose-300 font-medium"
-                        >
-                          Delete
-                        </button>
+                        {hasPermission('task:delete') && (
+                          <button
+                            onClick={() => handleDeleteTask(task._id)}
+                            className="text-[10px] text-rose-400 hover:text-rose-300 font-medium"
+                          >
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, useContext, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import PageShell from '../../components/common/PageShell';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
+import { UserContext } from '../../context/UserContext';
 import type { Milestone, Sprint, Task } from '../../types';
 
 export default function ProjectSprints() {
+  const { hasPermission } = useContext(UserContext);
   const { id } = useParams<{ id: string }>();
   const [sprints, setSprints] = useState<Sprint[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
@@ -135,7 +137,7 @@ export default function ProjectSprints() {
             onChange={(e) => setCapacityHours(Number(e.target.value))}
             placeholder="Capacity hours"
           />
-          <button type="submit" className="btn-primary">
+          <button type="submit" className="btn-primary" disabled={!hasPermission('project:update')}>
             Create sprint
           </button>
         </form>
@@ -158,7 +160,7 @@ export default function ProjectSprints() {
             onChange={(e) => setMsDate(e.target.value)}
             required
           />
-          <button type="submit" className="btn-primary">
+          <button type="submit" className="btn-primary" disabled={!hasPermission('project:update')}>
             Create milestone
           </button>
         </form>
@@ -204,8 +206,9 @@ export default function ProjectSprints() {
                   />
                   <button
                     type="button"
-                    className="btn-primary text-xs"
+                    className="btn-primary text-xs disabled:opacity-50"
                     onClick={() => saveRetro(s._id)}
+                    disabled={!hasPermission('project:update')}
                   >
                     Save notes
                   </button>
@@ -242,6 +245,7 @@ export default function ProjectSprints() {
                 onChange={(e) =>
                   assignTask(t._id, e.target.value || null)
                 }
+                disabled={!hasPermission('task:assign')}
               >
                 <option value="">Unassigned</option>
                 {sprints.map((s) => (

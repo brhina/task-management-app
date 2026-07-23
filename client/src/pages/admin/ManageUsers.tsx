@@ -31,7 +31,7 @@ interface InviteModalState {
 }
 
 function ManageUsers() {
-  const { user, getEffectiveRole } = useContext(UserContext);
+  const { user, canAccessAdminSuite, hasPermission } = useContext(UserContext);
   const [users, setUsers] = useState<UserWithTaskCounts[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -299,9 +299,7 @@ function ManageUsers() {
     });
     return map;
   }, [tasks]);
-
-  const effectiveRole = getEffectiveRole();
-  if (!user || effectiveRole !== 'OrgAdmin') {
+  if (!user || !canAccessAdminSuite()) {
     return (
       <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
     );
@@ -316,10 +314,12 @@ function ManageUsers() {
           <button type="button" className="btn-secondary" onClick={fetchData}>
             Refresh
           </button>
-          <button type="button" className="btn-primary" onClick={handleOpenInviteModal}>
-            <UserPlus className="w-4 h-4 mr-1.5" />
-            Invite Member
-          </button>
+          {hasPermission('member:invite') && (
+            <button type="button" className="btn-primary" onClick={handleOpenInviteModal}>
+              <UserPlus className="w-4 h-4 mr-1.5" />
+              Invite Member
+            </button>
+          )}
         </div>
       }
     >
@@ -339,8 +339,8 @@ function ManageUsers() {
               onChange: setRoleFilter,
               options: [
                 { value: '', label: 'All Roles' },
-                { value: 'Admin', label: 'Admin' },
-                { value: 'Member', label: 'Member' },
+                { value: 'OrgAdmin', label: 'Owner' },
+                { value: 'OrgMember', label: 'Member' },
               ],
             },
             {
@@ -437,12 +437,16 @@ function ManageUsers() {
                       <div className="flex items-center gap-2 mt-1">
                         <span
                           className={`inline-flex px-1.5 py-0.5 text-[10px] font-semibold rounded-full border ${
-                            u.role === 'Admin'
+                            u.role === 'OrgAdmin' || u.role === 'Owner'
                               ? 'bg-violet-500/15 text-violet-400 border-violet-500/30'
                               : 'bg-sky-500/15 text-sky-400 border-sky-500/30'
                           }`}
                         >
-                          {u.role}
+                          {u.role === 'OrgAdmin' || u.role === 'Owner'
+                            ? 'Owner'
+                            : u.role === 'OrgMember'
+                              ? 'Member'
+                              : u.role}
                         </span>
                         <span
                           className={`inline-flex px-1.5 py-0.5 text-[10px] font-semibold rounded-full ${wl.bg} ${wl.color}`}
@@ -514,7 +518,7 @@ function ManageUsers() {
                         year: 'numeric',
                       })}
                     </span>
-                    {u.role !== 'Admin' && (
+                    {hasPermission('member:manage') && u.role !== 'OrgAdmin' && u.role !== 'Owner' && (
                       <button
                         onClick={() => handleDeleteUser(u._id)}
                         className="text-[10px] text-rose-400 hover:text-rose-300 font-medium opacity-0 group-hover:opacity-100 transition-opacity"
@@ -637,7 +641,7 @@ function ManageUsers() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          {u.role !== 'Admin' && (
+                            {hasPermission('member:manage') && u.role !== 'OrgAdmin' && u.role !== 'Owner' && (
                             <button
                               onClick={() => handleDeleteUser(u._id)}
                               className="text-xs text-rose-400 hover:text-rose-300 font-medium"
@@ -794,7 +798,7 @@ function ManageUsers() {
                             className="input-dark block w-full px-3 py-2 text-sm"
                           >
                             <option value="OrgMember">Member</option>
-                            <option value="OrgAdmin">Admin</option>
+                            <option value="OrgAdmin">Owner</option>
                           </select>
                         </div>
                       </div>
@@ -821,7 +825,7 @@ function ManageUsers() {
                       <button
                         type="button"
                         onClick={handleAddMember}
-                        disabled={inviteModal.loading}
+                        disabled={inviteModal.loading || !hasPermission('member:invite')}
                         className="btn-primary w-full sm:w-auto disabled:opacity-50"
                       >
                         {inviteModal.loading
@@ -832,7 +836,7 @@ function ManageUsers() {
                       <button
                         type="button"
                         onClick={handleInviteMember}
-                        disabled={inviteModal.loading || !inviteModal.email}
+                        disabled={inviteModal.loading || !inviteModal.email || !hasPermission('member:invite')}
                         className="btn-primary w-full sm:w-auto disabled:opacity-50"
                       >
                         {inviteModal.loading ? 'Generating...' : 'Generate Invite Link'}

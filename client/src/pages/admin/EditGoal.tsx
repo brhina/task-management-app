@@ -66,7 +66,7 @@ interface GoalResponse {
 }
 
 function EditGoal() {
-  const { user, getEffectiveRole } = useContext(UserContext);
+  const { user, canAccessAdminSuite, hasPermission } = useContext(UserContext);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
@@ -156,9 +156,7 @@ function EditGoal() {
       setSaving(false);
     }
   };
-
-  const effectiveRole = getEffectiveRole();
-  if (!user || effectiveRole !== 'OrgAdmin') {
+  if (!user || !canAccessAdminSuite()) {
     return <PageShell title="Access Denied" subtitle="Admin only." />;
   }
 
@@ -320,7 +318,8 @@ function EditGoal() {
               <button
                 type="button"
                 onClick={() => setShowLinkDropdown(!showLinkDropdown)}
-                className="text-xs text-primary hover:text-primary-hover font-medium"
+                className="text-xs text-primary hover:text-primary-hover font-medium disabled:opacity-50"
+                disabled={!hasPermission('goal:manage')}
               >
                 + Add Project
               </button>
@@ -362,7 +361,8 @@ function EditGoal() {
                   <button
                     type="button"
                     onClick={() => handleUnlinkProject(p._id)}
-                    className="text-rose-400 hover:text-rose-300 text-xs shrink-0 ml-2"
+                    className="text-rose-400 hover:text-rose-300 text-xs shrink-0 ml-2 disabled:opacity-50"
+                    disabled={!hasPermission('goal:manage')}
                   >
                     ✕
                   </button>
@@ -378,7 +378,7 @@ function EditGoal() {
           </Link>
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || !hasPermission('goal:manage')}
             className="btn-primary disabled:opacity-50 min-w-[140px]"
           >
             {saving ? (

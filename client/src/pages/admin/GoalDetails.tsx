@@ -17,7 +17,7 @@ const TIMEFRAME_COLORS: Record<string, string> = {
 };
 
 function GoalDetails() {
-  const { user, getEffectiveRole } = useContext(UserContext);
+  const { user, canAccessAdminSuite, hasPermission } = useContext(UserContext);
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -89,9 +89,7 @@ function GoalDetails() {
     if (!goal?.targetValue) return null;
     return Math.min(100, Math.round(((goal.currentValue || 0) / goal.targetValue) * 100));
   }, [goal]);
-
-  const effectiveRole = getEffectiveRole();
-  if (!user || effectiveRole !== 'OrgAdmin') {
+  if (!user || !canAccessAdminSuite()) {
     return <PageShell title="Access Denied" subtitle="Admin only." />;
   }
 
@@ -181,8 +179,9 @@ function GoalDetails() {
                   </div>
                   <button
                     type="button"
-                    className="text-xs text-slate-500 hover:text-red-400"
+                    className="text-xs text-slate-500 hover:text-red-400 disabled:opacity-50"
                     onClick={() => deleteKeyResult(kr._id)}
+                    disabled={!hasPermission('goal:manage')}
                   >
                     Delete
                   </button>
@@ -218,7 +217,7 @@ function GoalDetails() {
                 value={krTarget}
                 onChange={(e) => setKrTarget(Number(e.target.value))}
               />
-              <button type="button" className="btn-primary text-sm" onClick={addKeyResult}>
+              <button type="button" className="btn-primary text-sm disabled:opacity-50" onClick={addKeyResult} disabled={!hasPermission('goal:manage')}>
                 Add KR
               </button>
             </div>

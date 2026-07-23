@@ -27,7 +27,7 @@ const TIMEFRAME_ICONS: Record<string, string> = {
 };
 
 function Goals() {
-  const { user, getEffectiveRole } = useContext(UserContext);
+  const { user, canAccessAdminSuite } = useContext(UserContext);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -62,9 +62,7 @@ function Goals() {
       return matchesTimeframe && matchesSearch;
     });
   }, [goals, timeframeFilter, searchTerm]);
-
-  const effectiveRole = getEffectiveRole();
-  if (!user || effectiveRole !== 'OrgAdmin') {
+  if (!user || !canAccessAdminSuite()) {
     return (
       <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
     );

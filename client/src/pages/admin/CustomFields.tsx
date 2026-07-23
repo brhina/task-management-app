@@ -1,11 +1,13 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, useContext, type FormEvent } from 'react';
 import PageShell from '../../components/common/PageShell';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
+import { UserContext } from '../../context/UserContext';
 import type { CustomFieldDefinition } from '../../types';
 import { Trash2 } from 'lucide-react';
 
 export default function CustomFields() {
+  const { hasPermission } = useContext(UserContext);
   const [fields, setFields] = useState<CustomFieldDefinition[]>([]);
   const [label, setLabel] = useState('');
   const [type, setType] = useState<CustomFieldDefinition['type']>('text');
@@ -80,7 +82,7 @@ export default function CustomFields() {
           />
           Required
         </label>
-        <button type="submit" className="btn-primary">
+        <button type="submit" className="btn-primary" disabled={!hasPermission('custom_field:manage')}>
           Add field
         </button>
       </form>
@@ -97,7 +99,8 @@ export default function CustomFields() {
             <button
               type="button"
               onClick={() => remove(f._id)}
-              className="text-slate-500 hover:text-red-400"
+              className="text-slate-500 hover:text-red-400 disabled:opacity-50"
+              disabled={!hasPermission('custom_field:manage')}
             >
               <Trash2 className="w-4 h-4" />
             </button>

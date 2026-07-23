@@ -51,7 +51,7 @@ const TIMEFRAMES: {
 ];
 
 function CreateGoal() {
-  const { user, getEffectiveRole } = useContext(UserContext);
+  const { user, canAccessAdminSuite, hasPermission } = useContext(UserContext);
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [title, setTitle] = useState('');
@@ -82,9 +82,7 @@ function CreateGoal() {
       setCreating(false);
     }
   };
-
-  const effectiveRole = getEffectiveRole();
-  if (!user || effectiveRole !== 'OrgAdmin') {
+  if (!user || !canAccessAdminSuite()) {
     return <PageShell title="Access Denied" subtitle="Admin only." />;
   }
 
@@ -216,7 +214,7 @@ function CreateGoal() {
           </Link>
           <button
             type="submit"
-            disabled={creating}
+            disabled={creating || !hasPermission('goal:manage')}
             className="btn-primary disabled:opacity-50 min-w-[140px]"
           >
             {creating ? (

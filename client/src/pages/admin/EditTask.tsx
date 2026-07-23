@@ -80,7 +80,7 @@ const DATE_PRESETS = [
 ];
 
 function EditTask() {
-  const { user, getEffectiveRole } = useContext(UserContext);
+  const { user, canAccessAdminSuite, hasPermission } = useContext(UserContext);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
@@ -256,9 +256,7 @@ function EditTask() {
       setSubmitting(false);
     }
   };
-
-  const effectiveRole = getEffectiveRole();
-  if (!user || effectiveRole !== 'OrgAdmin') {
+  if (!user || !canAccessAdminSuite()) {
     return <PageShell title="Access Denied" subtitle="Admin only." />;
   }
 
@@ -682,7 +680,7 @@ function EditTask() {
         <div className="flex justify-end gap-2">
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || !hasPermission('task:update')}
             className="btn-primary disabled:opacity-50 min-w-[140px]"
           >
             {submitting ? (

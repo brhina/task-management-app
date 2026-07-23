@@ -71,7 +71,7 @@ const DATE_PRESETS = [
 ];
 
 function CreateTask() {
-  const { user, getEffectiveRole } = useContext(UserContext);
+  const { user, canAccessAdminSuite, hasPermission } = useContext(UserContext);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlProjectId = searchParams.get('projectId') || '';
@@ -194,9 +194,7 @@ function CreateTask() {
       setLoading(false);
     }
   };
-
-  const effectiveRole = getEffectiveRole();
-  if (!user || effectiveRole !== 'OrgAdmin') {
+  if (!user || !canAccessAdminSuite()) {
     return <PageShell title="Access Denied" subtitle="Admin only." />;
   }
 
@@ -628,7 +626,7 @@ function CreateTask() {
                     </Link> */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !hasPermission('task:create')}
             className="btn-primary disabled:opacity-50 min-w-[140px]"
           >
             {loading ? (
