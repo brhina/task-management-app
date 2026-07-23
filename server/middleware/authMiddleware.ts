@@ -3,7 +3,13 @@ import mongoose from "mongoose";
 import User from "../models/User.js";
 import Organization from "../models/Organization.js";
 import OrgMembership, { type OrgRole } from "../models/OrgMembership.js";
+import CustomRole from "../models/CustomRole.js";
 import { verifyToken } from "../utils/jwtUtils.js";
+import {
+  ELEVATED_ROLES,
+  roleHasPermission,
+  type Permission,
+} from "../constants/permissions.js";
 
 export interface AuthRequest extends Request {
   user?: any;
@@ -11,6 +17,20 @@ export interface AuthRequest extends Request {
   orgId?: mongoose.Types.ObjectId;
   membership?: any;
   membershipRole?: OrgRole;
+  permissions?: Permission[];
+}
+
+async function resolveMembershipPermissions(
+  membership: any,
+): Promise<Permission[]> {
+  if (membership.role === "Custom" && membership.customRoleId) {
+    const custom = await CustomRole.findById(membership.customRoleId).lean();
+    return (custom?.permissions || []) as Permission[];
+  }
+  const { getPermissionsForSystemRole } = await import(
+    "../constants/permissions.js"
+  );
+  return getPermissionsForSystemRole(membership.role);
 }
 
 const protect = async (
@@ -96,6 +116,7 @@ const protect = async (
     req.org = org;
     req.membership = membership;
     req.membershipRole = membership.role;
+    req.permissions = await resolveMembershipPermissions(membership);
     next();
   } catch (error: any) {
     console.error("Auth middleware error:", error.message);
@@ -120,6 +141,13 @@ const protect = async (
   }
 };
 
+/** True when membership can manage the organization (Owner / OrgAdmin or custom). */
+export function hasOrgAdminAccess(req: AuthRequest): boolean {
+  if (!req.membershipRole) return false;
+  if (ELEVATED_ROLES.includes(req.membershipRole as any)) return true;
+  return Boolean(req.permissions?.includes("org:manage"));
+}
+
 const orgAdminOnly = (
   req: AuthRequest,
   res: Response,
@@ -132,7 +160,7 @@ const orgAdminOnly = (
     return;
   }
 
-  if (req.membershipRole !== "OrgAdmin") {
+  if (!hasOrgAdminAccess(req)) {
     res.status(403).json({
       message: "Access denied. Organization admin privileges required.",
     });
@@ -142,5 +170,47 @@ const orgAdminOnly = (
   next();
 };
 
-export { orgAdminOnly };
+export function requirePermission(...required: Permission[]) {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!req.user || !req.membership) {
+      res.status(401).json({
+        message: "Access denied. Authentication required.",
+      });
+      return;
+    }
+
+    const perms = req.permissions || [];
+    const ok = required.every((p) => perms.includes(p));
+    if (!ok) {
+      res.status(403).json({
+        message: `Access denied. Required permission: ${required.join(", ")}`,
+      });
+      return;
+    }
+    next();
+  };
+}
+
+export function requireAnyPermission(...required: Permission[]) {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!req.user || !req.membership) {
+      res.status(401).json({
+        message: "Access denied. Authentication required.",
+      });
+      return;
+    }
+
+    const perms = req.permissions || [];
+    const ok = required.some((p) => perms.includes(p));
+    if (!ok) {
+      res.status(403).json({
+        message: `Access denied. Requires one of: ${required.join(", ")}`,
+      });
+      return;
+    }
+    next();
+  };
+}
+
+export { orgAdminOnly, roleHasPermission };
 export default protect;
