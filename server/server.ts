@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
+import http from "http";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 
@@ -25,14 +26,22 @@ import sprintRoutes from "./routes/sprintRoutes.js";
 import milestoneRoutes from "./routes/milestoneRoutes.js";
 import keyResultRoutes from "./routes/keyResultRoutes.js";
 import resourceRoutes from "./routes/resourceRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
+import teamRoutes from "./routes/teamRoutes.js";
+import roleRoutes from "./routes/roleRoutes.js";
+import auditRoutes from "./routes/auditRoutes.js";
 import { runLegacyOrgMigration } from "./services/legacyMigration.js";
 import { startRecurringTasksJob } from "./jobs/recurringTasks.js";
+import { startNotificationJobs } from "./jobs/notificationJobs.js";
+import { startReportJobs } from "./jobs/reportJobs.js";
 import { ensureUploadsDir } from "./services/fileStorage.js";
+import { initSocketServer } from "./services/socketService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+const httpServer = http.createServer(app);
 
 // Security headers
 app.use(helmet({
@@ -110,6 +119,10 @@ app.use("/api/sprints", sprintRoutes);
 app.use("/api/milestones", milestoneRoutes);
 app.use("/api/key-results", keyResultRoutes);
 app.use("/api/resources", resourceRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/teams", teamRoutes);
+app.use("/api/roles", roleRoutes);
+app.use("/api/audit-logs", auditRoutes);
 
 // Health check endpoint
 app.get("/health", (_req, res) => {
@@ -148,8 +161,11 @@ const startServer = async () => {
     await runLegacyOrgMigration();
     await ensureUploadsDir();
     startRecurringTasksJob();
+    startNotificationJobs();
+    startReportJobs();
+    initSocketServer(httpServer);
 
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(
         `🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || "development"} mode`,
       );
