@@ -5,13 +5,42 @@ import OrgMembership from "../models/OrgMembership.js";
 import User from "../models/User.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
 import { slugify, shortRandomId } from "../utils/slugUtils.js";
+import {
+  applyWorkspaceTemplate,
+  WORKSPACE_TEMPLATES,
+} from "../services/workspaceTemplateService.js";
+import { auditAsync } from "../services/auditService.js";
+import { ELEVATED_ROLES } from "../constants/permissions.js";
+
+const elevatedRoleFilter = { $in: ELEVATED_ROLES };
+
+function paramId(value: string | string[]): string {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export const listWorkspaceTemplates = async (
+  _req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  res.status(200).json({
+    message: "Workspace templates",
+    data: WORKSPACE_TEMPLATES.map((t) => ({
+      id: t.id,
+      name: t.name,
+      description: t.description,
+      projectCount: t.projects.length,
+      teamCount: t.teams.length,
+      customFieldCount: t.customFields.length,
+    })),
+  });
+};
 
 export const createOrg = async (
   req: AuthRequest,
   res: Response,
 ): Promise<void> => {
   try {
-    const { name, plan = "Free" } = req.body;
+    const { name, plan = "Free", templateId } = req.body;
 
     if (!name || !name.trim()) {
       res.status(400).json({ message: "Organization name is required" });
@@ -40,12 +69,31 @@ export const createOrg = async (
       status: "Active",
     });
 
+    let appliedTemplate: string | null = null;
+    if (templateId) {
+      const template = await applyWorkspaceTemplate(
+        org._id,
+        req.user._id,
+        templateId,
+      );
+      appliedTemplate = template?.id || null;
+    }
+
+    auditAsync(
+      { ...req, orgId: org._id } as AuthRequest,
+      "org.created",
+      "Organization",
+      org._id,
+      { name: org.name, templateId: appliedTemplate },
+    );
+
     res.status(201).json({
       _id: org._id,
       name: org.name,
       slug: org.slug,
       plan: org.plan,
       role: "OrgAdmin",
+      templateId: appliedTemplate,
     });
   } catch (error: any) {
     console.error("Create org error:", error.message);
@@ -107,7 +155,8 @@ export const updateOrg = async (
     const membership = await OrgMembership.findOne({
       orgId,
       userId: req.user._id,
-      role: "OrgAdmin",
+      role: elevatedRoleFilter,
+      status: "Active",
     });
     if (!membership) {
       res
@@ -142,6 +191,10 @@ export const updateOrg = async (
     }
 
     await org.save();
+    auditAsync(req, "org.updated", "Organization", org._id, {
+      name: org.name,
+      plan: org.plan,
+    });
 
     res.status(200).json({
       _id: org._id,
@@ -160,12 +213,13 @@ export const deleteOrg = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const { orgId } = req.params;
+    const orgId = paramId(req.params.orgId);
 
     const membership = await OrgMembership.findOne({
       orgId,
       userId: req.user._id,
-      role: "OrgAdmin",
+      role: elevatedRoleFilter,
+      status: "Active",
     });
     if (!membership) {
       res
@@ -190,6 +244,7 @@ export const deleteOrg = async (
 
     await OrgMembership.deleteMany({ orgId });
     await Organization.deleteOne({ _id: orgId });
+    auditAsync(req, "org.deleted", "Organization", orgId, {});
 
     res.status(200).json({ message: "Organization deleted successfully" });
   } catch (error: any) {
@@ -204,7 +259,7 @@ export const addMemberByEmail = async (
 ): Promise<void> => {
   try {
     const { orgId } = req.params;
-    const { email, role = "OrgMember" } = req.body;
+    const { email, role = "OrgMember", customRoleId } = req.body;
 
     if (!email || !email.trim()) {
       res.status(400).json({ message: "Email is required" });
@@ -214,10 +269,18 @@ export const addMemberByEmail = async (
     const adminMembership = await OrgMembership.findOne({
       orgId,
       userId: req.user._id,
-      role: "OrgAdmin",
+      role: elevatedRoleFilter,
+      status: "Active",
     });
     if (!adminMembership) {
       res.status(403).json({ message: "Only org admins can add members" });
+      return;
+    }
+
+    if (role === "Owner") {
+      res.status(400).json({
+        message: "Use OrgAdmin for the owner role (full permissions)",
+      });
       return;
     }
 
@@ -227,6 +290,7 @@ export const addMemberByEmail = async (
       return;
     }
 
+    const resolvedRole = customRoleId ? "Custom" : role;
     const existingMembership = await OrgMembership.findOne({
       orgId,
       userId: user._id,
@@ -239,16 +303,24 @@ export const addMemberByEmail = async (
         return;
       }
       existingMembership.status = "Active";
-      existingMembership.role = role;
+      existingMembership.role = resolvedRole;
+      existingMembership.customRoleId = customRoleId || undefined;
       await existingMembership.save();
     } else {
       await OrgMembership.create({
         orgId,
         userId: user._id,
-        role,
+        role: resolvedRole,
+        customRoleId: customRoleId || undefined,
         status: "Active",
       });
     }
+
+    auditAsync(req, "member.added", "User", user._id, {
+      email: user.email,
+      role: resolvedRole,
+      customRoleId,
+    });
 
     res.status(200).json({
       message: "Member added successfully",
@@ -258,7 +330,8 @@ export const addMemberByEmail = async (
         email: user.email,
         profileImageUrl: user.profileImageUrl,
       },
-      role,
+      role: resolvedRole,
+      customRoleId: customRoleId || null,
     });
   } catch (error: any) {
     console.error("Add member error:", error.message);

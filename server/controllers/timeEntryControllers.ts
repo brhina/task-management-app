@@ -2,6 +2,7 @@ import { Response } from "express";
 import TimeEntry from "../models/TimeEntry.js";
 import Task from "../models/Task.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
+import { isOrgOwnerRole } from "../constants/permissions.js";
 import { logTaskActivity } from "../services/activityLogger.js";
 import mongoose from "mongoose";
 
@@ -93,7 +94,7 @@ export const updateTimeEntry = async (
 
     if (
       String(entry.userId) !== String(req.user._id) &&
-      req.membershipRole !== "OrgAdmin"
+      !isOrgOwnerRole(req.membershipRole)
     ) {
       res.status(403).json({ message: "Not authorized" });
       return;
@@ -134,7 +135,7 @@ export const deleteTimeEntry = async (
 
     if (
       String(entry.userId) !== String(req.user._id) &&
-      req.membershipRole !== "OrgAdmin"
+      !isOrgOwnerRole(req.membershipRole)
     ) {
       res.status(403).json({ message: "Not authorized" });
       return;

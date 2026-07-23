@@ -8,6 +8,7 @@ import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/jwtUtils.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
 import { shortRandomId, slugify } from "../utils/slugUtils.js";
+import { emailTemplate, sendEmail } from "../services/emailService.js";
 
 async function ensureDefaultOrgForUser(params: {
   userId: string;
@@ -159,6 +160,19 @@ export const registerUser = async (
         orgId = result.orgId;
         membershipRole = result.membershipRole;
       }
+
+      // Welcome email (no-op if SMTP not configured; logs in dev)
+      void sendEmail({
+        to: newUser.email,
+        subject: "Welcome to Cadence",
+        html: emailTemplate({
+          title: `Welcome, ${newUser.name}!`,
+          body: `<p>Your Cadence account is ready. Start organizing projects, tasks, and goals with your team.</p>`,
+          ctaLabel: "Open Cadence",
+          ctaUrl: process.env.CLIENT_URL || "http://localhost:5173",
+        }),
+        text: `Welcome to Cadence, ${newUser.name}!`,
+      });
 
       res.status(201).json({
         message: "User created successfully",

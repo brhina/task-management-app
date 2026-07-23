@@ -2,32 +2,11 @@ import { Response } from "express";
 import Comment from "../models/Comment.js";
 import Task from "../models/Task.js";
 import TaskActivity from "../models/TaskActivity.js";
-import User from "../models/User.js";
-import OrgMembership from "../models/OrgMembership.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
+import { isOrgOwnerRole } from "../constants/permissions.js";
 import { logTaskActivity } from "../services/activityLogger.js";
-
-async function resolveMentions(
-  content: string,
-  orgId: string,
-): Promise<string[]> {
-  const names = [...content.matchAll(/@([\w.\-]+)/g)].map((m) => m[1]);
-  if (names.length === 0) return [];
-
-  const memberships = await OrgMembership.find({
-    orgId,
-    status: "Active",
-  }).select("userId");
-  const userIds = memberships.map((m) => m.userId);
-  const users = await User.find({
-    _id: { $in: userIds },
-    $or: names.map((n) => ({
-      name: new RegExp(`^${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i"),
-    })),
-  }).select("_id name");
-
-  return users.map((u) => String(u._id));
-}
+import { resolveMentions } from "../utils/mentions.js";
+import { notifyUser, notifyMany } from "../services/notificationService.js";
 
 export const listComments = async (
   req: AuthRequest,
@@ -101,6 +80,34 @@ export const createComment = async (
       meta: { commentId: String(comment._id) },
     });
 
+    const link = `/user/task/${taskId}`;
+    const actorName = req.user.name || "Someone";
+
+    // Notify assignee about comment
+    await notifyUser({
+      orgId: String(req.orgId),
+      userId: String(task.assignedTo),
+      type: "comment_added",
+      title: "New comment on your task",
+      message: `${actorName} commented on "${task.title}"`,
+      link,
+      actorId: String(req.user._id),
+      meta: { taskId, commentId: String(comment._id) },
+    });
+
+    // Notify mentioned users
+    if (mentions.length > 0) {
+      await notifyMany(mentions, {
+        orgId: String(req.orgId),
+        type: "mention",
+        title: "You were mentioned",
+        message: `${actorName} mentioned you on "${task.title}"`,
+        link,
+        actorId: String(req.user._id),
+        meta: { taskId, commentId: String(comment._id) },
+      });
+    }
+
     const populated = await Comment.findById(comment._id)
       .populate("userId", "name email profileImageUrl")
       .populate("mentions", "name email");
@@ -131,7 +138,7 @@ export const deleteComment = async (
     }
 
     const isOwner = String(comment.userId) === String(req.user._id);
-    if (!isOwner && req.membershipRole !== "OrgAdmin") {
+    if (!isOwner && !isOrgOwnerRole(req.membershipRole)) {
       res.status(403).json({ message: "Not authorized" });
       return;
     }

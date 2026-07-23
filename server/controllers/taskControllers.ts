@@ -7,6 +7,15 @@ import { runAutomations } from "../services/automationRunner.js";
 import { logTaskActivity } from "../services/activityLogger.js";
 import { rollupParentProgress } from "../services/subtaskRollup.js";
 import { saveUploadedFile, deleteStoredFile } from "../services/fileStorage.js";
+import {
+  notifyUser,
+  notifyMany,
+  broadcastTaskUpdate,
+} from "../services/notificationService.js";
+import { resolveMentions } from "../utils/mentions.js";
+import { isOrgOwnerRole } from "../constants/permissions.js";
+
+const isOrgElevated = (role: string | undefined) => isOrgOwnerRole(role);
 
 const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -65,7 +74,7 @@ const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
       filter.$text = { $search: search as string };
     }
 
-    let baseFilter = req.membershipRole === "OrgAdmin"
+    let baseFilter = isOrgElevated(req.membershipRole)
       ? filter
       : { ...filter, assignedTo: req.user._id };
 
@@ -100,7 +109,7 @@ const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
     );
 
     const allTasks = await Task.countDocuments(
-      req.membershipRole === "OrgAdmin"
+      isOrgElevated(req.membershipRole)
         ? { orgId: filter.orgId }
         : { ...filter, assignedTo: req.user._id },
     );
@@ -108,25 +117,25 @@ const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
     const pendingTasks = await Task.countDocuments({
       ...filter,
       status: "Pending",
-      ...(req.membershipRole !== "OrgAdmin" && { assignedTo: req.user._id }),
+      ...(!isOrgElevated(req.membershipRole) && { assignedTo: req.user._id }),
     });
 
     const inProgressTasks = await Task.countDocuments({
       ...filter,
       status: "In Progress",
-      ...(req.membershipRole !== "OrgAdmin" && { assignedTo: req.user._id }),
+      ...(!isOrgElevated(req.membershipRole) && { assignedTo: req.user._id }),
     });
 
     const inReviewTasks = await Task.countDocuments({
       ...filter,
       status: "In Review",
-      ...(req.membershipRole !== "OrgAdmin" && { assignedTo: req.user._id }),
+      ...(!isOrgElevated(req.membershipRole) && { assignedTo: req.user._id }),
     });
 
     const completedTasks = await Task.countDocuments({
       ...filter,
       status: "Completed",
-      ...(req.membershipRole !== "OrgAdmin" && { assignedTo: req.user._id }),
+      ...(!isOrgElevated(req.membershipRole) && { assignedTo: req.user._id }),
     });
 
     res.status(200).json({
@@ -255,6 +264,39 @@ const createTask = async (req: AuthRequest, res: Response): Promise<void> => {
       await rollupParentProgress(parentTaskId);
     }
 
+    await notifyUser({
+      orgId: String(req.orgId),
+      userId: String(assignedTo),
+      type: "task_assigned",
+      title: "New task assigned",
+      message: `You were assigned "${title}"`,
+      link: `/user/task/${task._id}`,
+      actorId: String(req.user._id),
+      meta: { taskId: String(task._id) },
+    });
+
+    const mentioned = await resolveMentions(
+      `${title} ${description || ""}`,
+      String(req.orgId),
+    );
+    if (mentioned.length > 0) {
+      await notifyMany(mentioned, {
+        orgId: String(req.orgId),
+        type: "mention",
+        title: "You were mentioned in a task",
+        message: `${req.user.name || "Someone"} mentioned you in "${title}"`,
+        link: `/user/task/${task._id}`,
+        actorId: String(req.user._id),
+        meta: { taskId: String(task._id) },
+      });
+    }
+
+    broadcastTaskUpdate(String(req.orgId), {
+      taskId: String(task._id),
+      action: "created",
+      task,
+    });
+
     await runAutomations({ orgId: req.orgId, trigger: "task_created", task });
 
     res.status(201).json({ message: "Task created successfully", task });
@@ -348,7 +390,54 @@ const updateTask = async (req: AuthRequest, res: Response): Promise<void> => {
         from: prevAssignee,
         to: String(updatedTask.assignedTo),
       });
+      await notifyUser({
+        orgId: String(req.orgId),
+        userId: String(updatedTask.assignedTo),
+        type: "task_assigned",
+        title: "Task assigned to you",
+        message: `You were assigned "${updatedTask.title}"`,
+        link: `/user/task/${updatedTask._id}`,
+        actorId: String(req.user._id),
+        meta: { taskId: String(updatedTask._id) },
+      });
     }
+
+    if (req.body.status && req.body.status !== prevStatus) {
+      await notifyUser({
+        orgId: String(req.orgId),
+        userId: String(updatedTask.assignedTo),
+        type: "task_status_changed",
+        title: "Task status updated",
+        message: `"${updatedTask.title}" is now ${updatedTask.status}`,
+        link: `/user/task/${updatedTask._id}`,
+        actorId: String(req.user._id),
+        meta: { taskId: String(updatedTask._id) },
+      });
+    }
+
+    if (req.body.description !== undefined || req.body.title !== undefined) {
+      const mentioned = await resolveMentions(
+        `${updatedTask.title} ${updatedTask.description || ""}`,
+        String(req.orgId),
+      );
+      if (mentioned.length > 0) {
+        await notifyMany(mentioned, {
+          orgId: String(req.orgId),
+          type: "mention",
+          title: "You were mentioned in a task",
+          message: `${req.user.name || "Someone"} mentioned you in "${updatedTask.title}"`,
+          link: `/user/task/${updatedTask._id}`,
+          actorId: String(req.user._id),
+          meta: { taskId: String(updatedTask._id) },
+        });
+      }
+    }
+
+    broadcastTaskUpdate(String(req.orgId), {
+      taskId: String(updatedTask._id),
+      action: "updated",
+      task: updatedTask,
+    });
 
     if (updatedTask.parentTaskId) {
       await rollupParentProgress(String(updatedTask.parentTaskId));
@@ -398,7 +487,7 @@ const updateTaskStatus = async (
 
     const isAssigned = task.assignedTo.toString() === req.user._id.toString();
 
-    if (!isAssigned && req.membershipRole !== "OrgAdmin") {
+    if (!isAssigned && !isOrgElevated(req.membershipRole)) {
       res
         .status(403)
         .json({ message: "You are not authorized to update this task" });
@@ -423,6 +512,24 @@ const updateTaskStatus = async (
       from: prevStatus,
       to: updatedTask.status,
     });
+
+    if (prevStatus !== updatedTask.status) {
+      await notifyUser({
+        orgId: String(req.orgId),
+        userId: String(updatedTask.assignedTo),
+        type: "task_status_changed",
+        title: "Task status updated",
+        message: `"${updatedTask.title}" is now ${updatedTask.status}`,
+        link: `/user/task/${updatedTask._id}`,
+        actorId: String(req.user._id),
+        meta: { taskId: String(updatedTask._id) },
+      });
+      broadcastTaskUpdate(String(req.orgId), {
+        taskId: String(updatedTask._id),
+        action: "status_changed",
+        task: updatedTask,
+      });
+    }
 
     if (updatedTask.parentTaskId) {
       await rollupParentProgress(String(updatedTask.parentTaskId));
@@ -468,7 +575,7 @@ const updateTaskAssignee = async (
       return;
     }
 
-    if (req.membershipRole !== "OrgAdmin") {
+    if (!isOrgElevated(req.membershipRole)) {
       res.status(403).json({ message: "Only admins can reassign tasks" });
       return;
     }
@@ -490,6 +597,22 @@ const updateTaskAssignee = async (
       action: "assignee_changed",
       from: prev,
       to: String(assignedTo),
+    });
+
+    await notifyUser({
+      orgId: String(req.orgId),
+      userId: String(assignedTo),
+      type: "task_assigned",
+      title: "Task assigned to you",
+      message: `You were assigned "${task.title}"`,
+      link: `/user/task/${task._id}`,
+      actorId: String(req.user._id),
+      meta: { taskId: String(task._id) },
+    });
+    broadcastTaskUpdate(String(req.orgId), {
+      taskId: String(task._id),
+      action: "assignee_changed",
+      task: updatedTask,
     });
 
     res
@@ -519,7 +642,7 @@ const updateTaskCheckList = async (
     }
 
     const isAssigned = task.assignedTo.toString() === req.user._id.toString();
-    if (!isAssigned && req.membershipRole !== "OrgAdmin") {
+    if (!isAssigned && !isOrgElevated(req.membershipRole)) {
       res
         .status(403)
         .json({ message: "You are not authorized to update this task" });
