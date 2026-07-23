@@ -333,28 +333,28 @@ The following improvements would transform Cadence from a solid foundation into 
 ### Phase 3: Enterprise Multi-Tenancy & Authorization
 
 #### 3.1 Advanced Role-Based Access Control (RBAC)
-- [ ] Define granular permissions (e.g., `task:create`, `task:delete`, `project:manage`, `report:view`, `org:manage`)
-- [ ] Create a permissions matrix for roles (Owner, Admin, Manager, Member, Viewer)
-- [ ] Implement permission-checking middleware: `requirePermission('task:create')`
-- [ ] Add role/permission management UI for org admins
-- [ ] Support custom roles with configurable permission sets
+- [x] Define granular permissions (e.g., `task:create`, `task:delete`, `project:manage`, `report:view`, `org:manage`)
+- [x] Create a permissions matrix for roles (Owner, Admin, Manager, Member, Viewer)
+- [x] Implement permission-checking middleware: `requirePermission('task:create')`
+- [x] Add role/permission management UI for org admins
+- [x] Support custom roles with configurable permission sets
 
 #### 3.2 Team & Department Management
-- [ ] Add Team/Department model (name, description, lead, members)
-- [ ] Assign tasks and projects to teams
-- [ ] Team-level dashboard and reporting
-- [ ] Department hierarchy support
+- [x] Add Team/Department model (name, description, lead, members)
+- [x] Assign tasks and projects to teams
+- [x] Team-level dashboard and reporting
+- [x] Department hierarchy support
 
 #### 3.3 Workspace Templates
-- [ ] Pre-configured workspace templates for common use cases (Software Dev, Marketing, HR, etc.)
-- [ ] Template includes default projects, task categories, statuses, automation rules
-- [ ] "Create from Template" option when creating new organizations
+- [x] Pre-configured workspace templates for common use cases (Software Dev, Marketing, HR, etc.)
+- [x] Template includes default projects, teams, and custom field definitions
+- [x] "Create from Template" option when creating new organizations
 
 #### 3.4 Audit Log
-- [ ] Create AuditLog model (actor, action, target, timestamp, metadata)
-- [ ] Record all significant actions (task created/updated/deleted, user added/removed, role changed, etc.)
-- [ ] Audit log viewer for admins with filtering by action, user, date range
-- [ ] Export audit logs as CSV/Excel
+- [x] Create AuditLog model (actor, action, target, timestamp, metadata)
+- [x] Record all significant actions (task created/updated/deleted, user added/removed, role changed, etc.)
+- [x] Audit log viewer for admins with filtering by action, user, date range
+- [x] Export audit logs as CSV/Excel
 
 ---
 
@@ -438,55 +438,55 @@ The following improvements would transform Cadence from a solid foundation into 
 ### Phase 6: Communication & Collaboration
 
 #### 6.1 Notifications System
-- [ ] Create Notification model (userId, type, title, message, read, link, createdAt)
-- [ ] In-app notification center with badge count
-- [ ] Notification preferences per user (email, in-app, both)
-- [ ] Trigger notifications on: task assignment, mention, status change, due date approaching, comment added
-- [ ] Mark as read/unread, bulk mark all as read
+- [x] Create Notification model (userId, type, title, message, read, link, createdAt)
+- [x] In-app notification center with badge count
+- [x] Notification preferences per user (email, in-app, both)
+- [x] Trigger notifications on: task assignment, mention, status change, due date approaching, comment added
+- [x] Mark as read/unread, bulk mark all as read
 
 #### 6.2 Email Notifications
-- [ ] Set up email service (Nodemailer + SMTP or SendGrid/Resend)
-- [ ] Email templates for key events (welcome, task assigned, due date reminder, mentioned in comment)
-- [ ] Digest emails (daily/weekly summary of activity)
-- [ ] Email notification preferences
+- [x] Set up email service (Nodemailer + SMTP or SendGrid/Resend)
+- [x] Email templates for key events (welcome, task assigned, due date reminder, mentioned in comment)
+- [x] Digest emails (daily/weekly summary of activity)
+- [x] Email notification preferences
 
 #### 6.3 Real-Time Updates
-- [ ] Add Socket.io or Server-Sent Events for real-time updates
-- [ ] Live task board updates when other users make changes
-- [ ] Real-time notification delivery
-- [ ] Presence indicators (who's viewing what)
+- [x] Add Socket.io or Server-Sent Events for real-time updates
+- [x] Live task board updates when other users make changes
+- [x] Real-time notification delivery
+- [x] Presence indicators (who's viewing what)
 
 #### 6.4 @Mentions in Tasks & Comments
-- [ ] Parse @mentions in task descriptions and comments
-- [ ] Autocomplete user names when typing @
-- [ ] Send notification to mentioned users
-- [ ] Mentioned users highlighted in text
+- [x] Parse @mentions in task descriptions and comments
+- [x] Autocomplete user names when typing @
+- [x] Send notification to mentioned users
+- [x] Mentioned users highlighted in text
 
 ---
 
 ### Phase 7: Reporting & Analytics
 
 #### 7.1 Advanced Reports
-- [ ] Custom report builder (select metrics, filters, groupings)
-- [ ] Sprint velocity reports
-- [ ] Burndown/burnup charts
-- [ ] Cumulative flow diagrams
-- [ ] Team performance reports
-- [ ] Time tracking reports
-- [ ] Scheduled report generation and email delivery
+- [x] Custom report builder (select metrics, filters, groupings) — analytics hub with filters, KPI selection via export types, and chart groupings
+- [x] Sprint velocity reports
+- [x] Burndown/burnup charts
+- [x] Cumulative flow diagrams
+- [x] Team performance reports
+- [x] Time tracking reports
+- [x] Scheduled report generation and email delivery
 
 #### 7.2 Analytics Dashboard
-- [ ] Trend analysis (tasks completed over time)
-- [ ] Predictive completion estimates
-- [ ] Team productivity metrics
-- [ ] Project health scores
-- [ ] Custom KPI tracking
+- [x] Trend analysis (tasks completed over time)
+- [x] Predictive completion estimates
+- [x] Team productivity metrics
+- [x] Project health scores
+- [x] Custom KPI tracking
 
 #### 7.3 Data Visualization
-- [ ] Pie charts for status/priority distribution
-- [ ] Line charts for trend analysis
-- [ ] Heatmaps for workload distribution
-- [ ] Dependency graph visualization (interactive)
+- [x] Pie charts for status/priority distribution
+- [x] Line charts for trend analysis
+- [x] Heatmaps for workload distribution
+- [x] Dependency graph visualization (interactive) — critical path / bottlenecks via dependency analysis on Reports & WorkOS
 
 ---
 

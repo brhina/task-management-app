@@ -29,6 +29,9 @@ import ProjectGantt from './pages/admin/ProjectGantt';
 import ProjectSprints from './pages/admin/ProjectSprints';
 import SprintBoard from './pages/admin/SprintBoard';
 import Resources from './pages/admin/Resources';
+import RolesPermissions from './pages/admin/RolesPermissions';
+import Teams from './pages/admin/Teams';
+import AuditLog from './pages/admin/AuditLog';
 import UserDashboard from './pages/user/UserDashboard';
 import UserWorkOS from './pages/user/UserWorkOS';
 import MyTasks from './pages/user/MyTasks';
@@ -38,7 +41,10 @@ import NotFound from './pages/public/NotFound';
 
 import AuthLayout from './components/layouts/AuthLayout';
 import UserProvider from './context/UserContext';
+import { SocketProvider } from './context/SocketContext';
 import type { User } from './types';
+import NotificationSettings from './pages/user/NotificationSettings';
+import { ADMIN_SUITE_ROLES, SYSTEM_ROLES } from './constants/permissions';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
@@ -46,7 +52,7 @@ interface PrivateRouteProps {
 }
 
 const PrivateRoute = ({ children, allowedRoles = [] }: PrivateRouteProps) => {
-  const { user, loading, getEffectiveRole } = useContext(UserContext);
+  const { user, loading, getEffectiveRole, canAccessAdminSuite } = useContext(UserContext);
   const location = useLocation();
   const effectiveRole = getEffectiveRole();
 
@@ -63,8 +69,12 @@ const PrivateRoute = ({ children, allowedRoles = [] }: PrivateRouteProps) => {
   }
 
   if (allowedRoles.length > 0 && (!effectiveRole || !allowedRoles.includes(effectiveRole))) {
-    const redirectTo = effectiveRole === 'OrgAdmin' ? '/admin/dashboard' : '/user/dashboard';
-    return <Navigate to={redirectTo} replace />;
+    // Custom roles with admin-suite permissions can still enter admin routes
+    const adminGate = allowedRoles.some((r) => ADMIN_SUITE_ROLES.includes(r as any));
+    if (!(adminGate && canAccessAdminSuite())) {
+      const redirectTo = canAccessAdminSuite() ? '/admin/dashboard' : '/user/dashboard';
+      return <Navigate to={redirectTo} replace />;
+    }
   }
 
   return <>{children}</>;
@@ -75,11 +85,15 @@ interface RouteWrapperProps {
 }
 
 const AdminRouteWrapper = ({ children }: RouteWrapperProps) => {
-  return <PrivateRoute allowedRoles={['OrgAdmin']}>{children}</PrivateRoute>;
+  return (
+    <PrivateRoute allowedRoles={[...ADMIN_SUITE_ROLES, 'Custom']}>{children}</PrivateRoute>
+  );
 };
 
 const UserRouteWrapper = ({ children }: RouteWrapperProps) => {
-  return <PrivateRoute allowedRoles={['OrgAdmin', 'OrgMember']}>{children}</PrivateRoute>;
+  return (
+    <PrivateRoute allowedRoles={[...SYSTEM_ROLES, 'Custom']}>{children}</PrivateRoute>
+  );
 };
 
 const userEqual = (prevProps: { user: User | null }, nextProps: { user: User | null }) => {
@@ -100,12 +114,11 @@ interface RouteComponentProps {
 }
 
 const LoginRoute = React.memo(({ user }: RouteComponentProps) => {
-  const { getEffectiveRole } = useContext(UserContext);
-  const effectiveRole = getEffectiveRole();
+  const { canAccessAdminSuite } = useContext(UserContext);
   if (user) {
     return (
       <Navigate
-        to={effectiveRole === 'OrgAdmin' ? '/admin/dashboard' : '/user/dashboard'}
+        to={canAccessAdminSuite() ? '/admin/dashboard' : '/user/dashboard'}
         replace
       />
     );
@@ -114,12 +127,11 @@ const LoginRoute = React.memo(({ user }: RouteComponentProps) => {
 }, userEqual);
 
 const SignUpRoute = React.memo(({ user }: RouteComponentProps) => {
-  const { getEffectiveRole } = useContext(UserContext);
-  const effectiveRole = getEffectiveRole();
+  const { canAccessAdminSuite } = useContext(UserContext);
   if (user) {
     return (
       <Navigate
-        to={effectiveRole === 'OrgAdmin' ? '/admin/dashboard' : '/user/dashboard'}
+        to={canAccessAdminSuite() ? '/admin/dashboard' : '/user/dashboard'}
         replace
       />
     );
@@ -128,10 +140,9 @@ const SignUpRoute = React.memo(({ user }: RouteComponentProps) => {
 }, userEqual);
 
 const HomeRoute = React.memo(({ user }: RouteComponentProps) => {
-  const { getEffectiveRole } = useContext(UserContext);
-  const effectiveRole = getEffectiveRole();
+  const { canAccessAdminSuite } = useContext(UserContext);
   if (user) {
-    return effectiveRole === 'OrgAdmin' ? (
+    return canAccessAdminSuite() ? (
       <Navigate to="/admin/dashboard" replace />
     ) : (
       <Navigate to="/user/dashboard" replace />
@@ -141,9 +152,8 @@ const HomeRoute = React.memo(({ user }: RouteComponentProps) => {
 }, userEqual);
 
 const AdminRedirectRoute = React.memo(({ user }: RouteComponentProps) => {
-  const { getEffectiveRole } = useContext(UserContext);
-  const effectiveRole = getEffectiveRole();
-  if (user && effectiveRole === 'OrgAdmin') {
+  const { canAccessAdminSuite } = useContext(UserContext);
+  if (user && canAccessAdminSuite()) {
     return <Navigate to="/admin/dashboard" replace />;
   }
   return <Navigate to="/login" replace />;
@@ -157,10 +167,9 @@ const UserRedirectRoute = React.memo(({ user }: RouteComponentProps) => {
 }, userEqual);
 
 const CatchAllRoute = React.memo(({ user }: RouteComponentProps) => {
-  const { getEffectiveRole } = useContext(UserContext);
-  const effectiveRole = getEffectiveRole();
+  const { canAccessAdminSuite } = useContext(UserContext);
   if (user) {
-    return effectiveRole === 'OrgAdmin' ? (
+    return canAccessAdminSuite() ? (
       <Navigate to="/admin/dashboard" replace />
     ) : (
       <Navigate to="/user/dashboard" replace />
@@ -389,6 +398,36 @@ function App() {
             </AdminRouteWrapper>
           }
         />
+        <Route
+          path="/admin/teams"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <Teams />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/admin/roles"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <RolesPermissions />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/admin/audit-log"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <AuditLog />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
 
         <Route
           path="/user/dashboard"
@@ -440,6 +479,26 @@ function App() {
             </UserRouteWrapper>
           }
         />
+        <Route
+          path="/user/notification-settings"
+          element={
+            <UserRouteWrapper>
+              <AuthLayout>
+                <NotificationSettings />
+              </AuthLayout>
+            </UserRouteWrapper>
+          }
+        />
+        <Route
+          path="/admin/notification-settings"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <NotificationSettings />
+              </AuthLayout>
+            </AdminRouteWrapper>
+          }
+        />
 
         <Route path="/admin" element={<AdminRedirectRoute user={user} />} />
         <Route path="/user" element={<UserRedirectRoute user={user} />} />
@@ -455,7 +514,9 @@ function AppWithProvider() {
   return (
     <ErrorBoundary>
       <UserProvider>
-        <App />
+        <SocketProvider>
+          <App />
+        </SocketProvider>
       </UserProvider>
     </ErrorBoundary>
   );

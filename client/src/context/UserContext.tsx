@@ -9,7 +9,12 @@ import {
 } from 'react';
 import api from '../utils/axios';
 import { apiPaths } from '../utils/apiPaths';
-import type { User, UserContextType, OrgMembership } from '../types';
+import type { User, UserContextType, OrgMembership, OrgRole } from '../types';
+import {
+  canAccessAdminSuite as roleCanAccessAdmin,
+  getPermissionsForRole,
+  type Permission,
+} from '../constants/permissions';
 
 export const UserContext = createContext<UserContextType>({
   user: null,
@@ -17,12 +22,48 @@ export const UserContext = createContext<UserContextType>({
   updateUser: () => {},
   clearUser: () => {},
   getEffectiveRole: () => null,
+  permissions: [],
+  hasPermission: () => false,
+  canAccessAdminSuite: () => false,
 });
 
 const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [permissions, setPermissions] = useState<string[]>([]);
   const hasFetchedRef = useRef(false);
+
+  const getEffectiveRole = useCallback((): OrgRole | null => {
+    if (!user?.orgs || !user.activeOrgId) return null;
+    const membership = user.orgs.find(
+      (o) => o._id === user.activeOrgId || o.orgId === user.activeOrgId
+    );
+    return (membership?.role as OrgRole) || null;
+  }, [user]);
+
+  const refreshPermissions = useCallback(async () => {
+    try {
+      const response = await api.get(apiPaths.ROLES.ME);
+      setPermissions(response.data?.data?.permissions || []);
+    } catch {
+      const role = (() => {
+        if (!user?.orgs || !user.activeOrgId) return null;
+        const membership = user.orgs.find(
+          (o) => o._id === user.activeOrgId || o.orgId === user.activeOrgId
+        );
+        return membership?.role || null;
+      })();
+      setPermissions(getPermissionsForRole(role));
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      setPermissions([]);
+      return;
+    }
+    void refreshPermissions();
+  }, [user?.activeOrgId, user?._id, refreshPermissions]);
 
   useEffect(() => {
     if (hasFetchedRef.current) return;
@@ -49,12 +90,16 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
         if (activeOrgId) {
           localStorage.setItem('activeOrgId', activeOrgId);
         }
-        setUser((prevUser) => {
-          if (prevUser && prevUser._id === userData._id) {
-            return prevUser;
-          }
-          return { ...userData, activeOrgId };
-        });
+
+        let orgs = userData.orgs;
+        try {
+          const orgsRes = await api.get(apiPaths.ORG_MEMBERSHIP.MY_ORGS);
+          orgs = orgsRes.data;
+        } catch {
+          /* keep profile orgs */
+        }
+
+        setUser({ ...userData, activeOrgId, orgs });
       } catch (error) {
         console.error('Error fetching user:', error);
         if ((error as any)?.response?.status === 401) {
@@ -102,18 +147,28 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const clearUser = useCallback(() => {
     setUser(null);
+    setPermissions([]);
     localStorage.removeItem('token');
     localStorage.removeItem('activeOrgId');
     hasFetchedRef.current = false;
   }, []);
 
-  const getEffectiveRole = useCallback((): 'OrgAdmin' | 'OrgMember' | null => {
-    if (!user?.orgs || !user.activeOrgId) return null;
-    const membership = user.orgs.find(
-      (o) => o._id === user.activeOrgId || o.orgId === user.activeOrgId
+  const hasPermissionFn = useCallback(
+    (permission: string) => permissions.includes(permission as Permission),
+    [permissions]
+  );
+
+  const canAccessAdminSuiteFn = useCallback(() => {
+    const role = getEffectiveRole();
+    if (roleCanAccessAdmin(role)) return true;
+    return (
+      hasPermissionFn('org:manage') ||
+      hasPermissionFn('project:manage') ||
+      hasPermissionFn('task:create') ||
+      hasPermissionFn('report:view') ||
+      hasPermissionFn('member:manage')
     );
-    return (membership?.role as 'OrgAdmin' | 'OrgMember') || null;
-  }, [user]);
+  }, [getEffectiveRole, hasPermissionFn]);
 
   const value = useMemo(
     () => ({
@@ -122,8 +177,20 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
       updateUser,
       clearUser,
       getEffectiveRole,
+      permissions,
+      hasPermission: hasPermissionFn,
+      canAccessAdminSuite: canAccessAdminSuiteFn,
     }),
-    [user, loading, updateUser, clearUser, getEffectiveRole]
+    [
+      user,
+      loading,
+      updateUser,
+      clearUser,
+      getEffectiveRole,
+      permissions,
+      hasPermissionFn,
+      canAccessAdminSuiteFn,
+    ]
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

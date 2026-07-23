@@ -30,9 +30,11 @@ interface Props {
 function SortableRow({
   task,
   detailBasePath,
+  isAdmin,
 }: {
   task: Task;
   detailBasePath: string;
+  isAdmin: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: task._id });
@@ -47,9 +49,11 @@ function SortableRow({
       style={style}
       className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-950/40 px-2 py-1.5 text-sm"
     >
-      <button type="button" className="text-slate-500 cursor-grab" {...attributes} {...listeners}>
-        <GripVertical className="w-4 h-4" />
-      </button>
+      {isAdmin && (
+        <button type="button" className="text-slate-500 cursor-grab" {...attributes} {...listeners}>
+          <GripVertical className="w-4 h-4" />
+        </button>
+      )}
       <Link
         to={`${detailBasePath}/${task._id}`}
         className="flex-1 truncate text-slate-300 hover:text-cyan-400"
@@ -177,6 +181,7 @@ export default function TaskSubtasks({
                 key={t._id}
                 task={t}
                 detailBasePath={detailBasePath}
+                isAdmin={isAdmin}
               />
             ))}
           </ul>

@@ -6,9 +6,10 @@ import { Timer, Square, Play, Plus } from 'lucide-react';
 
 interface Props {
   taskId: string;
+  canEdit?: boolean;
 }
 
-export default function TaskTimeTracking({ taskId }: Props) {
+export default function TaskTimeTracking({ taskId, canEdit = true }: Props) {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [running, setRunning] = useState<TimeEntry | null>(null);
   const [manualHours, setManualHours] = useState('1');
@@ -81,7 +82,8 @@ export default function TaskTimeTracking({ taskId }: Props) {
           <button
             type="button"
             onClick={stop}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/80 px-3 py-1.5 text-sm text-white"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/80 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+            disabled={!canEdit}
           >
             <Square className="w-3.5 h-3.5" /> Stop timer
           </button>
@@ -89,7 +91,8 @@ export default function TaskTimeTracking({ taskId }: Props) {
           <button
             type="button"
             onClick={start}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600/80 px-3 py-1.5 text-sm text-white"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600/80 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+            disabled={!canEdit}
           >
             <Play className="w-3.5 h-3.5" /> Start timer
           </button>
@@ -121,7 +124,8 @@ export default function TaskTimeTracking({ taskId }: Props) {
         />
         <button
           type="submit"
-          className="inline-flex items-center gap-1 rounded-lg border border-slate-600 px-2 py-1 text-sm text-slate-300"
+          className="inline-flex items-center gap-1 rounded-lg border border-slate-600 px-2 py-1 text-sm text-slate-300 disabled:opacity-50"
+          disabled={!canEdit}
         >
           <Plus className="w-3.5 h-3.5" /> Log
         </button>

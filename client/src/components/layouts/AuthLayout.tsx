@@ -2,6 +2,8 @@ import { useContext, useState, useMemo, useCallback, type ReactNode } from 'reac
 import { Link, useLocation } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
 import OrgSwitcher from '../common/OrgSwitcher';
+import NotificationBell from '../common/NotificationBell';
+import { ROLE_LABELS } from '../../constants/permissions';
 import {
   LayoutDashboard,
   ClipboardCheck,
@@ -17,6 +19,9 @@ import {
   FileText,
   SlidersHorizontal,
   UsersRound,
+  Bell,
+  Shield,
+  ScrollText,
 } from 'lucide-react';
 
 const NavIcons: Record<string, ReactNode> = {
@@ -31,6 +36,10 @@ const NavIcons: Record<string, ReactNode> = {
   templates: <FileText className="w-5 h-5" />,
   fields: <SlidersHorizontal className="w-5 h-5" />,
   resources: <UsersRound className="w-5 h-5" />,
+  notifications: <Bell className="w-5 h-5" />,
+  teams: <UsersRound className="w-5 h-5" />,
+  roles: <Shield className="w-5 h-5" />,
+  audit: <ScrollText className="w-5 h-5" />,
 };
 
 interface NavLink {
@@ -40,11 +49,11 @@ interface NavLink {
 }
 
 function AuthLayout({ children }: { children: ReactNode }) {
-  const { user, getEffectiveRole } = useContext(UserContext);
+  const { user, canAccessAdminSuite, hasPermission, getEffectiveRole } =
+    useContext(UserContext);
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const effectiveRole = getEffectiveRole();
 
   const isActive = useCallback(
     (path: string) => {
@@ -54,28 +63,50 @@ function AuthLayout({ children }: { children: ReactNode }) {
   );
 
   const getNavLinks: NavLink[] = useMemo(() => {
-    if (!user || !effectiveRole) return [];
+    if (!user) return [];
 
-    if (effectiveRole === 'OrgAdmin') {
-      return [
+    if (canAccessAdminSuite()) {
+      const links: NavLink[] = [
         { name: 'Dashboard', path: '/admin/dashboard', icon: NavIcons.dashboard },
         { name: 'WorkOS', path: '/admin/workos', icon: NavIcons.workos },
         { name: 'Projects', path: '/admin/projects', icon: NavIcons.projects },
         { name: 'Goals', path: '/admin/goals', icon: NavIcons.goals },
         { name: 'Resources', path: '/admin/resources', icon: NavIcons.resources },
+      ];
+      if (hasPermission('team:view')) {
+        links.push({ name: 'Teams', path: '/admin/teams', icon: NavIcons.teams });
+      }
+      links.push(
         { name: 'Templates', path: '/admin/task-templates', icon: NavIcons.templates },
         { name: 'Custom Fields', path: '/admin/custom-fields', icon: NavIcons.fields },
-        { name: 'Manage Users', path: '/admin/manage-users', icon: NavIcons.users },
-        { name: 'Reports', path: '/admin/reports', icon: NavIcons.reports },
-      ];
+        { name: 'Notifications', path: '/admin/notification-settings', icon: NavIcons.notifications },
+      );
+      if (hasPermission('member:manage') || hasPermission('member:invite')) {
+        links.push({ name: 'Manage Users', path: '/admin/manage-users', icon: NavIcons.users });
+      }
+      if (hasPermission('role:manage')) {
+        links.push({ name: 'Roles', path: '/admin/roles', icon: NavIcons.roles });
+      }
+      if (hasPermission('org:audit')) {
+        links.push({ name: 'Audit Log', path: '/admin/audit-log', icon: NavIcons.audit });
+      }
+      if (hasPermission('report:view')) {
+        links.push({ name: 'Reports', path: '/admin/reports', icon: NavIcons.reports });
+      }
+      return links;
     }
 
     return [
       { name: 'Dashboard', path: '/user/dashboard', icon: NavIcons.dashboard },
       { name: 'WorkOS', path: '/user/workos', icon: NavIcons.workos },
       { name: 'My Tasks', path: '/user/my-tasks', icon: NavIcons.tasks },
+      {
+        name: 'Notifications',
+        path: '/user/notification-settings',
+        icon: NavIcons.notifications,
+      },
     ];
-  }, [user, effectiveRole]);
+  }, [user, canAccessAdminSuite, hasPermission]);
 
   const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
 
@@ -193,7 +224,12 @@ function AuthLayout({ children }: { children: ReactNode }) {
                 <div className="flex-1 text-left min-w-0">
                   <div className="text-sm font-medium text-white truncate">{user.name}</div>
                   <div className="text-xs text-slate-400 truncate">
-                    {effectiveRole === 'OrgAdmin' ? 'Admin' : 'Member'}
+                    {(() => {
+                      const role = getEffectiveRole();
+                      if (!role) return 'Member';
+                      if (role === 'Custom') return 'Custom';
+                      return ROLE_LABELS[role as keyof typeof ROLE_LABELS] || role;
+                    })()}
                   </div>
                 </div>
               )}
@@ -219,6 +255,9 @@ function AuthLayout({ children }: { children: ReactNode }) {
                 <span className="ml-3 text-lg font-semibold text-white">Cadence</span>
               </div>
               <div className="hidden md:block" />
+              <div className="flex items-center gap-2">
+                <NotificationBell />
+              </div>
             </header>
 
             <main className="flex-1 min-w-0 overflow-y-auto">

@@ -8,6 +8,7 @@ interface Props {
   task: Task;
   onUpdated: () => void;
   canDelete?: boolean;
+  canUpload?: boolean;
 }
 
 function resolveUrl(url: string) {
@@ -19,7 +20,7 @@ function isAttachmentObj(a: string | TaskAttachment): a is TaskAttachment {
   return typeof a === 'object' && a !== null && 'url' in a;
 }
 
-export default function TaskAttachments({ task, onUpdated, canDelete }: Props) {
+export default function TaskAttachments({ task, onUpdated, canDelete = false, canUpload = true }: Props) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<TaskAttachment | null>(null);
 
@@ -110,15 +111,17 @@ export default function TaskAttachments({ task, onUpdated, canDelete }: Props) {
           </li>
         ))}
       </ul>
-      <label className="inline-flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-300 cursor-pointer hover:bg-slate-800">
-        {uploading ? 'Uploading…' : 'Upload file'}
-        <input
-          type="file"
-          className="hidden"
-          onChange={handleUpload}
-          disabled={uploading}
-        />
-      </label>
+      {canUpload && (
+        <label className="inline-flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-300 cursor-pointer hover:bg-slate-800">
+          {uploading ? 'Uploading…' : 'Upload file'}
+          <input
+            type="file"
+            className="hidden"
+            onChange={handleUpload}
+            disabled={uploading}
+          />
+        </label>
+      )}
 
       {preview && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">

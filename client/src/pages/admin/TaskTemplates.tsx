@@ -1,11 +1,13 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, useContext, type FormEvent } from 'react';
 import PageShell from '../../components/common/PageShell';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
+import { UserContext } from '../../context/UserContext';
 import type { TaskTemplate } from '../../types';
 import { Trash2 } from 'lucide-react';
 
 export default function TaskTemplates() {
+  const { hasPermission } = useContext(UserContext);
   const [templates, setTemplates] = useState<TaskTemplate[]>([]);
   const [name, setName] = useState('');
   const [title, setTitle] = useState('');
@@ -66,7 +68,7 @@ export default function TaskTemplates() {
           required
           rows={3}
         />
-        <button type="submit" className="btn-primary">
+        <button type="submit" className="btn-primary" disabled={!hasPermission('template:manage')}>
           Create template
         </button>
       </form>
@@ -83,7 +85,8 @@ export default function TaskTemplates() {
             <button
               type="button"
               onClick={() => remove(t._id)}
-              className="text-slate-500 hover:text-red-400"
+              className="text-slate-500 hover:text-red-400 disabled:opacity-50"
+              disabled={!hasPermission('template:manage')}
             >
               <Trash2 className="w-4 h-4" />
             </button>

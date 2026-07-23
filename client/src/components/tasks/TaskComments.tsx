@@ -3,14 +3,16 @@ import api from '../../utils/axios';
 import { apiPaths, BASE_URL } from '../../utils/apiPaths';
 import type { TaskComment, User } from '../../types';
 import { MessageSquare, Send, Trash2 } from 'lucide-react';
+import MentionText from '../common/MentionText';
 
 interface Props {
   taskId: string;
   members: User[];
   canDelete?: boolean;
+  canPost?: boolean;
 }
 
-export default function TaskComments({ taskId, members, canDelete }: Props) {
+export default function TaskComments({ taskId, members, canDelete = false, canPost = true }: Props) {
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
@@ -115,42 +117,46 @@ export default function TaskComments({ taskId, members, canDelete }: Props) {
                   )}
                 </div>
               </div>
-              <p className="text-slate-400 mt-1 whitespace-pre-wrap">{c.content}</p>
+              <p className="text-slate-400 mt-1">
+                <MentionText text={c.content} />
+              </p>
             </li>
           ))}
         </ul>
       )}
-      <form onSubmit={handleSubmit} className="relative">
-        <textarea
-          value={content}
-          onChange={(e) => onChange(e.target.value)}
-          rows={2}
-          placeholder="Write a comment… use @ to mention"
-          className="w-full rounded-xl bg-slate-950/60 border border-slate-700 px-3 py-2 text-sm text-slate-200"
-        />
-        {suggestions.length > 0 && (
-          <ul className="absolute left-0 right-0 bottom-full mb-1 rounded-lg border border-slate-700 bg-slate-900 shadow-lg z-10 max-h-32 overflow-y-auto">
-            {suggestions.slice(0, 6).map((m) => (
-              <li key={m._id}>
-                <button
-                  type="button"
-                  className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800"
-                  onClick={() => insertMention(m.name)}
-                >
-                  @{m.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-        <button
-          type="submit"
-          disabled={submitting || !content.trim()}
-          className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-cyan-600/80 hover:bg-cyan-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
-        >
-          <Send className="w-3.5 h-3.5" /> Post
-        </button>
-      </form>
+      {canPost && (
+        <form onSubmit={handleSubmit} className="relative">
+          <textarea
+            value={content}
+            onChange={(e) => onChange(e.target.value)}
+            rows={2}
+            placeholder="Write a comment… use @ to mention"
+            className="w-full rounded-xl bg-slate-950/60 border border-slate-700 px-3 py-2 text-sm text-slate-200"
+          />
+          {suggestions.length > 0 && (
+            <ul className="absolute left-0 right-0 bottom-full mb-1 rounded-lg border border-slate-700 bg-slate-900 shadow-lg z-10 max-h-32 overflow-y-auto">
+              {suggestions.slice(0, 6).map((m) => (
+                <li key={m._id}>
+                  <button
+                    type="button"
+                    className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800"
+                    onClick={() => insertMention(m.name)}
+                  >
+                    @{m.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <button
+            type="submit"
+            disabled={submitting || !content.trim()}
+            className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-cyan-600/80 hover:bg-cyan-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+          >
+            <Send className="w-3.5 h-3.5" /> Post
+          </button>
+        </form>
+      )}
       {/* keep BASE_URL referenced for attachment URLs elsewhere */}
       <span className="hidden">{BASE_URL}</span>
     </div>

@@ -4,16 +4,24 @@ import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import type { OrgMembership } from '../../types';
 import { ChevronDown, Plus, CheckCircle, LogOut, AlertTriangle, Building2 } from 'lucide-react';
+import { ROLE_LABELS, isSystemRole } from '../../constants/permissions';
 
 interface CreateOrgModalState {
   isOpen: boolean;
   name: string;
+  templateId: string;
   loading: boolean;
   error: string;
 }
 
+interface WorkspaceTemplate {
+  id: string;
+  name: string;
+  description: string;
+}
+
 function OrgSwitcher() {
-  const { user, updateUser } = useContext(UserContext);
+  const { user, updateUser, hasPermission } = useContext(UserContext);
   const [isOpen, setIsOpen] = useState(false);
   const [orgs, setOrgs] = useState<OrgMembership[]>([]);
   const [loading, setLoading] = useState(false);
@@ -21,9 +29,18 @@ function OrgSwitcher() {
   const [createModal, setCreateModal] = useState<CreateOrgModalState>({
     isOpen: false,
     name: '',
+    templateId: 'blank',
     loading: false,
     error: '',
   });
+  const [templates, setTemplates] = useState<WorkspaceTemplate[]>([]);
+
+  const roleLabel = (role?: string) => {
+    if (!role) return 'Member';
+    if (role === 'Custom') return 'Custom';
+    if (isSystemRole(role)) return ROLE_LABELS[role];
+    return role;
+  };
 
   const fetchOrgs = useCallback(async () => {
     if (!user) return;
@@ -101,10 +118,20 @@ function OrgSwitcher() {
     setCreateModal((prev) => ({ ...prev, loading: true, error: '' }));
 
     try {
-      const response = await api.post(apiPaths.ORGS.CREATE, { name: createModal.name.trim() });
+      const response = await api.post(apiPaths.ORGS.CREATE, {
+        name: createModal.name.trim(),
+        templateId: createModal.templateId || 'blank',
+      });
       const newOrg = response.data;
 
-      const updatedOrgs = [...orgs, newOrg];
+      const updatedOrgs = [
+        ...orgs,
+        {
+          ...newOrg,
+          membershipId: newOrg._id,
+          role: newOrg.role || 'Owner',
+        },
+      ];
       setOrgs(updatedOrgs);
 
       if (user) {
@@ -118,8 +145,15 @@ function OrgSwitcher() {
         });
       }
 
-      setCreateModal({ isOpen: false, name: '', loading: false, error: '' });
+      setCreateModal({
+        isOpen: false,
+        name: '',
+        templateId: 'blank',
+        loading: false,
+        error: '',
+      });
       setIsOpen(false);
+      window.location.reload();
     } catch (error: any) {
       setCreateModal((prev) => ({
         ...prev,
@@ -150,7 +184,7 @@ function OrgSwitcher() {
             {currentOrg?.name || 'Select Organization'}
           </div>
           <div className="text-[10px] text-slate-400 truncate">
-            {currentOrg?.role === 'OrgAdmin' ? 'Admin' : 'Member'} • {orgs.length} org
+            {currentOrg?.role ? roleLabel(currentOrg.role) : 'Member'} • {orgs.length} org
             {orgs.length !== 1 ? 's' : ''}
           </div>
         </div>
@@ -165,16 +199,30 @@ function OrgSwitcher() {
               <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
                 Organizations
               </div>
-              <button
-                type="button"
-                onClick={() =>
-                  setCreateModal({ isOpen: true, name: '', loading: false, error: '' })
-                }
-                className="text-xs text-primary hover:text-primary-hover font-medium flex items-center gap-1"
-              >
-                <Plus className="w-3 h-3" />
-                New
-              </button>
+              {hasPermission('org:manage') && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setCreateModal({
+                      isOpen: true,
+                      name: '',
+                      templateId: 'blank',
+                      loading: false,
+                      error: '',
+                    });
+                    try {
+                      const res = await api.get(apiPaths.ORGS.TEMPLATES);
+                      setTemplates(res.data.data || []);
+                    } catch {
+                      setTemplates([]);
+                    }
+                  }}
+                  className="text-xs text-primary hover:text-primary-hover font-medium flex items-center gap-1"
+                >
+                  <Plus className="w-3 h-3" />
+                  New
+                </button>
+              )}
             </div>
             <div className="max-h-64 overflow-y-auto">
               {loading ? (
@@ -200,7 +248,7 @@ function OrgSwitcher() {
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-white truncate">{org.name}</div>
                         <div className="text-[10px] text-slate-400">
-                          {org.role === 'OrgAdmin' ? 'Admin' : 'Member'}
+                          {roleLabel(org.role)}
                           {org.plan && ` • ${org.plan}`}
                         </div>
                       </div>
@@ -313,6 +361,36 @@ function OrgSwitcher() {
                         placeholder="My Team Workspace"
                         autoFocus
                       />
+                      <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1 mt-3">
+                        Workspace Template
+                      </label>
+                      <select
+                        value={createModal.templateId}
+                        onChange={(e) =>
+                          setCreateModal((prev) => ({ ...prev, templateId: e.target.value }))
+                        }
+                        className="input-dark block w-full px-3 py-2 text-sm"
+                      >
+                        {(templates.length
+                          ? templates
+                          : [
+                              {
+                                id: 'blank',
+                                name: 'Blank Workspace',
+                                description: 'Start empty',
+                              },
+                            ]
+                        ).map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.name}
+                          </option>
+                        ))}
+                      </select>
+                      {templates.find((t) => t.id === createModal.templateId)?.description && (
+                        <p className="mt-1 text-xs text-slate-500">
+                          {templates.find((t) => t.id === createModal.templateId)?.description}
+                        </p>
+                      )}
                       {createModal.error && (
                         <p className="mt-1 text-sm text-rose-400">{createModal.error}</p>
                       )}
