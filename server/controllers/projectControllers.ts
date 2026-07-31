@@ -32,15 +32,53 @@ export const listProjects = async (
 
     const total = await Project.countDocuments(filter);
 
-    const projects = await Project.find(filter, projection)
+    const rawProjects = await Project.find(filter, projection)
+      .populate("ownerId", "name email")
       .sort(sortOptions)
       .skip(skip)
       .limit(limit);
 
+    // Compute task counts & milestones/sprints metrics per project
+    const Sprint = (await import("../models/Sprint.js")).default;
+    const Milestone = (await import("../models/Milestone.js")).default;
+
+    const projectsWithMetrics = await Promise.all(
+      rawProjects.map(async (p) => {
+        const [tasks, activeSprints, milestones] = await Promise.all([
+          Task.find({ orgId: req.orgId, projectId: p._id }).select("status dueDate progress"),
+          Sprint.countDocuments({ projectId: p._id, status: "Active" }),
+          Milestone.find({ projectId: p._id }).select("status targetDate"),
+        ]);
+
+        const totalTasks = tasks.length;
+        const completedTasks = tasks.filter((t) => t.status === "Completed").length;
+        const inProgressTasks = tasks.filter((t) => t.status === "In Progress" || t.status === "In Review").length;
+        const overdueTasks = tasks.filter(
+          (t) => t.status !== "Completed" && t.dueDate && new Date(t.dueDate).getTime() < Date.now()
+        ).length;
+
+        const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+        return {
+          ...p.toObject(),
+          metrics: {
+            totalTasks,
+            completedTasks,
+            inProgressTasks,
+            overdueTasks,
+            progressPercent,
+            activeSprints,
+            totalMilestones: milestones.length,
+            completedMilestones: milestones.filter((m) => m.status === "Completed").length,
+          },
+        };
+      })
+    );
+
     res.status(200).json({
       message: "Projects fetched successfully",
       data: {
-        projects,
+        projects: projectsWithMetrics,
         pagination: {
           page,
           limit,

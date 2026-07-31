@@ -280,15 +280,27 @@ export interface UserContextType {
 
 export type ProjectStatus = 'Planned' | 'Active' | 'Paused' | 'Completed' | 'Archived';
 
+export interface ProjectMetrics {
+  totalTasks: number;
+  completedTasks: number;
+  inProgressTasks: number;
+  overdueTasks: number;
+  progressPercent: number;
+  activeSprints: number;
+  totalMilestones: number;
+  completedMilestones: number;
+}
+
 export interface Project {
   _id: string;
   orgId: string;
   name: string;
   description?: string;
-  ownerId: string;
+  ownerId: string | User;
   status: ProjectStatus;
   startDate?: string;
   targetDate?: string;
+  metrics?: ProjectMetrics;
   createdAt: string;
   updatedAt: string;
 }
