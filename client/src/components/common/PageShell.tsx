@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { MoreVertical, X } from 'lucide-react';
 import Breadcrumbs from './Breadcrumbs';
+import NotificationBell from './NotificationBell';
 
 interface PageShellProps {
   title: string;
@@ -32,22 +33,25 @@ function PageShell({ title, subtitle, actions, topSlot, children }: PageShellPro
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <Breadcrumbs />
-          {actions && (
-            <div className="relative flex-shrink-0" ref={menuRef}>
-              <button
-                type="button"
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="p-2 rounded-lg hover:bg-gray-100 text-slate-500 hover:text-slate-700 transition-colors"
-              >
-                {menuOpen ? <X className="w-5 h-5" /> : <MoreVertical className="w-5 h-5" />}
-              </button>
-              {menuOpen && (
-                <div className="absolute right-0 top-full mt-1 z-50 min-w-[180px] bg-white border border-gray-200 rounded-xl shadow-lg py-1 animate-in fade-in slide-in-from-top-2 duration-150">
-                  {actions}
-                </div>
-              )}
-            </div>
-          )}
+          <div className="flex items-center gap-1">
+            {actions && (
+              <div className="relative flex-shrink-0" ref={menuRef}>
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="p-2 rounded-lg hover:bg-gray-100 text-slate-500 hover:text-slate-700 transition-colors"
+                >
+                  {menuOpen ? <X className="w-5 h-5" /> : <MoreVertical className="w-5 h-5" />}
+                </button>
+                {menuOpen && (
+                  <div className="absolute right-0 top-full mt-1 z-50 min-w-[180px] bg-white border border-gray-200 rounded-xl shadow-lg py-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                    {actions}
+                  </div>
+                )}
+              </div>
+            )}
+            <NotificationBell />
+          </div>
         </div>
         <h1 className="text-xl md:text-2xl font-bold text-slate-800 tracking-tight">
           {title}

@@ -37,7 +37,7 @@ function Breadcrumbs() {
           const project = res.data.data.project;
           const sub = path.replace(`/projects/${projectMatch[1]}`, '').replace(/^\//, '');
           const subLabels: Record<string, string> = { edit: 'Edit', sprints: 'Sprints', gantt: 'Gantt' };
-          items.push({ label: project.name, path: `/projects/${projectMatch[1]}/sprints` });
+          items.push({ label: project.name, path: `/tasks?projectId=${projectMatch[1]}` });
           if (sub && subLabels[sub]) {
             items.push({ label: subLabels[sub], path });
           }
@@ -54,7 +54,7 @@ function Breadcrumbs() {
         if (projectId) {
           try {
             const res = await api.get(`/api/projects/${projectId}`);
-            items.push({ label: res.data.data.project.name, path: `/projects/${projectId}/sprints` });
+            items.push({ label: res.data.data.project.name, path: `/tasks?projectId=${projectId}` });
             items.push({ label: 'Tasks', path });
           } catch {
             items.push({ label: 'Tasks', path });
@@ -100,7 +100,7 @@ function Breadcrumbs() {
               const projId = parentTask.projectId._id || parentTask.projectId;
               try {
                 const projRes = await api.get(`/api/projects/${projId}`);
-                items.push({ label: projRes.data.data.project.name, path: `/projects/${projId}/sprints` });
+                items.push({ label: projRes.data.data.project.name, path: `/tasks?projectId=${projId}` });
               } catch {}
             }
 
@@ -112,7 +112,7 @@ function Breadcrumbs() {
               const projId = task.projectId._id || task.projectId;
               try {
                 const projRes = await api.get(`/api/projects/${projId}`);
-                items.push({ label: projRes.data.data.project.name, path: `/projects/${projId}/sprints` });
+                items.push({ label: projRes.data.data.project.name, path: `/tasks?projectId=${projId}` });
               } catch {}
             }
             items.push({ label: task.title, path: `/tasks/${taskMatch[1]}` });

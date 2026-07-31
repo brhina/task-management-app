@@ -2,7 +2,6 @@ import { useContext, useState, useMemo, useCallback, type ReactNode } from 'reac
 import { Link, useLocation } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
 import OrgSwitcher from '../common/OrgSwitcher';
-import NotificationBell from '../common/NotificationBell';
 import { ROLE_LABELS } from '../../constants/permissions';
 import {
   LayoutDashboard,
@@ -14,7 +13,6 @@ import {
   Target,
   Settings,
   ChevronsLeft,
-  Menu,
   ClipboardList,
   FileText,
   SlidersHorizontal,
@@ -242,24 +240,6 @@ function AuthLayout({ children }: { children: ReactNode }) {
           className={`flex-1 flex h-screen overflow-hidden transition-all duration-200 ${isSidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-72'}`}
         >
           <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-            <header className="sticky top-0 z-30 flex items-center justify-between h-12 px-4 bg-white/95 backdrop-blur border-b border-gray-200 shrink-0">
-              <div className="flex items-center md:hidden">
-                <button
-                  type="button"
-                  onClick={() => setIsSidebarOpen(true)}
-                  className="p-2 rounded-xl text-slate-600 hover:bg-gray-100"
-                  aria-label="Open sidebar"
-                >
-                  <Menu className="h-6 w-6" />
-                </button>
-                <span className="ml-3 text-lg font-semibold text-slate-800">Cadence</span>
-              </div>
-              <div className="hidden md:block" />
-              <div className="flex items-center gap-2">
-                <NotificationBell />
-              </div>
-            </header>
-
             <main className="flex-1 min-w-0 overflow-y-auto">
               <div className="page">
                 <div className="page-container py-4">{children}</div>
