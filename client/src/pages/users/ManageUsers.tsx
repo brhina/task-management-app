@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   UserPlus,
   Users,
@@ -67,6 +67,7 @@ interface InviteModalState {
 
 function ManageUsers() {
   const { user, canAccessAdminSuite, hasPermission } = useContext(UserContext);
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') === 'teams' ? 'teams' : 'members';
 
@@ -141,18 +142,6 @@ function ManageUsers() {
     memberIds: [],
     parentTeamId: '',
     saving: false,
-    error: '',
-  });
-
-  const [teamDashboardModal, setTeamDashboardModal] = useState<{
-    isOpen: boolean;
-    loading: boolean;
-    dashboardData: any | null;
-    error: string;
-  }>({
-    isOpen: false,
-    loading: false,
-    dashboardData: null,
     error: '',
   });
 
@@ -485,28 +474,8 @@ function ManageUsers() {
     }
   };
 
-  const handleOpenTeamDashboard = async (team: Team) => {
-    setTeamDashboardModal({
-      isOpen: true,
-      loading: true,
-      dashboardData: null,
-      error: '',
-    });
-    try {
-      const res = await api.get(apiPaths.TEAMS.DASHBOARD.replace(':id', team._id));
-      setTeamDashboardModal({
-        isOpen: true,
-        loading: false,
-        dashboardData: res.data.data,
-        error: '',
-      });
-    } catch (err: any) {
-      setTeamDashboardModal((prev) => ({
-        ...prev,
-        loading: false,
-        error: err.response?.data?.message || 'Failed to load team dashboard',
-      }));
-    }
+  const handleOpenTeamDashboard = (team: Team) => {
+    navigate(`/teams/${team._id}/performance`);
   };
 
   // ----------------------------------------------------
@@ -1707,121 +1676,7 @@ function ManageUsers() {
         </div>
       </Modal>
 
-      {/* ---------------------------------------------------- */}
-      {/* MODAL 3: Team Dashboard Modal                        */}
-      {/* ---------------------------------------------------- */}
-      <Modal
-        isOpen={teamDashboardModal.isOpen}
-        onClose={() => setTeamDashboardModal((prev) => ({ ...prev, isOpen: false }))}
-        title={teamDashboardModal.dashboardData?.team?.name ? `${teamDashboardModal.dashboardData.team.name} Performance Dashboard` : 'Team Dashboard'}
-        subtitle="Real-time productivity, task counts, and completion analytics"
-        maxWidth="sm:max-w-3xl"
-        footer={
-          <button
-            onClick={() => setTeamDashboardModal((prev) => ({ ...prev, isOpen: false }))}
-            className="btn-primary text-xs"
-          >
-            Close
-          </button>
-        }
-      >
-        {teamDashboardModal.loading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : teamDashboardModal.error ? (
-          <div className="alert-error text-xs">{teamDashboardModal.error}</div>
-        ) : teamDashboardModal.dashboardData ? (
-          <div className="space-y-5">
-            {/* Top Stat Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3.5 text-center">
-                <div className="text-2xl font-bold text-slate-800 tabular-nums">
-                  {teamDashboardModal.dashboardData.statistics?.totalTasks || 0}
-                </div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-0.5">
-                  Total Tasks
-                </div>
-              </div>
-              <div className="bg-rose-50 border border-rose-200/60 rounded-xl p-3.5 text-center">
-                <div className="text-2xl font-bold text-rose-600 tabular-nums">
-                  {teamDashboardModal.dashboardData.statistics?.overdueTasks || 0}
-                </div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-rose-500 mt-0.5">
-                  Overdue
-                </div>
-              </div>
-              <div className="bg-emerald-50 border border-emerald-200/60 rounded-xl p-3.5 text-center">
-                <div className="text-2xl font-bold text-emerald-600 tabular-nums">
-                  {teamDashboardModal.dashboardData.statistics?.completedLast30Days || 0}
-                </div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-emerald-500 mt-0.5">
-                  Completed (30d)
-                </div>
-              </div>
-              <div className="bg-sky-50 border border-sky-200/60 rounded-xl p-3.5 text-center">
-                <div className="text-2xl font-bold text-sky-600 tabular-nums">
-                  {teamDashboardModal.dashboardData.team?.memberCount || 0}
-                </div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-sky-500 mt-0.5">
-                  Team Members
-                </div>
-              </div>
-            </div>
 
-            {/* Task Status Breakdown */}
-            <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-600 mb-3">
-                Task Status Breakdown
-              </h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {Object.entries(
-                  teamDashboardModal.dashboardData.statistics?.byStatus || {}
-                ).map(([status, count]) => (
-                  <div
-                    key={status}
-                    className="p-2.5 rounded-lg bg-gray-50 border border-gray-100 flex justify-between items-center"
-                  >
-                    <span className="text-xs font-medium text-slate-600">{status}</span>
-                    <span className="text-sm font-bold text-slate-800">{count as number}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Recent Tasks */}
-            <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-600 mb-3">
-                Recent Team Activity
-              </h4>
-              {(teamDashboardModal.dashboardData.recentTasks || []).length === 0 ? (
-                <div className="text-xs text-slate-400 italic">No recent tasks for this team</div>
-              ) : (
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {(teamDashboardModal.dashboardData.recentTasks || []).map((t: any) => (
-                    <div
-                      key={t._id}
-                      className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100 text-xs"
-                    >
-                      <div className="font-medium text-slate-700 truncate max-w-[240px]">
-                        {t.title}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-200 text-slate-700">
-                          {t.status}
-                        </span>
-                        <span className="text-[10px] text-slate-400">
-                          {t.assignedTo?.name || 'Unassigned'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        ) : null}
-      </Modal>
 
       {/* Invite Member Modal */}
       {inviteModal.isOpen && (

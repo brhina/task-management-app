@@ -259,7 +259,9 @@ export const getTeamDashboard = async (
       return;
     }
 
-    const team = await Team.findOne({ _id: req.params.id, orgId: req.orgId });
+    const team = await Team.findOne({ _id: req.params.id, orgId: req.orgId })
+      .populate("leadId", "name email profileImageUrl")
+      .populate("memberIds", "name email profileImageUrl");
     if (!team) {
       res.status(404).json({ message: "Team not found" });
       return;
@@ -268,7 +270,7 @@ export const getTeamDashboard = async (
     const memberIds = team.memberIds;
     const now = new Date();
 
-    const [byStatus, byPriority, overdue, recentTasks, completedLast30] =
+    const [byStatus, byPriority, overdue, recentTasks, completedLast30, memberTaskAggregation] =
       await Promise.all([
         Task.aggregate([
           { $match: { orgId: req.orgId, teamId: team._id } },
@@ -288,13 +290,45 @@ export const getTeamDashboard = async (
           .sort({ updatedAt: -1 })
           .limit(10)
           .select("title status priority dueDate assignedTo updatedAt")
-          .populate("assignedTo", "name"),
+          .populate("assignedTo", "name email profileImageUrl"),
         Task.countDocuments({
           orgId: req.orgId,
           teamId: team._id,
           status: "Completed",
           updatedAt: { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) },
         }),
+        Task.aggregate([
+          { $match: { orgId: req.orgId, teamId: team._id } },
+          {
+            $group: {
+              _id: "$assignedTo",
+              total: { $sum: 1 },
+              completed: {
+                $sum: { $cond: [{ $eq: ["$status", "Completed"] }, 1, 0] },
+              },
+              inProgress: {
+                $sum: { $cond: [{ $eq: ["$status", "In Progress"] }, 1, 0] },
+              },
+              pending: {
+                $sum: { $cond: [{ $eq: ["$status", "Pending"] }, 1, 0] },
+              },
+              overdue: {
+                $sum: {
+                  $cond: [
+                    {
+                      $and: [
+                        { $ne: ["$status", "Completed"] },
+                        { $lt: ["$dueDate", now] },
+                      ],
+                    },
+                    1,
+                    0,
+                  ],
+                },
+              },
+            },
+          },
+        ]),
       ]);
 
     const statusMap: Record<string, number> = {};
@@ -306,21 +340,66 @@ export const getTeamDashboard = async (
       priorityMap[r._id] = r.count;
     });
 
+    const totalTasks = Object.values(statusMap).reduce((a, b) => a + b, 0);
+    const completedTasks = statusMap["Completed"] || 0;
+    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+    // Map aggregated member task stats to members list
+    const memberPerfMap = new Map<string, any>();
+    memberTaskAggregation.forEach((item: any) => {
+      if (item._id) {
+        memberPerfMap.set(item._id.toString(), item);
+      }
+    });
+
+    const memberPerformance = (team.memberIds || []).map((m: any) => {
+      const stats = memberPerfMap.get(m._id.toString()) || {
+        total: 0,
+        completed: 0,
+        inProgress: 0,
+        pending: 0,
+        overdue: 0,
+      };
+      const rate = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+      return {
+        member: {
+          _id: m._id,
+          name: m.name,
+          email: m.email,
+          profileImageUrl: m.profileImageUrl,
+        },
+        totalTasks: stats.total,
+        completedTasks: stats.completed,
+        inProgressTasks: stats.inProgress,
+        pendingTasks: stats.pending,
+        overdueTasks: stats.overdue,
+        completionRate: rate,
+      };
+    });
+
     res.status(200).json({
       message: "Team dashboard",
       data: {
         team: {
           _id: team._id,
           name: team.name,
+          description: team.description,
+          lead: team.leadId,
           memberCount: memberIds.length,
+          members: team.memberIds,
         },
         statistics: {
-          totalTasks: Object.values(statusMap).reduce((a, b) => a + b, 0),
+          totalTasks,
+          completedTasks,
+          inProgressTasks: statusMap["In Progress"] || 0,
+          pendingTasks: statusMap["Pending"] || 0,
           overdueTasks: overdue,
           completedLast30Days: completedLast30,
+          completionRate,
           byStatus: statusMap,
           byPriority: priorityMap,
         },
+        memberPerformance,
         recentTasks,
       },
     });

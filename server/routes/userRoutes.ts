@@ -3,12 +3,14 @@ import {
   getAllUsers,
   getUserById,
   deleteUser,
+  getUserPerformance,
 } from "../controllers/userControllers.js";
 import protect, { orgAdminOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router.get("/", protect, orgAdminOnly, getAllUsers);
+router.get("/:id/performance", protect, getUserPerformance);
 router.get("/:id", protect, getUserById);
 router.delete("/:id", protect, orgAdminOnly, deleteUser);
 

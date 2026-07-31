@@ -36,6 +36,7 @@ import NotificationSettings from './pages/settings/NotificationSettings';
 import Reports from './pages/reports/Reports';
 import Resources from './pages/resources/Resources';
 import Teams from './pages/teams/Teams';
+import TeamPerformanceDashboard from './pages/teams/TeamPerformanceDashboard';
 import AuditLog from './pages/audit/AuditLog';
 
 import AuthLayout from './components/layouts/AuthLayout';
@@ -364,6 +365,26 @@ function App() {
         <Route
           path="/teams"
           element={<Navigate to="/users?tab=teams" replace />}
+        />
+        <Route
+          path="/teams/performance"
+          element={
+            <UserRouteWrapper>
+              <AuthLayout>
+                <TeamPerformanceDashboard />
+              </AuthLayout>
+            </UserRouteWrapper>
+          }
+        />
+        <Route
+          path="/teams/:id/performance"
+          element={
+            <UserRouteWrapper>
+              <AuthLayout>
+                <TeamPerformanceDashboard />
+              </AuthLayout>
+            </UserRouteWrapper>
+          }
         />
         <Route
           path="/reports"
