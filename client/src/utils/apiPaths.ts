@@ -109,6 +109,8 @@ export const apiPaths = {
     ORG_SUMMARY: '/api/workos/orgs/:id/summary',
     PROJECT_SUMMARY: '/api/workos/projects/:id/summary',
     USER_SUMMARY: '/api/workos/users/:id/summary',
+    SCOPES: '/api/workos/scopes',
+    EXECUTE_ACTION: '/api/workos/actions/execute',
   },
   AUTOMATION: {
     LIST_RULES: '/api/automation/rules',

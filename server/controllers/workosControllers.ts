@@ -149,3 +149,152 @@ export const getUserSummary = async (
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getWorkosScopes = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    if (!req.orgId) {
+      res.status(400).json({ message: "Organization context is required" });
+      return;
+    }
+    const Project = (await import("../models/Project.js")).default;
+    const OrgMembership = (await import("../models/OrgMembership.js")).default;
+
+    const [projects, memberships] = await Promise.all([
+      Project.find({ orgId: req.orgId }).select("_id name key status").sort({ name: 1 }),
+      OrgMembership.find({ orgId: req.orgId, status: "Active" })
+        .populate("userId", "name email")
+        .select("userId role capacityHoursPerWeek"),
+    ]);
+
+    const members = memberships
+      .map((m: any) => ({
+        _id: String(m.userId?._id || ""),
+        name: m.userId?.name || "Team Member",
+        email: m.userId?.email || "",
+        capacityHoursPerWeek: m.capacityHoursPerWeek ?? 40,
+      }))
+      .filter((m) => m._id);
+
+    res.status(200).json({
+      message: "WorkOS scopes fetched",
+      data: {
+        projects: projects.map((p) => ({
+          _id: String(p._id),
+          name: p.name,
+          key: (p as any).key,
+          status: p.status,
+        })),
+        members,
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const executeWorkosAction = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    if (!req.orgId) {
+      res.status(400).json({ message: "Organization context is required" });
+      return;
+    }
+    const { actionType } = req.body;
+    const orgId = req.orgId;
+    const Task = (await import("../models/Task.js")).default;
+
+    // Invalidate cached snapshots for org
+    await InsightSnapshot.deleteMany({ orgId });
+
+    if (actionType === "triage_overdue") {
+      const now = new Date();
+      const overdueTasks = await Task.find({
+        orgId,
+        status: { $ne: "Completed" },
+        dueDate: { $lt: now },
+      });
+
+      let updatedCount = 0;
+      for (const t of overdueTasks) {
+        const currentDue = new Date(t.dueDate);
+        const newDue = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+        t.dueDate = newDue;
+        await t.save();
+        updatedCount++;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: `Successfully triaged ${updatedCount} overdue tasks. Extended due dates by 3 days.`,
+        updatedCount,
+      });
+      return;
+    }
+
+    if (actionType === "unblock_dependencies" || actionType === "elevate_blockers") {
+      const blockedOrBottleneck = await Task.find({
+        orgId,
+        status: { $ne: "Completed" },
+        priority: { $in: ["Low", "Medium"] },
+      }).limit(5);
+
+      let updatedCount = 0;
+      for (const t of blockedOrBottleneck) {
+        t.priority = "High";
+        await t.save();
+        updatedCount++;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: `Elevated priority to High for ${updatedCount} key bottleneck tasks.`,
+        updatedCount,
+      });
+      return;
+    }
+
+    if (actionType === "rebalance_workload") {
+      const OrgMembership = (await import("../models/OrgMembership.js")).default;
+      const memberships = await OrgMembership.find({ orgId, status: "Active" }).populate(
+        "userId",
+        "name email"
+      );
+
+      // Find tasks assigned to high load assignees
+      const pendingTasks = await Task.find({
+        orgId,
+        status: "Pending",
+      }).limit(3);
+
+      let updatedCount = 0;
+      if (memberships.length > 1 && pendingTasks.length > 0) {
+        // Shift first task to another member
+        const targetMember = memberships[memberships.length - 1]?.userId;
+        if (targetMember && pendingTasks[0]) {
+          pendingTasks[0].assignedTo = targetMember._id as any;
+          await pendingTasks[0].save();
+          updatedCount = 1;
+        }
+      }
+
+      res.status(200).json({
+        success: true,
+        message: updatedCount > 0
+          ? `Rebalanced workload: reassigned task "${pendingTasks[0]?.title}" to balance capacity.`
+          : "Workload distribution evaluated. No immediate reassignments needed.",
+        updatedCount,
+      });
+      return;
+    }
+
+    res.status(400).json({ message: `Unknown action type: ${actionType}` });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

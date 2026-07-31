@@ -76,3 +76,83 @@ export function healthFromRiskAndOverdue(params: {
   if (params.blockedCount > 0 || params.riskScore >= 40) return "at_risk";
   return "on_track";
 }
+
+export type WorkloadStatus = "Optimal" | "Overloaded" | "Available";
+
+export function classifyWorkloadStatus(utilizationRate: number): WorkloadStatus {
+  if (utilizationRate > 110) return "Overloaded";
+  if (utilizationRate < 50) return "Available";
+  return "Optimal";
+}
+
+export interface HealthMetrics {
+  score: number; // 0-100
+  status: HealthStatus;
+  executionScore: number; // completion & on-time performance (0-100)
+  velocityScore: number; // throughput (0-100)
+  riskScore: number; // inverse of risk penalty (0-100)
+  alignmentScore: number; // strategic goal linking (0-100)
+}
+
+export function calculateHealthMetrics(params: {
+  totalTasks: number;
+  completedTasks: number;
+  overdueTasks: number;
+  blockedTasks: number;
+  avgRiskScore: number;
+  goalsLinkedCount: number;
+  totalGoalsCount: number;
+  overloadedMembersCount: number;
+  totalMembersCount: number;
+}): HealthMetrics {
+  const {
+    totalTasks,
+    completedTasks,
+    overdueTasks,
+    blockedTasks,
+    avgRiskScore,
+    goalsLinkedCount,
+    totalGoalsCount,
+    overloadedMembersCount,
+    totalMembersCount,
+  } = params;
+
+  // 1. Execution Score (0..100)
+  const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 100;
+  const overdueRatio = totalTasks > 0 ? (overdueTasks / totalTasks) * 100 : 0;
+  const executionScore = clamp(Math.round(completionRate * 0.6 + (100 - overdueRatio * 2) * 0.4), 0, 100);
+
+  // 2. Velocity / Flow Score (0..100)
+  const blockedRatio = totalTasks > 0 ? (blockedTasks / totalTasks) * 100 : 0;
+  const velocityScore = clamp(Math.round(100 - blockedRatio * 2.5 - (overloadedMembersCount > 0 ? 15 : 0)), 0, 100);
+
+  // 3. Risk Score (0..100, where 100 means low risk / safe)
+  const riskSafetyScore = clamp(100 - Math.round(avgRiskScore), 0, 100);
+
+  // 4. Alignment Score (0..100)
+  const alignmentRate = totalGoalsCount > 0 ? clamp((goalsLinkedCount / totalGoalsCount) * 100, 20, 100) : 50;
+  const alignmentScore = Math.round(alignmentRate);
+
+  // Composite overall score
+  const score = clamp(
+    Math.round(executionScore * 0.3 + velocityScore * 0.25 + riskSafetyScore * 0.25 + alignmentScore * 0.2),
+    0,
+    100
+  );
+
+  const status = healthFromRiskAndOverdue({
+    riskScore: avgRiskScore,
+    overdueCount: overdueTasks,
+    blockedCount: blockedTasks,
+  });
+
+  return {
+    score,
+    status,
+    executionScore,
+    velocityScore,
+    riskScore: riskSafetyScore,
+    alignmentScore,
+  };
+}
+
