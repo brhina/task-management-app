@@ -9,7 +9,7 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from '@dnd-kit/core';
-import { LayoutGrid, List, Users, ClipboardList } from 'lucide-react';
+import { LayoutGrid, List, Users, ClipboardList, GanttChart, Timer, RefreshCw, Plus } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../utils/axios';
@@ -300,27 +300,68 @@ function ManageTasks() {
         isProjectScoped ? 'Tasks for this project' : 'View and manage all tasks in the system'
       }
       actions={
-        <>
-          <button
-            type="button"
-            onClick={() => setShowCreateTask(true)}
-            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
-          >
-            Create Task
-          </button>
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={fetchTasks}
-            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+            className="p-2 text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-xl shadow-sm hover:bg-slate-50 transition-colors"
+            title="Refresh Tasks"
           >
-            Refresh
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
-        </>
+          <button
+            type="button"
+            onClick={() => setShowCreateTask(true)}
+            className="btn btn-primary text-xs px-3.5 py-2 font-bold flex items-center gap-1.5 shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            Create Task
+          </button>
+        </div>
       }
     >
       <div className="space-y-4 overflow-hidden">
         {error && <div className="alert-error">{error}</div>}
 
+        {/* Project Outcome Context Banner */}
+        {isProjectScoped && scopedProject && (
+          <div className="card bg-gradient-to-r from-primary/10 via-white to-sky-50/40 border border-primary/20 p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-primary/10 text-primary">
+                    {scopedProject.status} Project
+                  </span>
+                  <h2 className="text-base font-bold text-slate-800">{scopedProject.name}</h2>
+                </div>
+                <p className="text-xs text-slate-600">
+                  {scopedProject.description || 'Targeted outcomes and deliverable tasks for this project.'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  to={`/projects/${scopedProject._id}/gantt`}
+                  className="btn btn-secondary text-xs px-3 py-1.5 font-bold flex items-center gap-1.5 shadow-sm"
+                >
+                  <GanttChart className="w-3.5 h-3.5 text-primary" />
+                  Gantt Timeline
+                </Link>
+                <Link
+                  to={`/projects/${scopedProject._id}/sprints`}
+                  className="btn btn-secondary text-xs px-3 py-1.5 font-bold flex items-center gap-1.5 shadow-sm"
+                >
+                  <Timer className="w-3.5 h-3.5 text-purple-600" />
+                  Agile Sprints
+                </Link>
+                <Link
+                  to="/projects"
+                  className="text-xs text-slate-500 hover:text-slate-800 font-semibold px-2 py-1"
+                >
+                  All Projects →
+                </Link>
+          </div>
+        )}
         {/* Filters Row */}
         <div className="flex flex-col md:flex-row md:items-center gap-3">
           <div className="flex-1">
@@ -354,20 +395,6 @@ function ManageTasks() {
             />
           </div>
 
-          {isProjectScoped && scopedProject && (
-            <div className="flex items-center gap-2">
-              {/* <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-primary/15 text-primary border border-primary/30">
-                {scopedProject.name}
-              </span> */}
-              <Link
-                to="/projects"
-                className="text-xs text-slate-500 hover:text-slate-600 underline underline-offset-2"
-              >
-                All projects
-              </Link>
-            </div>
-          )}
-
           <div className="flex items-center gap-2">
             <select
               value={sortBy}
@@ -380,7 +407,6 @@ function ManageTasks() {
               <option value="assignee">Sort: Assignee</option>
             </select>
 
-            {/* <div className="flex items-center bg-white border border-gray-200 rounded-lg p-1"> */}
             <button
               type="button"
               onClick={() => setViewMode('board')}
@@ -397,7 +423,6 @@ function ManageTasks() {
               <List className="w-3.5 h-3.5" />
               List
             </button>
-            {/* </div> */}
 
             <button
               type="button"

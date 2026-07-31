@@ -7,26 +7,26 @@ const COLUMNS: { status: TaskStatus; label: string; color: string; headerBg: str
   {
     status: 'Pending',
     label: 'Pending',
-    color: 'text-yellow-400',
-    headerBg: 'bg-yellow-500/10 border-yellow-500/20',
+    color: 'text-amber-700',
+    headerBg: 'bg-amber-50 border-amber-200',
   },
   {
     status: 'In Progress',
     label: 'In Progress',
-    color: 'text-blue-400',
-    headerBg: 'bg-blue-500/10 border-blue-500/20',
+    color: 'text-blue-700',
+    headerBg: 'bg-blue-50 border-blue-200',
   },
   {
     status: 'In Review',
     label: 'In Review',
-    color: 'text-purple-400',
-    headerBg: 'bg-purple-500/10 border-purple-500/20',
+    color: 'text-purple-700',
+    headerBg: 'bg-purple-50 border-purple-200',
   },
   {
     status: 'Completed',
     label: 'Completed',
-    color: 'text-green-400',
-    headerBg: 'bg-green-500/10 border-green-500/20',
+    color: 'text-emerald-700',
+    headerBg: 'bg-emerald-50 border-emerald-200',
   },
 ];
 
@@ -43,25 +43,25 @@ function DroppableColumn({
 
   return (
     <div className="flex flex-col min-w-0">
-      <div className={`flex items-center gap-2 px-3 py-2 rounded-t-xl border ${column.headerBg}`}>
-        <h3 className={`text-sm font-semibold ${column.color}`}>{column.label}</h3>
-        <span className="text-xs font-medium text-slate-500 bg-white rounded-full px-2 py-0.5 tabular-nums">
+      <div className={`flex items-center justify-between px-3.5 py-2.5 rounded-t-xl border ${column.headerBg}`}>
+        <h3 className={`text-xs font-bold ${column.color}`}>{column.label}</h3>
+        <span className="text-[11px] font-bold text-slate-700 bg-white border border-slate-200 rounded-full px-2 py-0.5 tabular-nums shadow-sm">
           {tasks.length}
         </span>
       </div>
       <div
         ref={setNodeRef}
         className={`
-                    flex-1 rounded-b-xl p-2 space-y-2 min-h-[200px] transition-colors
-                    ${isOver ? 'bg-gray-200/50 ring-2 ring-inset ring-primary/30' : 'bg-white/50'}
-                `}
+          flex-1 rounded-b-xl p-2 space-y-2 min-h-[220px] transition-colors border-x border-b border-gray-200/80
+          ${isOver ? 'bg-primary/5 ring-2 ring-inset ring-primary/30' : 'bg-slate-50/50'}
+        `}
       >
         {tasks.map((task) => (
           <TaskCard key={task._id} task={task} onClick={() => onTaskClick?.(task._id)} />
         ))}
         {tasks.length === 0 && (
-          <div className="flex items-center justify-center h-24 text-xs text-slate-500">
-            No tasks
+          <div className="flex items-center justify-center h-24 text-xs font-medium text-slate-400 italic">
+            No {column.label.toLowerCase()} tasks
           </div>
         )}
       </div>
