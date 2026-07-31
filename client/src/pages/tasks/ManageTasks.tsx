@@ -329,6 +329,13 @@ function ManageTasks() {
               onSearchChange={setSearchTerm}
               searchPlaceholder="Search by title, description, or assignee..."
               filters={[
+                {
+                  id: 'statusFilter',
+                  label: 'Status',
+                  value: statusFilter,
+                  onChange: setStatusFilter,
+                  options: STATUS_OPTIONS.map((s) => ({ value: s.value, label: s.label })),
+                },
                 ...(!isProjectScoped
                   ? [
                       {
