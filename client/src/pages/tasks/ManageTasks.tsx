@@ -300,13 +300,22 @@ function ManageTasks() {
         isProjectScoped ? 'Tasks for this project' : 'View and manage all tasks in the system'
       }
       actions={
-        <button
-          type="button"
-          onClick={() => setShowCreateTask(true)}
-          className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
-        >
-          Create Task
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={() => setShowCreateTask(true)}
+            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+          >
+            Create Task
+          </button>
+          <button
+            type="button"
+            onClick={fetchTasks}
+            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+          >
+            Refresh
+          </button>
+        </>
       }
     >
       <div className="space-y-4 overflow-hidden">
@@ -335,15 +344,6 @@ function ManageTasks() {
                     ]
                   : []),
               ]}
-              actions={
-                <button
-                  type="button"
-                  onClick={fetchTasks}
-                  className="btn-secondary w-full md:w-auto text-sm py-2"
-                >
-                  Refresh
-                </button>
-              }
             />
           </div>
 
