@@ -159,18 +159,8 @@ export default function MemberPerformanceDashboard() {
         {/* Top Control Bar */}
         <div className="card flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate('/users')}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-gray-100 transition-colors"
-              title="Back to Users"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-                Member:
-              </span>
               <select
                 value={selectedUserId}
                 onChange={(e) => handleSelectMember(e.target.value)}
