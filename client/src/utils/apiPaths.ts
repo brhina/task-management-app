@@ -79,6 +79,7 @@ export const apiPaths = {
   RESOURCES: {
     ALLOCATION: '/api/resources/allocation',
     CONFLICTS: '/api/resources/conflicts',
+    UPDATE_CAPACITY: '/api/resources/capacity/:userId',
   },
   PROJECTS: {
     LIST: '/api/projects',
