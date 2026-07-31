@@ -129,8 +129,12 @@ const Teams = () => {
       subtitle="Organize members into teams with hierarchy and team-level reporting."
       actions={
         canManage ? (
-          <button type="button" onClick={() => setShowCreateTeam(true)} className="btn-primary">
-            <Plus className="w-4 h-4 inline mr-1" /> Create Team
+          <button
+            type="button"
+            onClick={() => setShowCreateTeam(true)}
+            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+          >
+            Create Team
           </button>
         ) : undefined
       }

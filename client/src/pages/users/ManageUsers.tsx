@@ -310,17 +310,24 @@ function ManageUsers() {
       title="Team Members"
       subtitle="Team member management and workload overview"
       actions={
-        <div className="flex gap-2">
-          <button type="button" className="btn-secondary" onClick={fetchData}>
+        <>
+          <button
+            type="button"
+            onClick={fetchData}
+            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+          >
             Refresh
           </button>
           {hasPermission('member:invite') && (
-            <button type="button" className="btn-primary" onClick={handleOpenInviteModal}>
-              <UserPlus className="w-4 h-4 mr-1.5" />
+            <button
+              type="button"
+              onClick={handleOpenInviteModal}
+              className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+            >
               Invite Member
             </button>
           )}
-        </div>
+        </>
       }
     >
       <div className="space-y-4">

@@ -86,20 +86,23 @@ function Dashboard() {
       title="Dashboard"
       subtitle={isAdmin ? "Here's an overview of your task management system" : "Here's an overview of your tasks and progress"}
       actions={
-        <div className="flex gap-2">
-          <Link to="/settings/workos" className="btn-secondary">
+        <>
+          <Link
+            to="/settings/workos"
+            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+          >
             {isAdmin ? 'WorkOS' : 'My WorkOS'}
           </Link>
           {isAdmin && (
             <button
               type="button"
               onClick={() => setShowCreateTask(true)}
-              className="btn-primary"
+              className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
             >
               Create Task
             </button>
           )}
-        </div>
+        </>
       }
     >
       <div className="space-y-4">

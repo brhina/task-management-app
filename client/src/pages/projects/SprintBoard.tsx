@@ -92,9 +92,9 @@ export default function SprintBoard() {
         sprint ? (
           <Link
             to={`/projects/${sprint.projectId}/sprints`}
-            className="btn-secondary"
+            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
           >
-            Back to sprints
+            Back to Sprints
           </Link>
         ) : null
       }

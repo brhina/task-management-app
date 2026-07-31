@@ -54,8 +54,12 @@ export default function CustomFields() {
       title="Custom Fields"
       subtitle="Org-level task field definitions"
       actions={
-        <button type="button" onClick={() => setShowCreate(true)} className="btn-primary">
-          <Plus className="w-4 h-4 inline mr-1" /> Add Field
+        <button
+          type="button"
+          onClick={() => setShowCreate(true)}
+          className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+        >
+          Add Field
         </button>
       }
     >

@@ -121,14 +121,20 @@ function GoalDetails() {
         </div>
       }
       actions={
-        <div className="flex gap-2">
-          <Link to={`/goals/${id}/edit`} className="btn-secondary">
+        <>
+          <Link
+            to={`/goals/${id}/edit`}
+            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+          >
             Edit Goal
           </Link>
-          <Link to="/goals" className="btn-secondary">
-            ← Back
+          <Link
+            to="/goals"
+            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+          >
+            Back to Goals
           </Link>
-        </div>
+        </>
       }
     >
       {error && <div className="alert-error mb-4">{error}</div>}

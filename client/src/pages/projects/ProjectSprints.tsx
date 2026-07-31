@@ -104,32 +104,36 @@ export default function ProjectSprints() {
       title="Sprints & Milestones"
       subtitle="Plan iterations and track milestones"
       actions={
-        <div className="flex gap-2">
+        <>
           <button
             type="button"
-            className="btn-primary"
+            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
             onClick={() => setShowCreateSprint(true)}
             disabled={!hasPermission('project:update')}
           >
-            <Plus className="w-4 h-4 inline mr-1" />
-            New sprint
+            New Sprint
           </button>
           <button
             type="button"
-            className="btn-primary"
+            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
             onClick={() => setShowCreateMilestone(true)}
             disabled={!hasPermission('project:update')}
           >
-            <Plus className="w-4 h-4 inline mr-1" />
-            New milestone
+            New Milestone
           </button>
-          <Link to={`/projects/${id}/gantt`} className="btn-secondary">
+          <Link
+            to={`/projects/${id}/gantt`}
+            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+          >
             Gantt
           </Link>
-          <Link to="/projects" className="btn-secondary">
-            Back
+          <Link
+            to="/projects"
+            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+          >
+            Back to Projects
           </Link>
-        </div>
+        </>
       }
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

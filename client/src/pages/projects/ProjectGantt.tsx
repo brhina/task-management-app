@@ -141,14 +141,20 @@ export default function ProjectGantt() {
       title={`Gantt — ${projectName}`}
       subtitle="Drag bar ends to adjust start/due dates"
       actions={
-        <div className="flex gap-2">
-          <Link to={`/projects/${id}/sprints`} className="btn-secondary">
+        <>
+          <Link
+            to={`/projects/${id}/sprints`}
+            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+          >
             Sprints
           </Link>
-          <Link to="/projects" className="btn-secondary">
-            Back
+          <Link
+            to="/projects"
+            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+          >
+            Back to Projects
           </Link>
-        </div>
+        </>
       }
     >
       <div className="card overflow-x-auto">

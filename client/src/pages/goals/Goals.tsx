@@ -75,18 +75,22 @@ function Goals() {
       title="Goals (OKRs)"
       subtitle="Align projects and tasks to measurable outcomes"
       actions={
-        <div className="flex gap-2">
+        <>
           <button
             type="button"
             onClick={() => setShowCreateGoal(true)}
-            className="btn-primary"
+            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
           >
             Create Goal
           </button>
-          <button type="button" className="btn-secondary" onClick={fetchGoals}>
+          <button
+            type="button"
+            onClick={fetchGoals}
+            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+          >
             Refresh
           </button>
-        </div>
+        </>
       }
     >
       <div className="space-y-4">

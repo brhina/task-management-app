@@ -330,29 +330,29 @@ function ViewTaskDetails() {
         </>
       }
       actions={
-        <div className="flex gap-2 flex-wrap">
+        <>
           {hasPermission('task:update') && (
             <>
               <button
                 type="button"
                 onClick={handleSaveAsTemplate}
                 disabled={savingTemplate}
-                className="btn-secondary"
+                className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
               >
                 {savingTemplate ? 'Saving…' : 'Save as template'}
               </button>
-              <Link to={`/tasks/${id}/edit`} className="btn-secondary">
+              <Link to={`/tasks/${id}/edit`} className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors">
                 Edit
               </Link>
             </>
           )}
           <Link
-            to={isAdminRoute ? '/tasks' : '/tasks'}
-            className="btn-secondary"
+            to="/tasks"
+            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
           >
-            Back
+            Back to Tasks
           </Link>
-        </div>
+        </>
       }
     >
       {error && <div className="alert-error mb-4">{error}</div>}

@@ -41,7 +41,11 @@ export default function Resources() {
       title="Resources"
       subtitle="Capacity, workload, and conflict detection"
       actions={
-        <button type="button" className="btn-secondary" onClick={() => load()}>
+        <button
+          type="button"
+          onClick={() => load()}
+          className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+        >
           Refresh
         </button>
       }

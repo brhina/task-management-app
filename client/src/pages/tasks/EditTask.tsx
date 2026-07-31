@@ -279,11 +279,12 @@ function EditTask() {
           : 'Update the task details below'
       }
       actions={
-        <div className="flex gap-2">
-          <Link to={`/tasks/${id}`} className="btn-secondary">
-            Back to Task
-          </Link>
-        </div>
+        <Link
+          to={`/tasks/${id}`}
+          className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+        >
+          Back to Task
+        </Link>
       }
     >
       {confirmDialog && (

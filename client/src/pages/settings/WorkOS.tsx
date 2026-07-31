@@ -750,11 +750,11 @@ function WorkOS() {
       title={isAdmin ? 'WorkOS' : 'My WorkOS'}
       subtitle={isAdmin ? 'Overview of priorities, risks, workload, and next-best-actions' : 'Your personal task overview and insights'}
       actions={
-        <div className="flex flex-wrap gap-2">
+        <>
           {isAdmin ? (
             <>
               <button
-                className="btn-secondary disabled:opacity-50"
+                className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors disabled:opacity-50"
                 type="button"
                 onClick={handleRunDaily}
                 disabled={runningDaily || !hasPermission('automation:manage')}
@@ -762,7 +762,7 @@ function WorkOS() {
                 {runningDaily ? 'Running…' : 'Run summary'}
               </button>
               <button
-                className="btn-primary disabled:opacity-50"
+                className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors disabled:opacity-50"
                 type="button"
                 onClick={() => downloadJson('workos-summary.json', data)}
                 disabled={!hasPermission('automation:manage')}
@@ -772,15 +772,21 @@ function WorkOS() {
             </>
           ) : (
             <>
-              <button className="btn-secondary" onClick={fetchUserData}>
+              <button
+                className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+                onClick={fetchUserData}
+              >
                 Refresh
               </button>
-              <Link to="/tasks" className="btn-primary">
+              <Link
+                to="/tasks"
+                className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+              >
                 My Tasks
               </Link>
             </>
           )}
-        </div>
+        </>
       }
     >
       <div className="space-y-4">

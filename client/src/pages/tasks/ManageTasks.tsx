@@ -299,15 +299,13 @@ function ManageTasks() {
         isProjectScoped ? 'Tasks for this project' : 'View and manage all tasks in the system'
       }
       actions={
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setShowCreateTask(true)}
-            className="btn-primary"
-          >
-            Create Task
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setShowCreateTask(true)}
+          className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+        >
+          Create Task
+        </button>
       }
     >
       <div className="space-y-4 overflow-hidden">

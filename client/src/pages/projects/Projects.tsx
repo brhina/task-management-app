@@ -68,18 +68,22 @@ function Projects() {
       title="Projects"
       subtitle="Organize work into outcomes and timelines"
       actions={
-        <div className="flex gap-2">
+        <>
           <button
             type="button"
             onClick={() => setShowCreateProject(true)}
-            className="btn-primary"
+            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
           >
             Create Project
           </button>
-          <button type="button" className="btn-secondary" onClick={fetchProjects}>
+          <button
+            type="button"
+            onClick={fetchProjects}
+            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+          >
             Refresh
           </button>
-        </div>
+        </>
       }
     >
       <div className="space-y-4">
