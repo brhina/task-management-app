@@ -45,7 +45,6 @@ function SortableRow({
     transition,
   };
 
-  const [expanded, setExpanded] = useState(false);
   const [newItem, setNewItem] = useState('');
   const [updating, setUpdating] = useState(false);
 
@@ -125,82 +124,67 @@ function SortableRow({
             {completedCount}/{totalCount}
           </span>
         )}
-        <button
-          type="button"
-          onClick={() => setExpanded(!expanded)}
-          className="text-slate-400 hover:text-slate-600 transition-colors"
-        >
-          <svg className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+        {totalCount > 0 && (
+          <div className="w-16 h-1 rounded-full bg-gray-100 overflow-hidden">
+            <div
+              className="h-full bg-emerald-500 transition-all duration-300"
+              style={{ width: `${Math.round((completedCount / totalCount) * 100)}%` }}
+            />
+          </div>
+        )}
       </div>
 
-      {expanded && (
-        <div className="px-2 pb-2 border-t border-gray-100">
-          {totalCount > 0 && (
-            <div className="mt-2 mb-1">
-              <div className="h-1 rounded-full bg-gray-100 overflow-hidden">
-                <div
-                  className="h-full bg-emerald-500 transition-all duration-300"
-                  style={{ width: `${Math.round((completedCount / totalCount) * 100)}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-0.5 mt-1">
-            {task.todoCheckList?.map((todo, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-2 group px-1.5 py-1 rounded hover:bg-gray-50 transition-colors"
-              >
-                <input
-                  type="checkbox"
-                  checked={todo.isCompleted}
-                  onChange={(e) => handleToggleItem(index, e.target.checked)}
-                  disabled={updating}
-                  className="h-3.5 w-3.5 shrink-0 text-primary focus:ring-primary border-gray-300 rounded cursor-pointer disabled:opacity-50"
-                />
-                <span
-                  className={`flex-1 text-xs ${todo.isCompleted ? 'line-through text-slate-400' : 'text-slate-600'}`}
-                >
-                  {todo.text}
-                </span>
-                {isAdmin && (
-                  <button
-                    onClick={() => handleDeleteItem(index)}
-                    disabled={updating}
-                    className="opacity-0 group-hover:opacity-100 p-0.5 text-rose-400 hover:text-rose-500 transition-opacity disabled:opacity-50"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {isAdmin && (
-            <form onSubmit={handleAddItem} className="mt-2 flex gap-1.5">
+      <div className="px-2 pb-2 border-t border-gray-100">
+        <div className="space-y-0.5 mt-1.5">
+          {task.todoCheckList?.map((todo, index) => (
+            <div
+              key={index}
+              className="flex items-center gap-2 group px-1.5 py-1 rounded hover:bg-gray-50 transition-colors"
+            >
               <input
-                type="text"
-                value={newItem}
-                onChange={(e) => setNewItem(e.target.value)}
-                placeholder="Add item..."
-                className="flex-1 rounded border border-gray-200 px-2 py-1 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-primary/30"
-                autoFocus
+                type="checkbox"
+                checked={todo.isCompleted}
+                onChange={(e) => handleToggleItem(index, e.target.checked)}
+                disabled={updating}
+                className="h-3.5 w-3.5 shrink-0 text-primary focus:ring-primary border-gray-300 rounded cursor-pointer disabled:opacity-50"
               />
-              <button
-                type="submit"
-                disabled={!newItem.trim() || updating}
-                className="px-2 py-1 text-xs text-primary hover:text-primary-hover disabled:opacity-50"
+              <span
+                className={`flex-1 text-xs ${todo.isCompleted ? 'line-through text-slate-400' : 'text-slate-600'}`}
               >
-                <Check className="w-3.5 h-3.5" />
-              </button>
-            </form>
-          )}
+                {todo.text}
+              </span>
+              {isAdmin && (
+                <button
+                  onClick={() => handleDeleteItem(index)}
+                  disabled={updating}
+                  className="opacity-0 group-hover:opacity-100 p-0.5 text-rose-400 hover:text-rose-500 transition-opacity disabled:opacity-50"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          ))}
         </div>
-      )}
+
+        {isAdmin && (
+          <form onSubmit={handleAddItem} className="mt-2 flex gap-1.5">
+            <input
+              type="text"
+              value={newItem}
+              onChange={(e) => setNewItem(e.target.value)}
+              placeholder="Add checklist item..."
+              className="flex-1 rounded border border-gray-200 px-2 py-1 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-primary/30"
+            />
+            <button
+              type="submit"
+              disabled={!newItem.trim() || updating}
+              className="px-2 py-1 text-xs text-primary hover:text-primary-hover disabled:opacity-50"
+            >
+              <Check className="w-3.5 h-3.5" />
+            </button>
+          </form>
+        )}
+      </div>
     </li>
   );
 }
@@ -343,6 +327,6 @@ export default function TaskSubtasks({
           </button>
         </form>
       )}
-    </div>
+      </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Breadcrumbs from './Breadcrumbs';
 
 interface PageShellProps {
   title: string;
@@ -13,6 +14,7 @@ function PageShell({ title, subtitle, actions, topSlot, children }: PageShellPro
     <div className="space-y-4">
       {topSlot}
       <div className="flex flex-col gap-2">
+        <Breadcrumbs />
         <div className="flex flex-row items-center justify-between gap-3">
           <h1 className="text-xl md:text-2xl font-bold text-slate-800 tracking-tight min-w-0 flex-1">
             {title}

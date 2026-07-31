@@ -50,6 +50,7 @@ function ViewTaskDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updating, setUpdating] = useState(false);
+  const [newChecklistItem, setNewChecklistItem] = useState('');
   const [dependencies, setDependencies] = useState<any[]>([]);
   const [tasksForDeps, setTasksForDeps] = useState<Task[]>([]);
   const [prereqToAdd, setPrereqToAdd] = useState('');
@@ -84,7 +85,7 @@ function ViewTaskDetails() {
 
   const fetchTasksForDependencyPicker = useCallback(async () => {
     try {
-      const res = await api.get(apiPaths.TASKS.GET_ALL_TASKS);
+      const res = await api.get(apiPaths.TASKS.GET_ALL_TASKS, { params: { topLevel: 'true' } });
       setTasksForDeps(res.data?.data?.tasks || []);
     } catch (err) {
       console.error('Error fetching tasks for dependency picker:', err);
@@ -193,6 +194,41 @@ function ViewTaskDetails() {
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to update progress');
     }
+  };
+
+  const handleChecklistUpdate = async (todoCheckList: TodoItem[]) => {
+    try {
+      setUpdating(true);
+      setError('');
+      await api.put(apiPaths.TASKS.UPDATE_TASK_CHECKLIST.replace(':id', id || ''), {
+        todoCheckList,
+      });
+      await fetchTaskDetails();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to update checklist');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleTodoToggle = async (todoIndex: number, isCompleted: boolean) => {
+    if (!task?.todoCheckList) return;
+    const updated = [...task.todoCheckList];
+    updated[todoIndex] = { ...updated[todoIndex], isCompleted };
+    await handleChecklistUpdate(updated);
+  };
+
+  const handleAddChecklistItem = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!newChecklistItem.trim() || !task) return;
+    const newItem: TodoItem = { text: newChecklistItem.trim(), isCompleted: false };
+    setNewChecklistItem('');
+    await handleChecklistUpdate([...(task.todoCheckList || []), newItem]);
+  };
+
+  const handleDeleteChecklistItem = async (index: number) => {
+    if (!task?.todoCheckList) return;
+    await handleChecklistUpdate(task.todoCheckList.filter((_, i) => i !== index));
   };
 
   const handleAddPrereq = async () => {
@@ -335,12 +371,85 @@ function ViewTaskDetails() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left Column - Main Content */}
         <div className="lg:col-span-2 space-y-4">
-          <TaskSubtasks
-            parentId={task._id}
-            isAdmin={hasPermission('task:update')}
-            detailBasePath="/tasks"
-            onProgressChange={fetchTaskDetails}
-          />
+          {!task.parentTaskId ? (
+            <TaskSubtasks
+              parentId={task._id}
+              isAdmin={hasPermission('task:update')}
+              detailBasePath="/tasks"
+              onProgressChange={fetchTaskDetails}
+            />
+          ) : (
+            <div className="card">
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                  Checklist
+                </div>
+                {task.todoCheckList && task.todoCheckList.length > 0 && (
+                  <span className="text-xs text-slate-500 tabular-nums">
+                    {task.todoCheckList.filter((t) => t.isCompleted).length}/{task.todoCheckList.length}
+                  </span>
+                )}
+              </div>
+
+              {task.todoCheckList && task.todoCheckList.length > 0 && (
+                <div className="mb-3">
+                  <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+                      style={{ width: `${Math.round((task.todoCheckList.filter((t) => t.isCompleted).length / task.todoCheckList.length) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                {task.todoCheckList?.map((todo, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2.5 group px-2 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={todo.isCompleted}
+                      onChange={(e) => handleTodoToggle(index, e.target.checked)}
+                      disabled={updating}
+                      className="h-4 w-4 shrink-0 text-primary focus:ring-primary border-gray-300 rounded cursor-pointer disabled:opacity-50"
+                    />
+                    <span
+                      className={`flex-1 text-sm ${todo.isCompleted ? 'line-through text-slate-400' : 'text-slate-600'}`}
+                    >
+                      {todo.text}
+                    </span>
+                    <button
+                      onClick={() => handleDeleteChecklistItem(index)}
+                      disabled={updating || !hasPermission('task:update')}
+                      className="opacity-0 group-hover:opacity-100 p-0.5 text-rose-400 hover:text-rose-500 transition-opacity disabled:opacity-50"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <form onSubmit={handleAddChecklistItem} className="mt-3 flex gap-2">
+                <input
+                  type="text"
+                  value={newChecklistItem}
+                  onChange={(e) => setNewChecklistItem(e.target.value)}
+                  placeholder="New item..."
+                  className="input-field flex-1 text-sm"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  disabled={!newChecklistItem.trim() || updating || !hasPermission('task:update')}
+                  className="btn-primary px-3 py-1.5 text-sm disabled:opacity-50"
+                >
+                  Add
+                </button>
+              </form>
+            </div>
+          )}
 
           <TaskAttachments
             task={task}

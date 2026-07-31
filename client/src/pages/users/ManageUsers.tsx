@@ -67,7 +67,7 @@ function ManageUsers() {
       setLoading(true);
       const [usersRes, tasksRes, projectsRes] = await Promise.all([
         api.get(apiPaths.USERS.GET_ALL_USERS),
-        api.get(apiPaths.TASKS.GET_ALL_TASKS),
+        api.get(apiPaths.TASKS.GET_ALL_TASKS, { params: { topLevel: 'true' } }),
         api.get(apiPaths.PROJECTS.LIST),
       ]);
       setUsers(usersRes.data?.users || usersRes.data);

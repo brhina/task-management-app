@@ -924,17 +924,18 @@ const getDashboardTasks = async (
     }
 
     const orgId = req.orgId;
-    const allTasks = await Task.countDocuments({ orgId });
+    const topLevelFilter = { orgId, parentTaskId: { $exists: false } };
+    const allTasks = await Task.countDocuments(topLevelFilter);
     const pendingTasks = await Task.countDocuments({
-      orgId,
+      ...topLevelFilter,
       status: "Pending",
     });
     const completedTasks = await Task.countDocuments({
-      orgId,
+      ...topLevelFilter,
       status: "Completed",
     });
     const overdueTasks = await Task.countDocuments({
-      orgId,
+      ...topLevelFilter,
       status: { $ne: "Completed" },
       dueDate: { $lt: new Date() },
     });
@@ -942,7 +943,7 @@ const getDashboardTasks = async (
     const tasksStatus = ["Pending", "In Progress", "In Review", "Completed"];
     const taskDistributionRaw = await Task.aggregate([
       {
-        $match: { orgId },
+        $match: topLevelFilter,
       },
       {
         $group: {
@@ -969,7 +970,7 @@ const getDashboardTasks = async (
     const taskPriority = ["Low", "Medium", "High"];
     const taskPriorityRaw = await Task.aggregate([
       {
-        $match: { orgId },
+        $match: topLevelFilter,
       },
       {
         $group: {
@@ -990,12 +991,12 @@ const getDashboardTasks = async (
       {},
     );
 
-    const recentTasks = await Task.find({ orgId })
+    const recentTasks = await Task.find(topLevelFilter)
       .sort({ createdAt: -1 })
       .limit(10)
       .select("title status priority dueDate createdAt");
 
-    const recentCompletedTasks = await Task.find({ orgId, status: "Completed" })
+    const recentCompletedTasks = await Task.find({ ...topLevelFilter, status: "Completed" })
       .sort({ createdAt: -1 })
       .limit(10)
       .select("title status priority dueDate assignedTo createdAt");
@@ -1030,23 +1031,18 @@ const getUserDashboardTasks = async (
     }
 
     const orgId = req.orgId;
-    const allTasks = await Task.countDocuments({
-      orgId,
-      assignedTo: req.user._id,
-    });
+    const topLevelFilter = { orgId, assignedTo: req.user._id, parentTaskId: { $exists: false } };
+    const allTasks = await Task.countDocuments(topLevelFilter);
     const pendingTasks = await Task.countDocuments({
-      orgId,
-      assignedTo: req.user._id,
+      ...topLevelFilter,
       status: "Pending",
     });
     const completedTasks = await Task.countDocuments({
-      orgId,
-      assignedTo: req.user._id,
+      ...topLevelFilter,
       status: "Completed",
     });
     const overdueTasks = await Task.countDocuments({
-      orgId,
-      assignedTo: req.user._id,
+      ...topLevelFilter,
       status: { $ne: "Completed" },
       dueDate: { $lt: new Date() },
     });
@@ -1054,7 +1050,7 @@ const getUserDashboardTasks = async (
     const tasksStatus = ["Pending", "In Progress", "In Review", "Completed"];
     const taskDistributionRaw = await Task.aggregate([
       {
-        $match: { orgId, assignedTo: req.user._id },
+        $match: topLevelFilter,
       },
       {
         $group: { _id: "$status", count: { $sum: 1 } },
@@ -1078,7 +1074,7 @@ const getUserDashboardTasks = async (
     const taskPriority = ["Low", "Medium", "High"];
     const taskPriorityRaw = await Task.aggregate([
       {
-        $match: { orgId, assignedTo: req.user._id },
+        $match: topLevelFilter,
       },
       {
         $group: { _id: "$priority", count: { $sum: 1 } },
@@ -1096,14 +1092,13 @@ const getUserDashboardTasks = async (
       {},
     );
 
-    const recentTasks = await Task.find({ orgId, assignedTo: req.user._id })
+    const recentTasks = await Task.find(topLevelFilter)
       .sort({ createdAt: -1 })
       .limit(10)
       .select("title status priority dueDate createdAt");
 
     const recentCompletedTasks = await Task.find({
-      orgId,
-      assignedTo: req.user._id,
+      ...topLevelFilter,
       status: "Completed",
     })
       .sort({ createdAt: -1 })

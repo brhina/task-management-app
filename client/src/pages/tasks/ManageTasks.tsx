@@ -146,6 +146,7 @@ function ManageTasks() {
     try {
       setLoading(true);
       const params: Record<string, string> = {};
+      params.topLevel = 'true';
       if (statusFilter) params.status = statusFilter;
       if (projectFilter) params.projectId = projectFilter;
       const response = await api.get(apiPaths.TASKS.GET_ALL_TASKS, { params });
