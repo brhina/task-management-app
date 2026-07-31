@@ -10,13 +10,42 @@ export const listNotifications = async (
 ): Promise<void> => {
   try {
     const unreadOnly = req.query.unread === "true";
+    const typeFilter = req.query.type as string | undefined;
+    const searchQuery = req.query.search as string | undefined;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+
     const filter: Record<string, unknown> = { userId: req.user._id };
     if (req.orgId) filter.orgId = req.orgId;
     if (unreadOnly) filter.read = false;
 
+    if (typeFilter && typeFilter !== "all") {
+      if (typeFilter === "tasks") {
+        filter.type = { $in: ["task_assigned", "task_status_changed"] };
+      } else if (typeFilter === "mentions") {
+        filter.type = "mention";
+      } else if (typeFilter === "comments") {
+        filter.type = "comment_added";
+      } else if (typeFilter === "reminders") {
+        filter.type = "due_date_approaching";
+      } else {
+        filter.type = typeFilter;
+      }
+    }
+
+    if (searchQuery && searchQuery.trim() !== "") {
+      const regex = new RegExp(searchQuery.trim(), "i");
+      filter.$or = [{ title: regex }, { message: regex }];
+    }
+
+    const total = await Notification.countDocuments(filter);
+    const totalPages = Math.ceil(total / limit) || 1;
+    const skip = (page - 1) * limit;
+
     const notifications = await Notification.find(filter)
       .sort({ createdAt: -1 })
-      .limit(50);
+      .skip(skip)
+      .limit(limit);
 
     const unreadCount = await Notification.countDocuments({
       userId: req.user._id,
@@ -26,7 +55,16 @@ export const listNotifications = async (
 
     res.status(200).json({
       message: "Notifications fetched",
-      data: { notifications, unreadCount },
+      data: {
+        notifications,
+        unreadCount,
+        pagination: {
+          total,
+          page,
+          totalPages,
+          limit,
+        },
+      },
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -95,6 +133,45 @@ export const markAllRead = async (
   }
 };
 
+export const deleteNotification = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const n = await Notification.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user._id,
+    });
+    if (!n) {
+      res.status(404).json({ message: "Notification not found" });
+      return;
+    }
+    res.status(200).json({ message: "Notification deleted", data: { id: req.params.id } });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const clearNotifications = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const readOnly = req.query.readOnly !== "false";
+    const filter: Record<string, unknown> = { userId: req.user._id };
+    if (req.orgId) filter.orgId = req.orgId;
+    if (readOnly) filter.read = true;
+
+    const result = await Notification.deleteMany(filter);
+    res.status(200).json({
+      message: readOnly ? "Read notifications cleared" : "All notifications cleared",
+      data: { deletedCount: result.deletedCount },
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const getPreferences = async (
   req: AuthRequest,
   res: Response,
@@ -127,6 +204,8 @@ export const updatePreferences = async (
       "comments",
       "dueDateReminder",
       "digestFrequency",
+      "soundEnabled",
+      "doNotDisturb",
     ] as const;
 
     for (const f of fields) {

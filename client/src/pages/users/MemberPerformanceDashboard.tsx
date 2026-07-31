@@ -1,19 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
-  BarChart3,
+  UserCheck,
   CheckCircle2,
   AlertTriangle,
   Clock,
-  Users,
-  Activity,
   ArrowLeft,
   RefreshCw,
   Download,
-  UsersRound,
-  Crown,
+  Users,
   TrendingUp,
   Layers,
+  Folder,
+  Briefcase,
+  Shield,
 } from 'lucide-react';
 import { apiPaths } from '../../utils/apiPaths';
 import api from '../../utils/axios';
@@ -21,39 +21,19 @@ import PageShell from '../../components/common/PageShell';
 import KpiStatCard from '../../components/analytics/KpiStatCard';
 import StatusDistributionChart from '../../components/analytics/StatusDistributionChart';
 import PriorityBreakdownChart from '../../components/analytics/PriorityBreakdownChart';
+import { UserContext } from '../../context/UserContext';
 
-interface MemberPerformance {
-  member: {
+interface MemberPerformanceData {
+  user: {
     _id: string;
     name: string;
     email: string;
     profileImageUrl?: string;
-  };
-  totalTasks: number;
-  completedTasks: number;
-  inProgressTasks: number;
-  pendingTasks: number;
-  overdueTasks: number;
-  completionRate: number;
-}
-
-interface TeamDashboardData {
-  team: {
-    _id: string;
-    name: string;
-    description?: string;
-    lead?: {
+    role: string;
+    teams: Array<{
       _id: string;
       name: string;
-      email: string;
-      profileImageUrl?: string;
-    };
-    memberCount: number;
-    members?: Array<{
-      _id: string;
-      name: string;
-      email: string;
-      profileImageUrl?: string;
+      description?: string;
     }>;
   };
   statistics: {
@@ -64,71 +44,79 @@ interface TeamDashboardData {
     overdueTasks: number;
     completedLast30Days: number;
     completionRate: number;
+    workloadStatus: string;
     byStatus: Record<string, number>;
     byPriority: Record<string, number>;
+    byProject: Array<{
+      _id: string;
+      projectName: string;
+      total: number;
+      completed: number;
+    }>;
   };
-  memberPerformance: MemberPerformance[];
   recentTasks: Array<{
     _id: string;
     title: string;
     status: string;
     priority: string;
     dueDate?: string;
-    assignedTo?: {
+    projectId?: {
       _id: string;
       name: string;
-      email?: string;
-      profileImageUrl?: string;
     };
     updatedAt: string;
   }>;
 }
 
-export default function TeamPerformanceDashboard() {
+export default function MemberPerformanceDashboard() {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
+  const { user: currentUser } = useContext(UserContext);
 
-  const [teams, setTeams] = useState<any[]>([]);
-  const [selectedTeamId, setSelectedTeamId] = useState<string>(id || '');
-  const [data, setData] = useState<TeamDashboardData | null>(null);
+  const [members, setMembers] = useState<any[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string>(id || currentUser?._id || '');
+  const [data, setData] = useState<MemberPerformanceData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [teamsLoading, setTeamsLoading] = useState<boolean>(true);
+  const [membersLoading, setMembersLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
 
-  // Fetch all teams for selector
-  const fetchTeams = useCallback(async () => {
+  // Fetch list of members for user selector
+  const fetchMembers = useCallback(async () => {
     try {
-      setTeamsLoading(true);
-      const res = await api.get(apiPaths.TEAMS.LIST);
-      const teamList = res.data.data || [];
-      setTeams(teamList);
+      setMembersLoading(true);
+      const res = await api.get(apiPaths.USERS.GET_ALL_USERS);
+      const userList = res.data.users || [];
+      setMembers(userList);
 
-      if (!id && teamList.length > 0) {
-        setSelectedTeamId(teamList[0]._id);
-      } else if (id) {
-        setSelectedTeamId(id);
+      if (!id) {
+        const defaultUser = userList.find((u: any) => u._id === currentUser?._id) || userList[0];
+        if (defaultUser) {
+          setSelectedUserId(defaultUser._id);
+        }
+      } else {
+        setSelectedUserId(id);
       }
     } catch (err: any) {
-      console.error('Failed to fetch teams list:', err);
+      console.error('Failed to fetch members list:', err);
     } finally {
-      setTeamsLoading(false);
+      setMembersLoading(false);
     }
-  }, [id]);
+  }, [id, currentUser?._id]);
 
   useEffect(() => {
-    fetchTeams();
-  }, [fetchTeams]);
+    fetchMembers();
+  }, [fetchMembers]);
 
-  // Fetch performance data
-  const fetchDashboardData = useCallback(async (teamId: string) => {
-    if (!teamId) return;
+  // Fetch single member performance data
+  const fetchPerformanceData = useCallback(async (userId: string) => {
+    if (!userId) return;
     try {
       setLoading(true);
       setError('');
-      const res = await api.get(apiPaths.TEAMS.DASHBOARD.replace(':id', teamId));
+      const res = await api.get(apiPaths.USERS.PERFORMANCE.replace(':id', userId));
       setData(res.data.data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load team dashboard statistics.');
+      setError(err.response?.data?.message || 'Failed to load member performance statistics.');
       setData(null);
     } finally {
       setLoading(false);
@@ -136,14 +124,14 @@ export default function TeamPerformanceDashboard() {
   }, []);
 
   useEffect(() => {
-    if (selectedTeamId) {
-      fetchDashboardData(selectedTeamId);
+    if (selectedUserId) {
+      fetchPerformanceData(selectedUserId);
     }
-  }, [selectedTeamId, fetchDashboardData]);
+  }, [selectedUserId, fetchPerformanceData]);
 
-  const handleSelectTeam = (newTeamId: string) => {
-    setSelectedTeamId(newTeamId);
-    navigate(`/teams/${newTeamId}/performance`);
+  const handleSelectMember = (newUserId: string) => {
+    setSelectedUserId(newUserId);
+    navigate(`/users/${newUserId}/performance`);
   };
 
   const handleExportData = () => {
@@ -155,7 +143,7 @@ export default function TeamPerformanceDashboard() {
     downloadAnchor.setAttribute('href', jsonString);
     downloadAnchor.setAttribute(
       'download',
-      `${data.team.name.toLowerCase().replace(/\s+/g, '_')}_performance_report.json`
+      `${data.user.name.toLowerCase().replace(/\s+/g, '_')}_performance_report.json`
     );
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
@@ -164,37 +152,37 @@ export default function TeamPerformanceDashboard() {
 
   return (
     <PageShell
-      title="Team Performance Dashboard"
-      subtitle="Real-time analytics, task progress distribution, workload capacity, and member performance metrics"
+      title="Member Performance Analytics"
+      subtitle="Individual productivity metrics, task completion rates, project workloads, and activity insights"
     >
       <div className="space-y-4 pb-8">
-        {/* Top Control Bar matching app style */}
+        {/* Top Control Bar */}
         <div className="card flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate('/users?tab=teams')}
+              onClick={() => navigate('/users')}
               className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-gray-100 transition-colors"
-              title="Back to Teams"
+              title="Back to Users"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-                Team:
+                Member:
               </span>
               <select
-                value={selectedTeamId}
-                onChange={(e) => handleSelectTeam(e.target.value)}
-                disabled={teamsLoading || teams.length === 0}
-                className="input-field text-sm font-semibold min-w-[200px]"
+                value={selectedUserId}
+                onChange={(e) => handleSelectMember(e.target.value)}
+                disabled={membersLoading || members.length === 0}
+                className="input-field text-sm font-semibold min-w-[220px]"
               >
-                {teams.length === 0 ? (
-                  <option value="">No teams available</option>
+                {members.length === 0 ? (
+                  <option value="">No members available</option>
                 ) : (
-                  teams.map((t) => (
-                    <option key={t._id} value={t._id}>
-                      {t.name} ({t.memberIds?.length || 0} members)
+                  members.map((m) => (
+                    <option key={m._id} value={m._id}>
+                      {m.name} ({m.email})
                     </option>
                   ))
                 )}
@@ -204,8 +192,8 @@ export default function TeamPerformanceDashboard() {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => fetchDashboardData(selectedTeamId)}
-              disabled={loading || !selectedTeamId}
+              onClick={() => fetchPerformanceData(selectedUserId)}
+              disabled={loading || !selectedUserId}
               className="btn-secondary text-xs flex items-center gap-1.5"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -231,52 +219,77 @@ export default function TeamPerformanceDashboard() {
           <div className="alert-error">{error}</div>
         ) : data ? (
           <>
-            {/* Team Info Banner */}
+            {/* Member Profile Header Banner */}
             <div className="card flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wide mb-1">
-                  <UsersRound className="w-4 h-4" />
-                  Team Overview
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary font-bold text-lg flex items-center justify-center border border-primary/20 shrink-0">
+                  {data.user.name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2)}
                 </div>
-                <h1 className="text-xl font-bold text-slate-800">{data.team.name}</h1>
-                {data.team.description && (
-                  <p className="text-xs text-slate-500 mt-0.5">{data.team.description}</p>
-                )}
+
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl font-bold text-slate-800">{data.user.name}</h1>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                      <Shield className="w-3 h-3 text-primary" />
+                      {data.user.role}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">{data.user.email}</p>
+                </div>
               </div>
 
+              {/* Badges strip */}
               <div className="flex flex-wrap items-center gap-3">
-                {data.team.lead && (
-                  <div className="flex items-center gap-2 bg-amber-50 border border-amber-200/60 px-3 py-1.5 rounded-lg text-xs">
-                    <Crown className="w-3.5 h-3.5 text-amber-500" />
-                    <div>
-                      <span className="text-[10px] text-amber-600 uppercase font-semibold block">
-                        Lead
-                      </span>
-                      <span className="font-semibold text-slate-800">{data.team.lead.name}</span>
-                    </div>
-                  </div>
-                )}
+                {/* Workload Status */}
                 <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs">
-                  <Users className="w-3.5 h-3.5 text-slate-500" />
+                  <Briefcase className="w-3.5 h-3.5 text-slate-500" />
                   <div>
                     <span className="text-[10px] text-slate-500 uppercase font-semibold block">
-                      Members
+                      Workload Status
+                    </span>
+                    <span
+                      className={`font-semibold text-xs ${
+                        data.statistics.workloadStatus === 'Heavy'
+                          ? 'text-rose-600'
+                          : data.statistics.workloadStatus === 'Balanced'
+                          ? 'text-emerald-600'
+                          : 'text-slate-700'
+                      }`}
+                    >
+                      {data.statistics.workloadStatus}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Teams List */}
+                <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs">
+                  <Users className="w-3.5 h-3.5 text-indigo-500" />
+                  <div>
+                    <span className="text-[10px] text-slate-500 uppercase font-semibold block">
+                      Assigned Teams
                     </span>
                     <span className="font-semibold text-slate-800">
-                      {data.team.memberCount} Members
+                      {(data.user?.teams || []).length === 0
+                        ? 'None'
+                        : (data.user?.teams || []).map((t) => t.name).join(', ')}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* KPI Stat Cards Strip using shared component */}
+            {/* KPI Stat Cards Strip using reusable KpiStatCard */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <KpiStatCard
                 title="Total Tasks"
                 value={data.statistics.totalTasks}
                 icon={Layers}
-                subtext="All team tasks"
+                subtext="Assigned tasks"
                 colorTheme="slate"
               />
 
@@ -285,7 +298,7 @@ export default function TeamPerformanceDashboard() {
                 value={`${data.statistics.completionRate}%`}
                 icon={CheckCircle2}
                 progressBarValue={data.statistics.completionRate}
-                subtext="Completion %"
+                subtext="Task completion %"
                 colorTheme="emerald"
               />
 
@@ -293,7 +306,7 @@ export default function TeamPerformanceDashboard() {
                 title="In Progress"
                 value={data.statistics.inProgressTasks}
                 icon={Clock}
-                subtext="Active workload"
+                subtext="Active tasks"
                 colorTheme="sky"
               />
 
@@ -301,7 +314,7 @@ export default function TeamPerformanceDashboard() {
                 title="Overdue"
                 value={data.statistics.overdueTasks}
                 icon={AlertTriangle}
-                subtext="Needs action"
+                subtext="Overdue tasks"
                 colorTheme="rose"
               />
 
@@ -309,7 +322,7 @@ export default function TeamPerformanceDashboard() {
                 title="30d Velocity"
                 value={data.statistics.completedLast30Days}
                 icon={TrendingUp}
-                subtext="Recent velocity"
+                subtext="Done in last 30d"
                 colorTheme="indigo"
               />
             </div>
@@ -318,99 +331,83 @@ export default function TeamPerformanceDashboard() {
             <div className="grid lg:grid-cols-2 gap-4">
               <StatusDistributionChart
                 byStatus={data.statistics.byStatus}
-                title="Status Distribution"
+                title="Task Status Breakdown"
               />
               <PriorityBreakdownChart
                 byPriority={data.statistics.byPriority}
-                title="Priority Breakdown"
+                title="Task Priority Distribution"
               />
             </div>
 
-            {/* Member Performance Breakdown */}
+            {/* Project Workload Breakdown Table */}
             <div className="card">
               <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-2">
-                <UsersRound className="w-4 h-4 text-primary" />
-                Member Workload & Performance
+                <Folder className="w-4 h-4 text-primary" />
+                Project Workload Breakdown
               </div>
 
-              {data.memberPerformance.length === 0 ? (
+              {(data.statistics?.byProject || []).length === 0 ? (
                 <div className="text-center py-6 text-xs text-slate-400 italic">
-                  No member activity data available for this team.
+                  No project tasks assigned to this member.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead>
                       <tr className="border-b border-gray-200 text-slate-500 font-semibold uppercase tracking-wider">
-                        <th className="pb-2 px-2">Member</th>
-                        <th className="pb-2 px-2 text-center">Total</th>
+                        <th className="pb-2 px-2">Project</th>
+                        <th className="pb-2 px-2 text-center">Total Assigned</th>
                         <th className="pb-2 px-2 text-center">Completed</th>
-                        <th className="pb-2 px-2 text-center">In Progress</th>
-                        <th className="pb-2 px-2 text-center">Pending</th>
-                        <th className="pb-2 px-2 text-center">Overdue</th>
-                        <th className="pb-2 px-2 text-right">Actions</th>
+                        <th className="pb-2 px-2 text-right">Completion Rate</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 font-medium">
-                      {data.memberPerformance.map((mp) => (
-                        <tr key={mp.member._id} className="hover:bg-gray-50/60 transition-colors">
-                          <td className="py-2.5 px-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-[10px]">
-                                {mp.member.name
-                                  .split(' ')
-                                  .map((n) => n[0])
-                                  .join('')
-                                  .toUpperCase()
-                                  .slice(0, 2)}
-                              </div>
-                              <div>
-                                <div className="font-semibold text-slate-800">{mp.member.name}</div>
-                                <div className="text-[10px] text-slate-400">{mp.member.email}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-2.5 px-2 text-center font-bold text-slate-800 tabular-nums">
-                            {mp.totalTasks}
-                          </td>
-                          <td className="py-2.5 px-2 text-center text-emerald-600 font-bold tabular-nums">
-                            {mp.completedTasks}
-                          </td>
-                          <td className="py-2.5 px-2 text-center text-sky-600 font-bold tabular-nums">
-                            {mp.inProgressTasks}
-                          </td>
-                          <td className="py-2.5 px-2 text-center text-amber-600 font-bold tabular-nums">
-                            {mp.pendingTasks}
-                          </td>
-                          <td className="py-2.5 px-2 text-center text-rose-600 font-bold tabular-nums">
-                            {mp.overdueTasks}
-                          </td>
-                          <td className="py-2.5 px-2 text-right">
-                            <Link
-                              to={`/users/${mp.member._id}/performance`}
-                              className="text-[11px] font-semibold text-primary hover:text-primary-hover hover:underline"
-                            >
-                              View Member →
-                            </Link>
-                          </td>
-                        </tr>
-                      ))}
+                      {data.statistics.byProject.map((proj) => {
+                        const rate =
+                          proj.total > 0 ? Math.round((proj.completed / proj.total) * 100) : 0;
+                        return (
+                          <tr key={proj._id || proj.projectName} className="hover:bg-gray-50/60 transition-colors">
+                            <td className="py-2.5 px-2 font-semibold text-slate-800">
+                              {proj.projectName}
+                            </td>
+                            <td className="py-2.5 px-2 text-center font-bold text-slate-800 tabular-nums">
+                              {proj.total}
+                            </td>
+                            <td className="py-2.5 px-2 text-center text-emerald-600 font-bold tabular-nums">
+                              {proj.completed}
+                            </td>
+                            <td className="py-2.5 px-2 text-right">
+                              <span
+                                className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  rate >= 75
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                    : rate >= 40
+                                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                    : 'bg-slate-50 text-slate-600 border border-slate-200'
+                                }`}
+                              >
+                                {rate}%
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
               )}
             </div>
 
-            {/* Recent Activity */}
+            {/* Member Recent Task Activity */}
             <div className="card">
               <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-primary" />
-                Recent Team Activity
+                Member Recent Task Activity
               </div>
 
               {data.recentTasks.length === 0 ? (
                 <div className="text-center py-6 text-xs text-slate-400 italic">
-                  No recent activity recorded for this team.
+                  No recent tasks found for this member.
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -444,9 +441,11 @@ export default function TeamPerformanceDashboard() {
                         <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-200 text-slate-700">
                           {t.status}
                         </span>
-                        <span className="text-[10px] text-slate-400 hidden sm:inline">
-                          {t.assignedTo?.name || 'Unassigned'}
-                        </span>
+                        {t.projectId?.name && (
+                          <span className="text-[10px] text-slate-400 hidden sm:inline">
+                            {t.projectId.name}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}

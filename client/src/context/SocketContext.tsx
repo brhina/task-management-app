@@ -19,7 +19,33 @@ export interface AppNotification {
   message: string;
   link?: string;
   read: boolean;
+  meta?: Record<string, unknown>;
   createdAt: string;
+}
+
+export function playNotificationChime() {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.3);
+  } catch (e) {
+    // Audio context may be restricted by browser until user gesture
+  }
 }
 
 interface SocketContextValue {
@@ -29,7 +55,10 @@ interface SocketContextValue {
   unreadCount: number;
   refreshNotifications: () => Promise<void>;
   markRead: (id: string) => Promise<void>;
+  markUnread: (id: string) => Promise<void>;
   markAllRead: () => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
+  clearNotifications: (readOnly?: boolean) => Promise<void>;
   presence: Record<string, { userId: string; name?: string }>;
 }
 
@@ -40,7 +69,10 @@ const SocketContext = createContext<SocketContextValue>({
   unreadCount: 0,
   refreshNotifications: async () => {},
   markRead: async () => {},
+  markUnread: async () => {},
   markAllRead: async () => {},
+  deleteNotification: async () => {},
+  clearNotifications: async () => {},
   presence: {},
 });
 
@@ -100,6 +132,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     s.on('notification', (n: AppNotification) => {
       setNotifications((prev) => [n, ...prev].slice(0, 50));
       setUnreadCount((c) => c + 1);
+      playNotificationChime();
     });
 
     s.on(
@@ -153,10 +186,39 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     setUnreadCount((c) => Math.max(0, c - 1));
   }, []);
 
+  const markUnread = useCallback(async (id: string) => {
+    await api.put(apiPaths.NOTIFICATIONS.UNREAD.replace(':id', id));
+    setNotifications((prev) =>
+      prev.map((n) => (n._id === id ? { ...n, read: false } : n)),
+    );
+    setUnreadCount((c) => c + 1);
+  }, []);
+
   const markAllRead = useCallback(async () => {
     await api.put(apiPaths.NOTIFICATIONS.READ_ALL);
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     setUnreadCount(0);
+  }, []);
+
+  const deleteNotification = useCallback(async (id: string) => {
+    await api.delete(apiPaths.NOTIFICATIONS.DELETE.replace(':id', id));
+    setNotifications((prev) => {
+      const item = prev.find((n) => n._id === id);
+      if (item && !item.read) {
+        setUnreadCount((c) => Math.max(0, c - 1));
+      }
+      return prev.filter((n) => n._id !== id);
+    });
+  }, []);
+
+  const clearNotifications = useCallback(async (readOnly = true) => {
+    await api.delete(`${apiPaths.NOTIFICATIONS.CLEAR}?readOnly=${readOnly}`);
+    if (readOnly) {
+      setNotifications((prev) => prev.filter((n) => !n.read));
+    } else {
+      setNotifications([]);
+      setUnreadCount(0);
+    }
   }, []);
 
   const value = useMemo(
@@ -167,7 +229,10 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       unreadCount,
       refreshNotifications,
       markRead,
+      markUnread,
       markAllRead,
+      deleteNotification,
+      clearNotifications,
       presence,
     }),
     [
@@ -177,7 +242,10 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       unreadCount,
       refreshNotifications,
       markRead,
+      markUnread,
       markAllRead,
+      deleteNotification,
+      clearNotifications,
       presence,
     ],
   );

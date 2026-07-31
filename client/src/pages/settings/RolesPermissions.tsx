@@ -1,269 +1,360 @@
-import { useContext, useEffect, useState } from 'react';
-import { Plus, Shield, Trash2 } from 'lucide-react';
+import { useContext, useEffect, useState, useMemo } from 'react';
+import { Plus, Search, Grid, Layers, Users, CheckCircle2, AlertCircle } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import PageShell from '../../components/common/PageShell';
-import Modal from '../../components/common/Modal';
-import axios from '../../utils/axios';
+import ChangeRoleModal from '../../components/users/ChangeRoleModal';
+import RolesOverviewTab from '../../components/roles/RolesOverviewTab';
+import PermissionMatrixTab from '../../components/roles/PermissionMatrixTab';
+import MemberDirectoryTab from '../../components/roles/MemberDirectoryTab';
+import CreateEditRoleModal from '../../components/roles/CreateEditRoleModal';
+import AssignRoleModal from '../../components/roles/AssignRoleModal';
+import type { SystemRoleRow, CustomRole, OrgMemberData } from '../../components/roles/types';
+import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
-import { PERMISSIONS, ROLE_LABELS, type Permission } from '../../constants/permissions';
-
-interface SystemRoleRow {
-  role: string;
-  label: string;
-  permissions: string[];
-  isSystem: boolean;
-}
-
-interface CustomRole {
-  _id: string;
-  name: string;
-  description?: string;
-  permissions: string[];
-}
 
 const RolesPermissions = () => {
-  const { hasPermission } = useContext(UserContext);
+  const { user, hasPermission } = useContext(UserContext);
   const [systemRoles, setSystemRoles] = useState<SystemRoleRow[]>([]);
   const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
+  const [members, setMembers] = useState<OrgMemberData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [creating, setCreating] = useState(false);
-  const [showCreateRole, setShowCreateRole] = useState(false);
-  const [form, setForm] = useState({
+  const [successMsg, setSuccessMsg] = useState('');
+
+  // Active View Tab & Filters
+  const [activeTab, setActiveTab] = useState<'overview' | 'matrix' | 'members'>('overview');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [permissionCategoryFilter, setPermissionCategoryFilter] = useState('all');
+
+  // Custom Role Modals (Create & Edit)
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingRole, setEditingRole] = useState<CustomRole | null>(null);
+  const [roleForm, setRoleForm] = useState({
     name: '',
     description: '',
     permissions: [] as string[],
   });
+  const [savingRole, setSavingRole] = useState(false);
 
-  const resetForm = () => setForm({ name: '', description: '', permissions: [] });
+  // Assign Role Modal state
+  const [assignRoleTarget, setAssignRoleTarget] = useState<{
+    role: string;
+    customRoleId?: string;
+    roleName: string;
+  } | null>(null);
+
+  // Single Member Change Role Modal
+  const [changeRoleMember, setChangeRoleMember] = useState<{
+    _id: string;
+    membershipId?: string;
+    name: string;
+    email: string;
+    profileImageUrl?: string;
+    role: string;
+    customRoleId?: string;
+  } | null>(null);
 
   const canManage = hasPermission('role:manage');
 
-  const fetchRoles = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(apiPaths.ROLES.LIST);
-      setSystemRoles(response.data.data.systemRoles || []);
-      setCustomRoles(response.data.data.customRoles || []);
+      setError('');
+      const [rolesRes, membersRes] = await Promise.all([
+        api.get(apiPaths.ROLES.LIST),
+        user?.activeOrgId
+          ? api.get(apiPaths.ORG_MEMBERSHIP.GET_MEMBERS.replace(':orgId', user.activeOrgId))
+          : Promise.resolve({ data: [] }),
+      ]);
+
+      setSystemRoles(rolesRes.data.data.systemRoles || []);
+      setCustomRoles(rolesRes.data.data.customRoles || []);
+      setMembers(Array.isArray(membersRes.data) ? membersRes.data : []);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load roles');
+      setError(err.response?.data?.message || 'Failed to load roles and permissions data');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (canManage) fetchRoles();
-    else setLoading(false);
-  }, [canManage]);
+    if (canManage) {
+      fetchData();
+    } else {
+      setLoading(false);
+    }
+  }, [canManage, user?.activeOrgId]);
 
   if (!canManage) {
     return (
-      <PageShell title="Access Denied" subtitle="You need role:manage permission." />
+      <PageShell title="Access Denied" subtitle="You need role:manage permission to access this page." />
     );
   }
 
-  const togglePerm = (p: string) => {
-    setForm((prev) => ({
-      ...prev,
-      permissions: prev.permissions.includes(p)
-        ? prev.permissions.filter((x) => x !== p)
-        : [...prev.permissions, p],
-    }));
-  };
+  // Helper mapping members to roles
+  const membersByRole = useMemo(() => {
+    const map: Record<string, OrgMemberData[]> = {};
+    members.forEach((m) => {
+      const uObj = typeof m.userId === 'object' ? m.userId : null;
+      if (!uObj) return;
 
-  const handleCreate = async () => {
-    if (!form.name.trim()) {
-      setError('Role name is required');
+      let key = m.role;
+      if (m.role === 'Custom') {
+        const cId = typeof m.customRoleId === 'object' ? m.customRoleId?._id : m.customRoleId;
+        key = `custom:${cId}`;
+      } else if (m.role === 'Owner') {
+        key = 'OrgAdmin';
+      }
+
+      if (!map[key]) map[key] = [];
+      map[key].push(m);
+    });
+    return map;
+  }, [members]);
+
+  // Create Custom Role Handler
+  const handleCreateRole = async () => {
+    if (!roleForm.name.trim()) {
+      setError('Role name is required.');
       return;
     }
-    setCreating(true);
+    setSavingRole(true);
     setError('');
     try {
-      await axios.post(apiPaths.ROLES.CREATE, form);
-      setForm({ name: '', description: '', permissions: [] });
-      setShowCreateRole(false);
-      await fetchRoles();
+      await api.post(apiPaths.ROLES.CREATE, roleForm);
+      setSuccessMsg(`Created role "${roleForm.name.trim()}"`);
+      setShowCreateModal(false);
+      setRoleForm({ name: '', description: '', permissions: [] });
+      setTimeout(() => setSuccessMsg(''), 3000);
+      await fetchData();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to create role');
     } finally {
-      setCreating(false);
+      setSavingRole(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this custom role?')) return;
+  // Edit Custom Role Handler
+  const handleOpenEditModal = (role: CustomRole) => {
+    setEditingRole(role);
+    setRoleForm({
+      name: role.name,
+      description: role.description || '',
+      permissions: [...role.permissions],
+    });
+  };
+
+  const handleUpdateRole = async () => {
+    if (!editingRole) return;
+    if (!roleForm.name.trim()) {
+      setError('Role name is required.');
+      return;
+    }
+    setSavingRole(true);
+    setError('');
     try {
-      await axios.delete(apiPaths.ROLES.DELETE.replace(':id', id));
-      await fetchRoles();
+      await api.put(apiPaths.ROLES.UPDATE.replace(':id', editingRole._id), roleForm);
+      setSuccessMsg(`Updated role "${roleForm.name.trim()}"`);
+      setEditingRole(null);
+      setRoleForm({ name: '', description: '', permissions: [] });
+      setTimeout(() => setSuccessMsg(''), 3000);
+      await fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete role');
+      setError(err.response?.data?.message || 'Failed to update role');
+    } finally {
+      setSavingRole(false);
+    }
+  };
+
+  // Delete Custom Role Handler
+  const handleDeleteRole = async (role: CustomRole) => {
+    const assignedCount = membersByRole[`custom:${role._id}`]?.length || 0;
+    if (assignedCount > 0) {
+      alert(`Cannot delete "${role.name}" because it is currently assigned to ${assignedCount} member(s). Reassign them first.`);
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to delete custom role "${role.name}"?`)) return;
+
+    try {
+      await api.delete(apiPaths.ROLES.DELETE.replace(':id', role._id));
+      setSuccessMsg(`Deleted role "${role.name}"`);
+      setTimeout(() => setSuccessMsg(''), 3000);
+      await fetchData();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to delete custom role');
     }
   };
 
   return (
     <PageShell
-      title="Roles & Permissions"
-      subtitle="System roles and custom permission sets for your organization."
+      title="Roles & Permissions Management"
+      subtitle="Configure system and custom security roles, assign fine-grained permissions, and manage member authorization"
+      actions={
+        <button
+          onClick={() => {
+            setRoleForm({ name: '', description: '', permissions: [] });
+            setShowCreateModal(true);
+          }}
+          className="btn-primary text-sm font-semibold flex items-center gap-1.5 px-4 py-2 rounded-lg"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Create Custom Role</span>
+        </button>
+      }
     >
       <div className="space-y-6">
+        {/* Alerts */}
         {error && (
-          <div className="bg-rose-500/10 border border-rose-500/30 rounded-lg px-4 py-3 text-sm text-rose-400">
-            {error}
+          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-sm font-semibold text-rose-500 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <span>{error}</span>
+            </div>
+            <button onClick={() => setError('')} className="text-xs hover:underline">Dismiss</button>
+          </div>
+        )}
+        {successMsg && (
+          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-sm font-semibold text-emerald-600 flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 shrink-0" />
+            <span>{successMsg}</span>
           </div>
         )}
 
-        <button
-          onClick={() => setShowCreateRole(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover rounded-lg text-sm font-medium text-white"
-        >
-          <Plus className="w-4 h-4" /> Create custom role
-        </button>
+        {/* Controls: Search Input BEFORE Sub-Navigation Tabs */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            <input
+              type="text"
+              placeholder={
+                activeTab === 'members'
+                  ? 'Search members...'
+                  : activeTab === 'matrix'
+                  ? 'Search permissions...'
+                  : 'Search roles...'
+              }
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 pr-3 py-2 text-xs bg-white border border-slate-200/80 rounded-xl w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
+            />
+          </div>
 
+          <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                activeTab === 'overview'
+                  ? 'bg-white text-slate-800 shadow-sm border border-slate-200/60'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Grid className="w-4 h-4" />
+              <span>Roles Overview</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('matrix')}
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                activeTab === 'matrix'
+                  ? 'bg-white text-slate-800 shadow-sm border border-slate-200/60'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Layers className="w-4 h-4" />
+              <span>Permission Matrix</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('members')}
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                activeTab === 'members'
+                  ? 'bg-white text-slate-800 shadow-sm border border-slate-200/60'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>Member Directory</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Loading Spinner */}
         {loading ? (
-          <p className="text-slate-500 text-sm">Loading roles...</p>
+          <div className="flex justify-center py-20">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+          </div>
         ) : (
           <>
-            <div>
-              <h3 className="text-slate-800 font-semibold mb-3 flex items-center gap-2">
-                <Shield className="w-4 h-4" /> System roles
-              </h3>
-              <div className="grid md:grid-cols-2 gap-3">
-                {systemRoles.map((role) => (
-                  <div
-                    key={role.role}
-                    className="bg-white/50 border border-gray-200/50 rounded-xl p-4"
-                  >
-                    <div className="text-slate-800 font-medium">
-                      {ROLE_LABELS[role.role as keyof typeof ROLE_LABELS] || role.label}
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1 mb-2">
-                      {role.permissions.length} permissions
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {role.permissions.slice(0, 8).map((p) => (
-                        <span
-                          key={p}
-                          className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-slate-500 border border-gray-200"
-                        >
-                          {p}
-                        </span>
-                      ))}
-                      {role.permissions.length > 8 && (
-                        <span className="text-[10px] text-slate-500">
-                          +{role.permissions.length - 8} more
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {activeTab === 'overview' && (
+              <RolesOverviewTab
+                systemRoles={systemRoles}
+                customRoles={customRoles}
+                membersByRole={membersByRole}
+                onOpenCreateModal={() => {
+                  setRoleForm({ name: '', description: '', permissions: [] });
+                  setShowCreateModal(true);
+                }}
+                onOpenEditModal={handleOpenEditModal}
+                onDeleteRole={handleDeleteRole}
+                onAssignRoleTarget={setAssignRoleTarget}
+              />
+            )}
 
-            <div>
-              <h3 className="text-slate-800 font-semibold mb-3">Custom roles</h3>
-              {customRoles.length === 0 ? (
-                <p className="text-sm text-slate-500">No custom roles yet.</p>
-              ) : (
-                <div className="space-y-2">
-                  {customRoles.map((role) => (
-                    <div
-                      key={role._id}
-                      className="flex items-start justify-between gap-3 bg-white/50 border border-gray-200/50 rounded-xl p-4"
-                    >
-                      <div>
-                        <div className="text-slate-800 font-medium">{role.name}</div>
-                        {role.description && (
-                          <p className="text-xs text-slate-500 mt-0.5">{role.description}</p>
-                        )}
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {role.permissions.map((p: Permission | string) => (
-                            <span
-                              key={p}
-                              className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-slate-500 border border-gray-200"
-                            >
-                              {p}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleDelete(role._id)}
-                        className="text-rose-400 hover:text-rose-300 p-1"
-                        title="Delete role"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            {activeTab === 'matrix' && (
+              <PermissionMatrixTab
+                systemRoles={systemRoles}
+                customRoles={customRoles}
+                searchTerm={searchTerm}
+                permissionCategoryFilter={permissionCategoryFilter}
+                onCategoryFilterChange={setPermissionCategoryFilter}
+              />
+            )}
+
+            {activeTab === 'members' && (
+              <MemberDirectoryTab
+                members={members}
+                systemRoles={systemRoles}
+                customRoles={customRoles}
+                searchTerm={searchTerm}
+                onChangeRoleMember={setChangeRoleMember}
+              />
+            )}
           </>
         )}
       </div>
 
-      <Modal
-        isOpen={showCreateRole}
+      {/* Modals */}
+      <CreateEditRoleModal
+        isOpen={showCreateModal || editingRole !== null}
+        editingRole={editingRole}
+        roleForm={roleForm}
+        savingRole={savingRole}
         onClose={() => {
-          setShowCreateRole(false);
-          resetForm();
+          setShowCreateModal(false);
+          setEditingRole(null);
+          setRoleForm({ name: '', description: '', permissions: [] });
         }}
-        title="Create custom role"
-        subtitle="Define a new role and assign permissions."
-        footer={
-          <>
-            <button
-              onClick={() => {
-                setShowCreateRole(false);
-                resetForm();
-              }}
-              className="px-4 py-2 bg-gray-200 hover:bg-slate-600 rounded-lg text-sm font-medium text-slate-600"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleCreate}
-              disabled={creating}
-              className="px-4 py-2 bg-primary hover:bg-primary-hover rounded-lg text-sm font-medium text-white disabled:opacity-50"
-            >
-              {creating ? 'Creating...' : 'Create role'}
-            </button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-3">
-            <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Role name"
-              className="w-full bg-gray-100 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-800"
-            />
-            <input
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              placeholder="Description (optional)"
-              className="w-full bg-gray-100 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-800"
-            />
-          </div>
-          <div>
-            <p className="text-sm text-slate-500 mb-2">Permissions</p>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-              {PERMISSIONS.map((p) => (
-                <label key={p} className="flex items-center gap-2 text-xs text-slate-600">
-                  <input
-                    type="checkbox"
-                    checked={form.permissions.includes(p)}
-                    onChange={() => togglePerm(p)}
-                  />
-                  {p}
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-      </Modal>
+        onChangeForm={setRoleForm}
+        onSubmit={editingRole ? handleUpdateRole : handleCreateRole}
+      />
+
+      <AssignRoleModal
+        target={assignRoleTarget}
+        members={members}
+        activeOrgId={user?.activeOrgId}
+        onClose={() => setAssignRoleTarget(null)}
+        onRefresh={fetchData}
+      />
+
+      <ChangeRoleModal
+        isOpen={Boolean(changeRoleMember)}
+        member={changeRoleMember}
+        customRoles={customRoles}
+        onClose={() => setChangeRoleMember(null)}
+        onSuccess={() => {
+          setSuccessMsg('Member role updated');
+          setTimeout(() => setSuccessMsg(''), 3000);
+          fetchData();
+        }}
+      />
     </PageShell>
   );
 };

@@ -13,6 +13,7 @@ export const apiPaths = {
   USERS: {
     GET_ALL_USERS: '/api/users',
     GET_USER_BY_ID: '/api/users/:id',
+    PERFORMANCE: '/api/users/:id/performance',
     DELETE_USER: '/api/users/:id',
   },
   TASKS: {
@@ -176,6 +177,8 @@ export const apiPaths = {
     READ: '/api/notifications/:id/read',
     UNREAD: '/api/notifications/:id/unread',
     READ_ALL: '/api/notifications/read-all',
+    DELETE: '/api/notifications/:id',
+    CLEAR: '/api/notifications/clear',
     PREFERENCES: '/api/notifications/preferences',
     PRESENCE: '/api/notifications/presence',
   },

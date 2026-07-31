@@ -28,6 +28,7 @@ import GoalDetails from './pages/goals/GoalDetails';
 
 import ManageUsers from './pages/users/ManageUsers';
 import ProfileUpdate from './pages/users/ProfileUpdate';
+import MemberPerformanceDashboard from './pages/users/MemberPerformanceDashboard';
 
 import WorkOS from './pages/settings/WorkOS';
 import RolesPermissions from './pages/settings/RolesPermissions';
@@ -323,6 +324,26 @@ function App() {
             <UserRouteWrapper>
               <AuthLayout>
                 <ProfileUpdate />
+              </AuthLayout>
+            </UserRouteWrapper>
+          }
+        />
+        <Route
+          path="/users/performance"
+          element={
+            <UserRouteWrapper>
+              <AuthLayout>
+                <MemberPerformanceDashboard />
+              </AuthLayout>
+            </UserRouteWrapper>
+          }
+        />
+        <Route
+          path="/users/:id/performance"
+          element={
+            <UserRouteWrapper>
+              <AuthLayout>
+                <MemberPerformanceDashboard />
               </AuthLayout>
             </UserRouteWrapper>
           }

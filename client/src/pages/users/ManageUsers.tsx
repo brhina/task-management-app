@@ -27,10 +27,14 @@ import AdvancedTable, { RowActions, type Column, type ActionItem } from '../../c
 import Modal from '../../components/common/Modal';
 import type { User, Task, Project } from '../../types';
 
+import ChangeRoleModal, { type CustomRoleOption } from '../../components/users/ChangeRoleModal';
+
 interface UserWithTaskCounts extends User {
   pendingTasks?: number;
   inProgressTasks?: number;
   completedTasks?: number;
+  customRoleId?: string;
+  membershipId?: string;
 }
 
 interface TeamMember {
@@ -52,7 +56,8 @@ interface Team {
 interface InviteModalState {
   isOpen: boolean;
   email: string;
-  role: 'OrgMember' | 'OrgAdmin';
+  role: string;
+  customRoleId?: string;
   loading: boolean;
   error: string;
   inviteToken: string | null;
@@ -75,6 +80,7 @@ function ManageUsers() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [customRoles, setCustomRoles] = useState<CustomRoleOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -106,6 +112,14 @@ function ManageUsers() {
       user: null,
     },
     mode: 'invite',
+  });
+
+  const [changeRoleModal, setChangeRoleModal] = useState<{
+    isOpen: boolean;
+    member: UserWithTaskCounts | null;
+  }>({
+    isOpen: false,
+    member: null,
   });
 
   const [userTeamsModal, setUserTeamsModal] = useState<{
@@ -153,11 +167,12 @@ function ManageUsers() {
     try {
       setLoading(true);
       setError('');
-      const [usersRes, tasksRes, projectsRes, teamsRes] = await Promise.all([
+      const [usersRes, tasksRes, projectsRes, teamsRes, rolesRes] = await Promise.all([
         api.get(apiPaths.USERS.GET_ALL_USERS),
         api.get(apiPaths.TASKS.GET_ALL_TASKS, { params: { topLevel: 'true' } }),
         api.get(apiPaths.PROJECTS.LIST),
         api.get(apiPaths.TEAMS.LIST).catch(() => ({ data: { data: [] } })),
+        api.get(apiPaths.ROLES.LIST).catch(() => ({ data: { data: { customRoles: [] } } })),
       ]);
 
       const userList = Array.isArray(usersRes.data)
@@ -167,6 +182,7 @@ function ManageUsers() {
       setTasks(tasksRes.data?.data?.tasks || []);
       setProjects(projectsRes.data?.data?.projects || []);
       setTeams(teamsRes.data?.data || []);
+      setCustomRoles(rolesRes.data?.data?.customRoles || []);
     } catch (err: any) {
       setError('Failed to load data. Please refresh.');
     } finally {
@@ -309,9 +325,13 @@ function ManageUsers() {
     }
     setInviteModal((prev) => ({ ...prev, loading: true, error: '' }));
     try {
+      const payload: any = { email: inviteModal.email, role: inviteModal.role };
+      if (inviteModal.role === 'Custom' && inviteModal.customRoleId) {
+        payload.customRoleId = inviteModal.customRoleId;
+      }
       const response = await api.post(
         apiPaths.ORG_MEMBERSHIP.INVITE.replace(':orgId', user.activeOrgId),
-        { email: inviteModal.email, role: inviteModal.role }
+        payload
       );
       const { inviteToken } = response.data;
       setInviteModal((prev) => ({ ...prev, loading: false, inviteToken }));
@@ -360,10 +380,11 @@ function ManageUsers() {
     }
     setInviteModal((prev) => ({ ...prev, loading: true, error: '' }));
     try {
-      await api.post(apiPaths.ORGS.ADD_MEMBER.replace(':orgId', user.activeOrgId), {
-        email: inviteModal.email,
-        role: inviteModal.role,
-      });
+      const payload: any = { email: inviteModal.email, role: inviteModal.role };
+      if (inviteModal.role === 'Custom' && inviteModal.customRoleId) {
+        payload.customRoleId = inviteModal.customRoleId;
+      }
+      await api.post(apiPaths.ORGS.ADD_MEMBER.replace(':orgId', user.activeOrgId), payload);
       setInviteModal((prev) => ({ ...prev, loading: false }));
       handleCloseInviteModal();
       setSuccessMsg('Member added successfully');
@@ -691,19 +712,19 @@ function ManageUsers() {
             {activeTab === 'members' && hasPermission('member:invite') && (
               <button
                 onClick={handleOpenInviteModal}
-                className="btn-primary text-xs flex items-center gap-1.5 px-3 py-1.5"
+                className="btn-primary text-sm font-semibold flex items-center gap-1.5 px-4 py-2 rounded-lg"
               >
-                <UserPlus className="w-3.5 h-3.5" />
-                <span>Invite Member</span>
+                <UserPlus className="w-4 h-4" />
+                <span className="hidden sm:inline">Invite Member</span>
               </button>
             )}
             {activeTab === 'teams' && hasPermission('team:manage') && (
               <button
                 onClick={handleOpenCreateTeam}
-                className="btn-primary text-xs flex items-center gap-1.5 px-3 py-1.5"
+                className="btn-primary text-sm font-semibold flex items-center gap-1.5 px-4 py-2 rounded-lg"
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Create Team</span>
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Create Team</span>
               </button>
             )}
           </div>
@@ -961,10 +982,16 @@ function ManageUsers() {
                           })}
                         </span>
                         <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => navigate(`/users/${u._id}/performance`)}
+                            className="text-[11px] text-primary hover:underline font-semibold"
+                          >
+                            Performance
+                          </button>
                           {hasPermission('team:manage') && (
                             <button
                               onClick={() => handleOpenUserTeamsModal(u)}
-                              className="text-[11px] text-primary hover:underline font-medium"
+                              className="text-[11px] text-slate-600 hover:underline font-medium"
                             >
                               Manage Teams
                             </button>
@@ -1107,7 +1134,12 @@ function ManageUsers() {
                     header: 'Actions',
                     className: 'w-[50px]',
                     render: (u) => {
-                      const items: ActionItem[] = [];
+                      const items: ActionItem[] = [
+                        {
+                          label: 'View Performance',
+                          onClick: () => navigate(`/users/${u._id}/performance`),
+                        },
+                      ];
                       if (hasPermission('team:manage')) {
                         items.push({
                           label: 'Manage Teams',
@@ -1806,17 +1838,45 @@ function ManageUsers() {
                           </label>
                           <select
                             id="inviteRole"
-                            value={inviteModal.role}
-                            onChange={(e) =>
-                              setInviteModal((prev) => ({
-                                ...prev,
-                                role: e.target.value as 'OrgMember' | 'OrgAdmin',
-                              }))
+                            value={
+                              inviteModal.role === 'Custom' && inviteModal.customRoleId
+                                ? `custom:${inviteModal.customRoleId}`
+                                : inviteModal.role || 'OrgMember'
                             }
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val.startsWith('custom:')) {
+                                const cId = val.split(':')[1];
+                                setInviteModal((prev) => ({
+                                  ...prev,
+                                  role: 'Custom',
+                                  customRoleId: cId,
+                                }));
+                              } else {
+                                setInviteModal((prev) => ({
+                                  ...prev,
+                                  role: val,
+                                  customRoleId: undefined,
+                                }));
+                              }
+                            }}
                             className="input-field block w-full px-3 py-2 text-sm"
                           >
-                            <option value="OrgMember">Member</option>
-                            <option value="OrgAdmin">Owner</option>
+                            <optgroup label="System Roles">
+                              <option value="OrgMember">Member</option>
+                              <option value="Manager">Manager</option>
+                              <option value="Viewer">Viewer</option>
+                              <option value="OrgAdmin">Owner / Admin</option>
+                            </optgroup>
+                            {customRoles.length > 0 && (
+                              <optgroup label="Custom Roles">
+                                {customRoles.map((c) => (
+                                  <option key={c._id} value={`custom:${c._id}`}>
+                                    {c.name} (Custom)
+                                  </option>
+                                ))}
+                              </optgroup>
+                            )}
                           </select>
                         </div>
                       </div>
@@ -1876,6 +1936,18 @@ function ManageUsers() {
           </div>
         </div>
       )}
+
+      <ChangeRoleModal
+        isOpen={changeRoleModal.isOpen}
+        member={changeRoleModal.member}
+        customRoles={customRoles}
+        onClose={() => setChangeRoleModal({ isOpen: false, member: null })}
+        onSuccess={() => {
+          setSuccessMsg('Member role updated successfully');
+          setTimeout(() => setSuccessMsg(''), 3000);
+          fetchData();
+        }}
+      />
     </PageShell>
   );
 }

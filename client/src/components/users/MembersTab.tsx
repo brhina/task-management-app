@@ -6,6 +6,8 @@ import AdvancedTable, { RowActions, type Column, type ActionItem } from '../comm
 import type { UserWithTaskCounts, Team } from './UserTeamsModal';
 import type { Task, Project } from '../../types';
 
+import type { CustomRoleOption } from './ChangeRoleModal';
+
 interface MembersTabProps {
   users: UserWithTaskCounts[];
   teams: Team[];
@@ -13,7 +15,9 @@ interface MembersTabProps {
   projects: Project[];
   loading: boolean;
   hasPermission: (perm: string) => boolean;
+  customRoles?: CustomRoleOption[];
   onOpenUserTeamsModal: (user: UserWithTaskCounts) => void;
+  onOpenChangeRoleModal?: (user: UserWithTaskCounts) => void;
   onDeleteUser: (userId: string) => void;
 }
 
@@ -24,7 +28,9 @@ export default function MembersTab({
   projects,
   loading,
   hasPermission,
+  customRoles = [],
   onOpenUserTeamsModal,
+  onOpenChangeRoleModal,
   onDeleteUser,
 }: MembersTabProps) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -292,16 +298,24 @@ export default function MembersTab({
                         <div className="flex items-center gap-1.5 mt-1.5">
                           <span
                             className={`inline-flex px-2 py-0.5 text-[10px] font-bold rounded-full border ${
-                              (u.role as string) === 'OrgAdmin' || (u.role as string) === 'Owner'
-                                ? 'bg-gradient-to-r from-violet-500/15 to-purple-500/15 text-violet-600 border-violet-500/30'
-                                : 'bg-gradient-to-r from-sky-500/15 to-indigo-500/15 text-sky-600 border-sky-500/30'
+                              u.role === 'OrgAdmin' || u.role === 'Owner'
+                                ? 'bg-purple-500/10 text-purple-600 border-purple-500/30'
+                                : u.role === 'Manager'
+                                ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/30'
+                                : u.role === 'Viewer'
+                                ? 'bg-slate-500/10 text-slate-600 border-slate-500/30'
+                                : u.role === 'Custom'
+                                ? 'bg-amber-500/10 text-amber-600 border-amber-500/30'
+                                : 'bg-sky-500/10 text-sky-600 border-sky-500/30'
                             }`}
                           >
-                            {(u.role as string) === 'OrgAdmin' || (u.role as string) === 'Owner'
+                            {u.role === 'OrgAdmin' || u.role === 'Owner'
                               ? 'Owner'
-                              : (u.role as string) === 'OrgMember'
-                                ? 'Member'
-                                : u.role}
+                              : u.role === 'OrgMember'
+                              ? 'Member'
+                              : u.role === 'Custom'
+                              ? customRoles.find((c) => c._id === u.customRoleId)?.name || u.customRoleName || 'Custom'
+                              : u.role}
                           </span>
                           <span
                             className={`inline-flex px-2 py-0.5 text-[10px] font-bold rounded-full border ${wl.bg} ${wl.color}`}
@@ -420,12 +434,21 @@ export default function MembersTab({
                     })}
                   </span>
                   <div className="flex items-center gap-2">
+                    {hasPermission('member:manage') && (
+                      <button
+                        onClick={() => onOpenChangeRoleModal?.(u)}
+                        className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors flex items-center gap-1"
+                      >
+                        <Shield className="w-3 h-3" />
+                        Role
+                      </button>
+                    )}
                     {hasPermission('team:manage') && (
                       <button
                         onClick={() => onOpenUserTeamsModal(u)}
                         className="text-xs font-semibold text-primary hover:text-primary-hover hover:underline transition-colors"
                       >
-                        Manage Teams
+                        Teams
                       </button>
                     )}
                     {hasPermission('member:manage') &&
@@ -465,7 +488,30 @@ export default function MembersTab({
                     </div>
                   )}
                   <div>
-                    <div className="text-sm font-semibold text-slate-800">{u.name}</div>
+                    <div className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
+                      <span>{u.name}</span>
+                      <span
+                        className={`inline-flex px-1.5 py-0.2 text-[9px] font-bold rounded-full border ${
+                          u.role === 'OrgAdmin' || u.role === 'Owner'
+                            ? 'bg-purple-500/10 text-purple-600 border-purple-500/30'
+                            : u.role === 'Manager'
+                            ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/30'
+                            : u.role === 'Viewer'
+                            ? 'bg-slate-500/10 text-slate-600 border-slate-500/30'
+                            : u.role === 'Custom'
+                            ? 'bg-amber-500/10 text-amber-600 border-amber-500/30'
+                            : 'bg-sky-500/10 text-sky-600 border-sky-500/30'
+                        }`}
+                      >
+                        {u.role === 'OrgAdmin' || u.role === 'Owner'
+                          ? 'Owner'
+                          : u.role === 'OrgMember'
+                          ? 'Member'
+                          : u.role === 'Custom'
+                          ? customRoles.find((c) => c._id === u.customRoleId)?.name || u.customRoleName || 'Custom'
+                          : u.role}
+                      </span>
+                    </div>
                     <div className="text-xs text-slate-400">{u.email}</div>
                   </div>
                 </div>
@@ -559,6 +605,12 @@ export default function MembersTab({
               className: 'w-[50px]',
               render: (u) => {
                 const items: ActionItem[] = [];
+                if (hasPermission('member:manage')) {
+                  items.push({
+                    label: 'Change Role',
+                    onClick: () => onOpenChangeRoleModal?.(u),
+                  });
+                }
                 if (hasPermission('team:manage')) {
                   items.push({
                     label: 'Manage Teams',

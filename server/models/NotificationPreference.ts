@@ -11,6 +11,8 @@ export interface INotificationPreference {
   comments: NotifyChannel;
   dueDateReminder: NotifyChannel;
   digestFrequency: DigestFrequency;
+  soundEnabled: boolean;
+  doNotDisturb: boolean;
 }
 
 export interface INotificationPreferenceDocument
@@ -42,6 +44,8 @@ const notificationPreferenceSchema =
         enum: ["none", "daily", "weekly"],
         default: "daily",
       },
+      soundEnabled: { type: Boolean, default: true },
+      doNotDisturb: { type: Boolean, default: false },
     },
     { timestamps: true },
   );

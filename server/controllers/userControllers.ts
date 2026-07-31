@@ -73,6 +73,8 @@ export const getAllUsers = async (
         return {
           ...user.toObject(),
           role: membership?.role || "OrgMember",
+          customRoleId: membership?.customRoleId ? String(membership.customRoleId) : undefined,
+          membershipId: membership?._id ? String(membership._id) : undefined,
           pendingTasks,
           inProgressTasks,
           completedTasks,
@@ -190,21 +192,16 @@ export const getUserPerformance = async (
       return;
     }
 
-    const membership = await OrgMembership.findOne({
-      orgId: req.orgId,
-      userId,
-      status: "Active",
-    });
-    if (!membership) {
-      res.status(404).json({ message: "User not found in organization" });
-      return;
-    }
-
     const user = await User.findById(userId).select("-password");
     if (!user) {
       res.status(404).json({ message: "User not found" });
       return;
     }
+
+    const membership = await OrgMembership.findOne({
+      orgId: req.orgId,
+      userId: user._id,
+    });
 
     // Find teams assigned to user
     const userTeams = await Team.find({
@@ -213,7 +210,7 @@ export const getUserPerformance = async (
     }).select("name description");
 
     const userObjId = new mongoose.Types.ObjectId(userId);
-    const orgObjId = new mongoose.Types.ObjectId(req.orgId as string);
+    const orgObjId = new mongoose.Types.ObjectId(req.orgId.toString());
     const now = new Date();
 
     const [byStatus, byPriority, byProject, overdue, recentTasks, completedLast30] =
@@ -303,7 +300,7 @@ export const getUserPerformance = async (
           name: user.name,
           email: user.email,
           profileImageUrl: user.profileImageUrl,
-          role: membership.role || "OrgMember",
+          role: membership?.role || "OrgMember",
           teams: userTeams,
         },
         statistics: {

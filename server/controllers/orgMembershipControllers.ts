@@ -315,7 +315,10 @@ export const updateMemberRole = async (
     const ok = await requireElevatedAdmin(req, orgId, res);
     if (!ok) return;
 
-    const membership = await OrgMembership.findOne({ _id: memberId, orgId });
+    let membership = await OrgMembership.findOne({ _id: memberId, orgId });
+    if (!membership) {
+      membership = await OrgMembership.findOne({ userId: memberId, orgId });
+    }
     if (!membership) {
       res.status(404).json({ message: "Membership not found" });
       return;
@@ -388,7 +391,10 @@ export const removeMember = async (
     const ok = await requireElevatedAdmin(req, orgId, res);
     if (!ok) return;
 
-    const membership = await OrgMembership.findOne({ _id: memberId, orgId });
+    let membership = await OrgMembership.findOne({ _id: memberId, orgId });
+    if (!membership) {
+      membership = await OrgMembership.findOne({ userId: memberId, orgId });
+    }
     if (!membership) {
       res.status(404).json({ message: "Membership not found" });
       return;

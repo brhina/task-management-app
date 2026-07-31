@@ -7,6 +7,9 @@ export interface UserWithTaskCounts {
   name: string;
   email: string;
   role: string;
+  customRoleId?: string;
+  customRoleName?: string;
+  membershipId?: string;
   profileImageUrl?: string;
   createdAt?: string;
   pendingTasks?: number;

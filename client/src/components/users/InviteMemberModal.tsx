@@ -1,9 +1,17 @@
 import { UserPlus, Check, ClipboardCopy, CheckCircle2, AlertTriangle } from 'lucide-react';
 
+export interface CustomRoleOption {
+  _id: string;
+  name: string;
+  description?: string;
+  permissions: string[];
+}
+
 export interface InviteModalState {
   isOpen: boolean;
   email: string;
-  role: 'OrgMember' | 'OrgAdmin';
+  role: string; // 'OrgMember' | 'OrgAdmin' | 'Manager' | 'Viewer' | 'Custom'
+  customRoleId?: string;
   loading: boolean;
   error: string;
   inviteToken: string | null;
@@ -18,9 +26,10 @@ export interface InviteModalState {
 
 interface InviteMemberModalProps {
   state: InviteModalState;
+  customRoles?: CustomRoleOption[];
   onClose: () => void;
   onChangeEmail: (email: string) => void;
-  onChangeRole: (role: 'OrgMember' | 'OrgAdmin') => void;
+  onChangeRole: (role: string, customRoleId?: string) => void;
   onInvite: () => void;
   onAdd: () => void;
   onCopyLink: () => void;
@@ -29,6 +38,7 @@ interface InviteMemberModalProps {
 
 export default function InviteMemberModal({
   state,
+  customRoles = [],
   onClose,
   onChangeEmail,
   onChangeRole,
@@ -38,6 +48,20 @@ export default function InviteMemberModal({
   hasInvitePermission,
 }: InviteMemberModalProps) {
   if (!state.isOpen) return null;
+
+  const currentSelectValue =
+    state.role === 'Custom' && state.customRoleId
+      ? `custom:${state.customRoleId}`
+      : state.role || 'OrgMember';
+
+  const handleSelectChange = (val: string) => {
+    if (val.startsWith('custom:')) {
+      const cId = val.split(':')[1];
+      onChangeRole('Custom', cId);
+    } else {
+      onChangeRole(val, undefined);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -151,18 +175,29 @@ export default function InviteMemberModal({
                         htmlFor="inviteRole"
                         className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
                       >
-                        Role
+                        Assigned Role
                       </label>
                       <select
                         id="inviteRole"
-                        value={state.role}
-                        onChange={(e) =>
-                          onChangeRole(e.target.value as 'OrgMember' | 'OrgAdmin')
-                        }
+                        value={currentSelectValue}
+                        onChange={(e) => handleSelectChange(e.target.value)}
                         className="input-field block w-full px-3 py-2 text-sm"
                       >
-                        <option value="OrgMember">Member</option>
-                        <option value="OrgAdmin">Owner</option>
+                        <optgroup label="System Roles">
+                          <option value="OrgMember">Member</option>
+                          <option value="Manager">Manager</option>
+                          <option value="Viewer">Viewer</option>
+                          <option value="OrgAdmin">Owner / Admin</option>
+                        </optgroup>
+                        {customRoles.length > 0 && (
+                          <optgroup label="Custom Roles">
+                            {customRoles.map((c) => (
+                              <option key={c._id} value={`custom:${c._id}`}>
+                                {c.name} (Custom)
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
                       </select>
                     </div>
                   </div>
