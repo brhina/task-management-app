@@ -16,6 +16,7 @@ import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
 import FilterToolbar from '../../components/common/FilterToolbar';
+import AdvancedTable, { RowActions, type Column, type ActionItem } from '../../components/common/AdvancedTable';
 import TaskBoard from '../../components/tasks/TaskBoard';
 import TaskCard from '../../components/tasks/TaskCard';
 import UserDropZone from '../../components/tasks/UserDropZone';
@@ -460,107 +461,99 @@ function ManageTasks() {
             </DragOverlay>
           </DndContext>
         ) : (
-          <div className="card !p-0 overflow-hidden">
-            <div className="divide-y divide-slate-700/50">
-              {filteredTasks.map((task) => {
-                const daysLeft = getDaysUntilDue(task.dueDate);
-                const overdue = isOverdue(task.dueDate) && task.status !== 'Completed';
-
-                return (
-                  <div
-                    key={task._id}
-                    className="px-4 py-3 hover:bg-gray-200/30 transition-colors group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Link
-                            to={`/tasks/${task._id}`}
-                            className="text-sm font-medium text-slate-700 group-hover:text-primary truncate transition-colors"
-                          >
-                            {task.title}
-                          </Link>
-                          <span
-                            className={`inline-flex px-1.5 py-0.5 text-[10px] font-semibold rounded ${getPriorityColor(task.priority)}`}
-                          >
-                            {task.priority}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3 text-[10px] text-slate-500">
-                          <span
-                            className={`inline-flex px-1.5 py-0.5 font-semibold rounded ${getStatusColor(task.status)}`}
-                          >
-                            {task.status}
-                          </span>
-                          {task.dueDate && (
-                            <span className={overdue ? 'text-rose-400 font-medium' : ''}>
-                              {overdue
-                                ? `${Math.abs(daysLeft!)}d overdue`
-                                : daysLeft === 0
-                                  ? 'Today'
-                                  : `${daysLeft}d left`}
-                            </span>
-                          )}
-                          {task.assignedTo && (
-                            <span className="text-slate-600">→ {task.assignedTo.name}</span>
-                          )}
-                        </div>
-                      </div>
-
-                      {task.progress != null && task.progress > 0 && (
-                        <div className="hidden sm:flex items-center gap-1.5 shrink-0">
-                          <div className="w-16 h-1.5 rounded-full bg-gray-200 overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-primary"
-                              style={{ width: `${task.progress}%` }}
-                            />
-                          </div>
-                          <span className="text-[10px] text-slate-500 tabular-nums">
-                            {task.progress}%
-                          </span>
-                        </div>
-                      )}
-
-                      <select
-                        value={task.status}
-                        onChange={(e) => handleStatusUpdate(task._id, e.target.value)}
-                        className="input-field text-[10px] py-1 px-2 w-24 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
-                        disabled={!hasPermission('task:update')}
-                      >
-                        <option value="Pending">Pending</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="In Review">In Review</option>
-                        <option value="Completed">Completed</option>
-                      </select>
-
-                      <div className="flex items-center gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Link
-                          to={`/tasks/${task._id}`}
-                          className="text-[10px] text-primary hover:text-primary-hover font-medium"
-                        >
-                          View
-                        </Link>
-                        <Link
-                          to={`/tasks/${task._id}/edit`}
-                          className="text-[10px] text-slate-500 hover:text-slate-700 font-medium"
-                        >
-                          Edit
-                        </Link>
-                        {hasPermission('task:delete') && (
-                          <button
-                            onClick={() => handleDeleteTask(task._id)}
-                            className="text-[10px] text-rose-400 hover:text-rose-300 font-medium"
-                          >
-                            Delete
-                          </button>
-                        )}
-                      </div>
+          (() => {
+            const taskColumns: Column<TaskWithAssignee>[] = [
+              {
+                key: 'title',
+                header: 'Title',
+                sortable: true,
+                render: (task) => (
+                  <Link to={`/tasks/${task._id}`} className="text-sm font-medium text-slate-700 hover:text-primary truncate transition-colors">
+                    {task.title}
+                  </Link>
+                ),
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                sortable: true,
+                render: (task) => (
+                  <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-semibold rounded ${getStatusColor(task.status)}`}>
+                    {task.status}
+                  </span>
+                ),
+              },
+              {
+                key: 'priority',
+                header: 'Priority',
+                sortable: true,
+                render: (task) => (
+                  <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-semibold rounded ${getPriorityColor(task.priority)}`}>
+                    {task.priority}
+                  </span>
+                ),
+              },
+              {
+                key: 'dueDate',
+                header: 'Due Date',
+                sortable: true,
+                render: (task) => {
+                  const daysLeft = getDaysUntilDue(task.dueDate);
+                  const overdue = isOverdue(task.dueDate) && task.status !== 'Completed';
+                  return task.dueDate ? (
+                    <span className={`text-xs ${overdue ? 'text-rose-400 font-medium' : 'text-slate-500'}`}>
+                      {overdue ? `${Math.abs(daysLeft!)}d overdue` : daysLeft === 0 ? 'Today' : `${daysLeft}d left`}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-400">—</span>
+                  );
+                },
+              },
+              {
+                key: 'assignedTo',
+                header: 'Assignee',
+                sortable: true,
+                render: (task) => (
+                  <span className="text-sm text-slate-700">{task.assignedTo?.name || '—'}</span>
+                ),
+              },
+              {
+                key: 'progress',
+                header: 'Progress',
+                render: (task) => task.progress != null && task.progress > 0 ? (
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-16 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                      <div className="h-full rounded-full bg-primary" style={{ width: `${task.progress}%` }} />
                     </div>
+                    <span className="text-[10px] text-slate-500 tabular-nums">{task.progress}%</span>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                ) : null,
+              },
+              {
+                key: 'actions',
+                header: 'Actions',
+                className: 'w-[50px]',
+                render: (task) => {
+                  const items: ActionItem[] = [
+                    { label: 'View', onClick: () => navigate(`/tasks/${task._id}`) },
+                    { label: 'Edit', onClick: () => navigate(`/tasks/${task._id}/edit`) },
+                  ];
+                  if (hasPermission('task:delete')) {
+                    items.push({ label: 'Delete', onClick: () => handleDeleteTask(task._id), className: 'text-rose-500' });
+                  }
+                  return <RowActions items={items} />;
+                },
+              },
+            ];
+            return (
+              <AdvancedTable
+                data={filteredTasks}
+                columns={taskColumns}
+                emptyMessage={tasks.length === 0 ? 'No tasks yet. Create your first task to get started.' : 'No tasks match your filters.'}
+                emptyIcon={<ClipboardList className="w-12 h-12 text-slate-600 mx-auto mb-3" />}
+              />
+            );
+          })()
         )}
       </div>
       <CreateTask

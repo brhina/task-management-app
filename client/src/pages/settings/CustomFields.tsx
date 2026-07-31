@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext, type FormEvent } from 'react';
 import { Plus } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
+import AdvancedTable, { RowActions, type Column, type ActionItem } from '../../components/common/AdvancedTable';
 import Modal from '../../components/common/Modal';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
@@ -63,27 +64,37 @@ export default function CustomFields() {
         </button>
       }
     >
-      <ul className="space-y-2">
-        {fields.map((f) => (
-          <li key={f._id} className="card flex justify-between items-center gap-3">
-            <div>
-              <div className="text-sm text-slate-700">
-                {f.label}{' '}
-                <span className="text-xs text-slate-500">({f.type})</span>
-              </div>
-              <div className="text-xs text-slate-500">key: {f.key}</div>
-            </div>
-            <button
-              type="button"
-              onClick={() => remove(f._id)}
-              className="text-slate-500 hover:text-red-400 disabled:opacity-50"
-              disabled={!hasPermission('custom_field:manage')}
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </li>
-        ))}
-      </ul>
+      <AdvancedTable
+        data={fields}
+        columns={[
+          {
+            key: 'label',
+            header: 'Label',
+            render: (f) => <span className="text-sm text-slate-700">{f.label}</span>,
+          },
+          {
+            key: 'type',
+            header: 'Type',
+            render: (f) => <span className="text-xs text-slate-500">{f.type}</span>,
+          },
+          {
+            key: 'key',
+            header: 'Key',
+            render: (f) => <span className="text-xs text-slate-500">{f.key}</span>,
+          },
+          {
+            key: 'actions',
+            header: 'Actions',
+            className: 'w-[50px]',
+            render: (f) => (
+              <RowActions items={[
+                { label: 'Delete', onClick: () => remove(f._id), className: 'text-rose-500', disabled: !hasPermission('custom_field:manage') },
+              ]} />
+            ),
+          },
+        ] satisfies Column<CustomFieldDefinition>[]}
+        emptyMessage="No custom fields yet."
+      />
 
       <Modal
         isOpen={showCreate}

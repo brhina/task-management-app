@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Folder, ChevronRight, Pencil, GanttChart, Timer } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
 import FilterToolbar from '../../components/common/FilterToolbar';
+import AdvancedTable, { RowActions, type Column, type ActionItem } from '../../components/common/AdvancedTable';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
@@ -108,112 +109,90 @@ function Projects() {
           ]}
         />
 
-        {/* Project Grid */}
+        {/* Project Table */}
         {loading ? (
           <div className="flex justify-center py-16">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
-        ) : filteredProjects.length === 0 ? (
-          <div className="card text-center py-12">
-            <Folder className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-            <div className="text-slate-500 text-sm">
-              {projects.length === 0
-                ? 'No projects yet. Create your first project to get started.'
-                : 'No projects match your filters.'}
-            </div>
-          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredProjects.map((p) => {
-              const daysLeft = p.targetDate
-                ? Math.ceil((new Date(p.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-                : null;
-              const isOverdue =
-                daysLeft !== null &&
-                daysLeft < 0 &&
-                p.status !== 'Completed' &&
-                p.status !== 'Archived';
-
-              return (
-                <div
-                  key={p._id}
-                  onClick={() => navigate(`/tasks?projectId=${p._id}`)}
-                  className="card group hover:border-primary/40 transition-all cursor-pointer"
-                >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="text-sm font-semibold text-slate-700 group-hover:text-primary truncate transition-colors">
-                      {p.name}
-                    </h3>
-                    <span
-                      className={`shrink-0 inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full border ${STATUS_COLORS[p.status] || ''}`}
-                    >
-                      {p.status}
-                    </span>
-                  </div>
-
-                  {p.description && (
-                    <p className="text-xs text-slate-500 line-clamp-2 mb-3">{p.description}</p>
-                  )}
-
-                  <div className="flex items-center justify-between text-[10px] text-slate-500 mt-auto pt-2 border-t border-gray-200/50">
-                    <div className="flex items-center gap-3">
+          (() => {
+            const projectColumns: Column<Project>[] = [
+              {
+                key: 'name',
+                header: 'Name',
+                sortable: true,
+                render: (p) => (
+                  <span className="text-sm font-semibold text-slate-700 hover:text-primary cursor-pointer transition-colors" onClick={() => navigate(`/tasks?projectId=${p._id}`)}>
+                    {p.name}
+                  </span>
+                ),
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                sortable: true,
+                render: (p) => (
+                  <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full border ${STATUS_COLORS[p.status] || ''}`}>
+                    {p.status}
+                  </span>
+                ),
+              },
+              {
+                key: 'description',
+                header: 'Description',
+                render: (p) => (
+                  <span className="text-sm text-slate-700 line-clamp-1 max-w-xs block">
+                    {p.description || '—'}
+                  </span>
+                ),
+              },
+              {
+                key: 'timeline',
+                header: 'Timeline',
+                render: (p) => {
+                  const daysLeft = p.targetDate
+                    ? Math.ceil((new Date(p.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                    : null;
+                  const isOverdue = daysLeft !== null && daysLeft < 0 && p.status !== 'Completed' && p.status !== 'Archived';
+                  return (
+                    <div className="flex items-center gap-3 text-[10px] text-slate-500">
                       {p.startDate && (
-                        <span>
-                          {new Date(p.startDate).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </span>
+                        <span>{new Date(p.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                       )}
                       {p.targetDate && (
                         <span className={isOverdue ? 'text-rose-400 font-medium' : ''}>
-                          →{' '}
-                          {new Date(p.targetDate).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                          })}
+                          → {new Date(p.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           {isOverdue && ` (${Math.abs(daysLeft!)}d overdue)`}
-                          {!isOverdue &&
-                            daysLeft !== null &&
-                            daysLeft >= 0 &&
-                            ` (${daysLeft}d left)`}
+                          {!isOverdue && daysLeft !== null && daysLeft >= 0 && ` (${daysLeft}d left)`}
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Link
-                        to={`/projects/${p._id}/gantt`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-1 text-slate-600 hover:text-cyan-400 transition-colors"
-                        title="Gantt"
-                      >
-                        <GanttChart className="w-3.5 h-3.5" />
-                      </Link>
-                      <Link
-                        to={`/projects/${p._id}/sprints`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-1 text-slate-600 hover:text-cyan-400 transition-colors"
-                        title="Sprints"
-                      >
-                        <Timer className="w-3.5 h-3.5" />
-                      </Link>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/projects/${p._id}/edit`);
-                        }}
-                        className="p-1 text-slate-600 hover:text-slate-600 transition-colors"
-                        title="Edit project"
-                      >
-                        <Pencil className="w-3 h-3" />
-                      </button>
-                      <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary transition-colors" />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  );
+                },
+              },
+              {
+                key: 'actions',
+                header: 'Actions',
+                className: 'w-[50px]',
+                render: (p) => (
+                  <RowActions items={[
+                    { label: 'Gantt', onClick: () => navigate(`/projects/${p._id}/gantt`) },
+                    { label: 'Sprints', onClick: () => navigate(`/projects/${p._id}/sprints`) },
+                    { label: 'Edit', onClick: () => navigate(`/projects/${p._id}/edit`) },
+                  ]} />
+                ),
+              },
+            ];
+            return (
+              <AdvancedTable
+                data={filteredProjects}
+                columns={projectColumns}
+                onRowClick={(p) => navigate(`/tasks?projectId=${p._id}`)}
+                emptyMessage={projects.length === 0 ? 'No projects yet. Create your first project to get started.' : 'No projects match your filters.'}
+                emptyIcon={<Folder className="w-12 h-12 text-slate-600 mx-auto mb-3" />}
+              />
+            );
+          })()
         )}
       </div>
       <CreateProject

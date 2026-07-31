@@ -6,6 +6,7 @@ import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
 import FilterToolbar from '../../components/common/FilterToolbar';
+import AdvancedTable, { RowActions, type Column, type ActionItem } from '../../components/common/AdvancedTable';
 import type { User, Task, Project } from '../../types';
 
 interface UserWithTaskCounts extends User {
@@ -539,131 +540,116 @@ function ManageUsers() {
             })}
           </div>
         ) : (
-          <div className="card !p-0 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-700">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-                      Member
-                    </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-                      Projects
-                    </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-                      Workload
-                    </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-                      Tasks
-                    </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-                      Completion
-                    </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-slate-700">
-                  {filteredUsers.map((u) => {
-                    const total = getTotalTasks(u);
-                    const wl = getWorkloadStatus(u);
-                    const completion = getCompletionRate(u);
-                    const active = (u.pendingTasks || 0) + (u.inProgressTasks || 0);
-                    const userProjects = getUserProjects(u._id);
-
-                    return (
-                      <tr key={u._id} className="hover:bg-gray-200/30 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            {u.profileImageUrl ? (
-                              <img
-                                className="h-8 w-8 rounded-full ring-2 ring-gray-200"
-                                src={u.profileImageUrl}
-                                alt={u.name}
-                              />
-                            ) : (
-                              <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center ring-2 ring-gray-200">
-                                <span className="text-xs font-bold text-slate-500">
-                                  {u.name?.charAt(0).toUpperCase() || '?'}
-                                </span>
-                              </div>
-                            )}
-                            <div>
-                              <div className="text-sm font-medium text-slate-700">{u.name}</div>
-                              <div className="text-xs text-slate-500">{u.email}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex flex-wrap gap-1">
-                            {userProjects.slice(0, 2).map((p) => (
-                              <Link
-                                key={p._id}
-                                to={`/tasks?projectId=${p._id}`}
-                                className="inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
-                              >
-                                {p.name}
-                              </Link>
-                            ))}
-                            {userProjects.length > 2 && (
-                              <span className="text-[10px] text-slate-500">
-                                +{userProjects.length - 2}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 h-1.5 rounded-full bg-gray-200 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full ${wl.bar}`}
-                                style={{ width: `${Math.min(100, (active / 15) * 100)}%` }}
-                              />
-                            </div>
-                            <span className={`text-[10px] font-semibold ${wl.color}`}>
-                              {wl.label}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3 text-xs">
-                            <span className="text-yellow-400">{u.pendingTasks || 0}</span>
-                            <span className="text-blue-400">{u.inProgressTasks || 0}</span>
-                            <span className="text-emerald-400">{u.completedTasks || 0}</span>
-                            <span className="text-slate-500">/ {total}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-12 h-1.5 rounded-full bg-gray-200 overflow-hidden">
-                              <div
-                                className="h-full rounded-full bg-emerald-500"
-                                style={{ width: `${completion}%` }}
-                              />
-                            </div>
-                            <span className="text-xs font-bold text-slate-600 tabular-nums">
-                              {completion}%
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                            {hasPermission('member:manage') && u.role !== 'OrgAdmin' && u.role !== 'Owner' && (
-                            <button
-                              onClick={() => handleDeleteUser(u._id)}
-                              className="text-xs text-rose-400 hover:text-rose-300 font-medium"
-                            >
-                              Remove
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          (() => {
+            const userColumns: Column<UserWithTaskCounts>[] = [
+              {
+                key: 'name',
+                header: 'Member',
+                sortable: true,
+                render: (u) => (
+                  <div className="flex items-center gap-3">
+                    {u.profileImageUrl ? (
+                      <img className="h-8 w-8 rounded-full ring-2 ring-gray-200" src={u.profileImageUrl} alt={u.name} />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center ring-2 ring-gray-200">
+                        <span className="text-xs font-bold text-slate-500">{u.name?.charAt(0).toUpperCase() || '?'}</span>
+                      </div>
+                    )}
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">{u.name}</div>
+                      <div className="text-xs text-slate-500">{u.email}</div>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                key: 'projects',
+                header: 'Projects',
+                render: (u) => {
+                  const userProjects = getUserProjects(u._id);
+                  return (
+                    <div className="flex flex-wrap gap-1">
+                      {userProjects.slice(0, 2).map((p) => (
+                        <Link key={p._id} to={`/tasks?projectId=${p._id}`} className="inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors">
+                          {p.name}
+                        </Link>
+                      ))}
+                      {userProjects.length > 2 && <span className="text-[10px] text-slate-500">+{userProjects.length - 2}</span>}
+                    </div>
+                  );
+                },
+              },
+              {
+                key: 'workload',
+                header: 'Workload',
+                sortable: true,
+                render: (u) => {
+                  const wl = getWorkloadStatus(u);
+                  const active = (u.pendingTasks || 0) + (u.inProgressTasks || 0);
+                  return (
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                        <div className={`h-full rounded-full ${wl.bar}`} style={{ width: `${Math.min(100, (active / 15) * 100)}%` }} />
+                      </div>
+                      <span className={`text-[10px] font-semibold ${wl.color}`}>{wl.label}</span>
+                    </div>
+                  );
+                },
+              },
+              {
+                key: 'tasks',
+                header: 'Tasks',
+                render: (u) => {
+                  const total = getTotalTasks(u);
+                  return (
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className="text-yellow-400">{u.pendingTasks || 0}</span>
+                      <span className="text-blue-400">{u.inProgressTasks || 0}</span>
+                      <span className="text-emerald-400">{u.completedTasks || 0}</span>
+                      <span className="text-slate-500">/ {total}</span>
+                    </div>
+                  );
+                },
+              },
+              {
+                key: 'completion',
+                header: 'Completion',
+                sortable: true,
+                render: (u) => {
+                  const completion = getCompletionRate(u);
+                  return (
+                    <div className="flex items-center gap-2">
+                      <div className="w-12 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                        <div className="h-full rounded-full bg-emerald-500" style={{ width: `${completion}%` }} />
+                      </div>
+                      <span className="text-xs font-bold text-slate-600 tabular-nums">{completion}%</span>
+                    </div>
+                  );
+                },
+              },
+              {
+                key: 'actions',
+                header: 'Actions',
+                className: 'w-[50px]',
+                render: (u) => {
+                  if (!hasPermission('member:manage') || u.role === 'OrgAdmin' || u.role === 'Owner') return null;
+                  return (
+                    <RowActions items={[
+                      { label: 'Remove', onClick: () => handleDeleteUser(u._id), className: 'text-rose-500' },
+                    ]} />
+                  );
+                },
+              },
+            ];
+            return (
+              <AdvancedTable
+                data={filteredUsers}
+                columns={userColumns}
+                emptyMessage={users.length === 0 ? 'No team members yet.' : 'No members match your filters.'}
+                emptyIcon={<Users className="w-12 h-12 text-slate-600 mx-auto mb-3" />}
+              />
+            );
+          })()
         )}
       </div>
 

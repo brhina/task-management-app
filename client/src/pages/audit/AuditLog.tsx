@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import { Download, Filter, ScrollText } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import PageShell from '../../components/common/PageShell';
+import AdvancedTable, { type Column } from '../../components/common/AdvancedTable';
 import axios from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 
@@ -159,52 +160,58 @@ const AuditLogPage = () => {
         {loading ? (
           <p className="text-slate-500 text-sm">Loading audit log...</p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-gray-200/50">
-            <table className="w-full text-sm">
-              <thead className="bg-white/80 text-slate-500 text-left">
-                <tr>
-                  <th className="px-3 py-2 font-medium">Time</th>
-                  <th className="px-3 py-2 font-medium">Actor</th>
-                  <th className="px-3 py-2 font-medium">Action</th>
-                  <th className="px-3 py-2 font-medium">Target</th>
-                  <th className="px-3 py-2 font-medium">Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map((log) => (
-                  <tr key={log._id} className="border-t border-gray-200/40 text-slate-600">
-                    <td className="px-3 py-2 whitespace-nowrap text-xs">
-                      {new Date(log.createdAt).toLocaleString()}
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="text-slate-800 text-xs">{log.actorId?.name || 'System'}</div>
-                      <div className="text-[10px] text-slate-500">{log.actorId?.email}</div>
-                    </td>
-                    <td className="px-3 py-2">
-                      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-gray-100 border border-gray-200">
-                        <ScrollText className="w-3 h-3" />
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-xs">
-                      {log.targetType}
-                      {log.targetId ? ` · ${String(log.targetId).slice(-6)}` : ''}
-                    </td>
-                    <td className="px-3 py-2 text-xs text-slate-500 max-w-xs truncate">
-                      {log.metadata ? JSON.stringify(log.metadata) : '—'}
-                    </td>
-                  </tr>
-                ))}
-                {logs.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-3 py-8 text-center text-slate-500">
-                      No audit events yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <AdvancedTable
+            data={logs}
+            columns={[
+              {
+                key: 'createdAt',
+                header: 'Time',
+                render: (log) => (
+                  <span className="text-xs whitespace-nowrap">{new Date(log.createdAt).toLocaleString()}</span>
+                ),
+              },
+              {
+                key: 'actorId',
+                header: 'Actor',
+                render: (log) => (
+                  <div>
+                    <div className="text-slate-800 text-xs">{log.actorId?.name || 'System'}</div>
+                    <div className="text-[10px] text-slate-500">{log.actorId?.email}</div>
+                  </div>
+                ),
+              },
+              {
+                key: 'action',
+                header: 'Action',
+                render: (log) => (
+                  <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-gray-100 border border-gray-200">
+                    <ScrollText className="w-3 h-3" />
+                    {log.action}
+                  </span>
+                ),
+              },
+              {
+                key: 'targetType',
+                header: 'Target',
+                render: (log) => (
+                  <span className="text-xs">
+                    {log.targetType}
+                    {log.targetId ? ` · ${String(log.targetId).slice(-6)}` : ''}
+                  </span>
+                ),
+              },
+              {
+                key: 'metadata',
+                header: 'Details',
+                render: (log) => (
+                  <span className="text-xs text-slate-500 max-w-xs truncate block">
+                    {log.metadata ? JSON.stringify(log.metadata) : '—'}
+                  </span>
+                ),
+              },
+            ] satisfies Column<AuditEntry>[]}
+            emptyMessage="No audit events yet."
+          />
         )}
 
         {pages > 1 && (

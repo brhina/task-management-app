@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import { Plus, UsersRound, Trash2 } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import PageShell from '../../components/common/PageShell';
+import AdvancedTable, { RowActions, type Column, type ActionItem } from '../../components/common/AdvancedTable';
 import Modal from '../../components/common/Modal';
 import axios from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
@@ -148,55 +149,65 @@ const Teams = () => {
 
         {loading ? (
           <p className="text-slate-500 text-sm">Loading teams...</p>
-        ) : (
-          <div className="grid lg:grid-cols-2 gap-4">
-            {teams.map((team) => (
-              <div
-                key={team._id}
-                className="bg-white/50 border border-gray-200/50 rounded-xl p-4"
-              >
-                <div className="flex items-start justify-between gap-2">
+        ) : (() => {
+            const teamColumns: Column<Team>[] = [
+              {
+                key: 'name',
+                header: 'Name',
+                render: (team) => (
                   <div>
                     <div className="flex items-center gap-2 text-slate-800 font-semibold">
                       <UsersRound className="w-4 h-4 text-primary" />
                       {team.name}
                     </div>
                     {team.parentTeamId && (
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        Parent: {team.parentTeamId.name}
-                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5">Parent: {team.parentTeamId.name}</p>
                     )}
                     {team.description && (
-                      <p className="text-sm text-slate-500 mt-1">{team.description}</p>
-                    )}
-                    <p className="text-xs text-slate-500 mt-2">
-                      Lead: {team.leadId?.name || '—'} · Members: {team.memberIds?.length || 0}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => loadDashboard(team._id)}
-                      className="text-xs px-2 py-1 rounded border border-slate-600 text-slate-600 hover:bg-gray-200"
-                    >
-                      Dashboard
-                    </button>
-                    {canManage && (
-                      <button
-                        onClick={() => handleDelete(team._id)}
-                        className="text-rose-400 hover:text-rose-300 p-1"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <p className="text-xs text-slate-500 mt-1">{team.description}</p>
                     )}
                   </div>
-                </div>
-              </div>
-            ))}
-            {teams.length === 0 && (
-              <p className="text-sm text-slate-500">No teams yet. Create one to get started.</p>
-            )}
-          </div>
-        )}
+                ),
+              },
+              {
+                key: 'members',
+                header: 'Members',
+                render: (team) => (
+                  <span className="text-sm text-slate-700">{team.memberIds?.length || 0}</span>
+                ),
+              },
+              {
+                key: 'leads',
+                header: 'Leads',
+                render: (team) => (
+                  <span className="text-sm text-slate-700">{team.leadId?.name || '—'}</span>
+                ),
+              },
+              {
+                key: 'actions',
+                header: 'Actions',
+                className: 'w-[50px]',
+                render: (team) => {
+                  const items: ActionItem[] = [
+                    { label: 'Dashboard', onClick: () => loadDashboard(team._id) },
+                  ];
+                  if (canManage) {
+                    items.push({ label: 'Delete', onClick: () => handleDelete(team._id), className: 'text-rose-500' });
+                  }
+                  return <RowActions items={items} />;
+                },
+              },
+            ];
+            return (
+              <AdvancedTable
+                data={teams}
+                columns={teamColumns}
+                emptyMessage="No teams yet. Create one to get started."
+                emptyIcon={<UsersRound className="w-12 h-12 text-slate-600 mx-auto mb-3" />}
+              />
+            );
+          })()
+        }
 
         {selectedDashboard && (
           <div className="bg-white/50 border border-gray-200/50 rounded-xl p-4">

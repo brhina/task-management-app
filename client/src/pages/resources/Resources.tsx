@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import PageShell from '../../components/common/PageShell';
+import AdvancedTable, { type Column } from '../../components/common/AdvancedTable';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 
@@ -80,70 +81,64 @@ export default function Resources() {
         </div>
       )}
 
-      <div className="overflow-x-auto card">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs text-slate-500 border-b border-gray-200">
-              <th className="py-2 pr-3">Member</th>
-              <th className="py-2 pr-3">Capacity/wk</th>
-              <th className="py-2 pr-3">Window capacity</th>
-              <th className="py-2 pr-3">Assigned</th>
-              <th className="py-2 pr-3">Logged</th>
-              <th className="py-2 pr-3">Open tasks</th>
-              <th className="py-2 pr-3">Utilization</th>
-            </tr>
-          </thead>
-          <tbody>
-            {allocation.map((row) => (
-              <tr
-                key={String(row.userId)}
-                className={`border-b border-gray-200 ${
-                  row.overloaded ? 'bg-rose-500/5' : ''
-                }`}
-              >
-                <td className="py-2 pr-3 text-slate-700">
-                  {row.user?.name || 'User'}
-                  {row.overloaded && (
-                    <span className="ml-2 text-[10px] text-rose-400 font-semibold">
-                      OVERLOAD
-                    </span>
-                  )}
-                </td>
-                <td className="py-2 pr-3 text-slate-500">
-                  {row.capacityHoursPerWeek}h
-                </td>
-                <td className="py-2 pr-3 text-slate-500">
-                  {row.capacityInWindow.toFixed(1)}h
-                </td>
-                <td className="py-2 pr-3 text-slate-600">
-                  {row.assignedHours.toFixed(1)}h
-                </td>
-                <td className="py-2 pr-3 text-slate-600">
-                  {row.loggedHours.toFixed(1)}h
-                </td>
-                <td className="py-2 pr-3 text-slate-500">{row.openTaskCount}</td>
-                <td className="py-2 pr-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 rounded bg-white max-w-[80px] overflow-hidden">
-                      <div
-                        className={`h-full ${
-                          row.overloaded ? 'bg-rose-500' : 'bg-cyan-500'
-                        }`}
-                        style={{
-                          width: `${Math.min(100, row.utilizationPercent)}%`,
-                        }}
-                      />
-                    </div>
-                    <span className="text-xs text-slate-500 tabular-nums">
-                      {row.utilizationPercent}%
-                    </span>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <AdvancedTable
+        data={allocation}
+        columns={[
+          {
+            key: 'user',
+            header: 'Member',
+            render: (row) => (
+              <span className="text-sm text-slate-700">
+                {row.user?.name || 'User'}
+                {row.overloaded && (
+                  <span className="ml-2 text-[10px] text-rose-400 font-semibold">OVERLOAD</span>
+                )}
+              </span>
+            ),
+          },
+          {
+            key: 'capacityHoursPerWeek',
+            header: 'Capacity/wk',
+            render: (row) => <span className="text-sm text-slate-500">{row.capacityHoursPerWeek}h</span>,
+          },
+          {
+            key: 'capacityInWindow',
+            header: 'Window capacity',
+            render: (row) => <span className="text-sm text-slate-500">{row.capacityInWindow.toFixed(1)}h</span>,
+          },
+          {
+            key: 'assignedHours',
+            header: 'Assigned',
+            render: (row) => <span className="text-sm text-slate-600">{row.assignedHours.toFixed(1)}h</span>,
+          },
+          {
+            key: 'loggedHours',
+            header: 'Logged',
+            render: (row) => <span className="text-sm text-slate-600">{row.loggedHours.toFixed(1)}h</span>,
+          },
+          {
+            key: 'openTaskCount',
+            header: 'Open tasks',
+            render: (row) => <span className="text-sm text-slate-500">{row.openTaskCount}</span>,
+          },
+          {
+            key: 'utilizationPercent',
+            header: 'Utilization',
+            render: (row) => (
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-1.5 rounded bg-white max-w-[80px] overflow-hidden">
+                  <div
+                    className={`h-full ${row.overloaded ? 'bg-rose-500' : 'bg-cyan-500'}`}
+                    style={{ width: `${Math.min(100, row.utilizationPercent)}%` }}
+                  />
+                </div>
+                <span className="text-xs text-slate-500 tabular-nums">{row.utilizationPercent}%</span>
+              </div>
+            ),
+          },
+        ] satisfies Column<AllocationRow>[]}
+        emptyMessage="No allocation data for this period."
+      />
     </PageShell>
   );
 }

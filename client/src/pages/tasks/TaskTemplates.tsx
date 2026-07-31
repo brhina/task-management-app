@@ -1,5 +1,6 @@
 import { useEffect, useState, useContext, useCallback, type FormEvent } from 'react';
 import PageShell from '../../components/common/PageShell';
+import AdvancedTable, { RowActions, type Column, type ActionItem } from '../../components/common/AdvancedTable';
 import Modal from '../../components/common/Modal';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
@@ -68,27 +69,32 @@ export default function TaskTemplates() {
       }
     >
       {error && <div className="alert-error mb-4">{error}</div>}
-      <ul className="space-y-2">
-        {templates.map((t) => (
-          <li
-            key={t._id}
-            className="card flex items-center justify-between gap-3"
-          >
-            <div>
-              <div className="text-sm font-medium text-slate-700">{t.name}</div>
-              <div className="text-xs text-slate-500">{t.title}</div>
-            </div>
-            <button
-              type="button"
-              onClick={() => remove(t._id)}
-              className="text-slate-500 hover:text-red-400 disabled:opacity-50"
-              disabled={!hasPermission('template:manage')}
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </li>
-        ))}
-      </ul>
+      <AdvancedTable
+        data={templates}
+        columns={[
+          {
+            key: 'name',
+            header: 'Name',
+            render: (t) => <span className="text-sm font-medium text-slate-700">{t.name}</span>,
+          },
+          {
+            key: 'title',
+            header: 'Title',
+            render: (t) => <span className="text-xs text-slate-500">{t.title}</span>,
+          },
+          {
+            key: 'actions',
+            header: 'Actions',
+            className: 'w-[50px]',
+            render: (t) => (
+              <RowActions items={[
+                { label: 'Delete', onClick: () => remove(t._id), className: 'text-rose-500', disabled: !hasPermission('template:manage') },
+              ]} />
+            ),
+          },
+        ] satisfies Column<TaskTemplate>[]}
+        emptyMessage="No templates yet."
+      />
 
       <Modal
         isOpen={showCreate}

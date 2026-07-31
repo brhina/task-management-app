@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Zap, ChevronRight } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
 import FilterToolbar from '../../components/common/FilterToolbar';
+import AdvancedTable, { RowActions, type Column, type ActionItem } from '../../components/common/AdvancedTable';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
@@ -115,81 +116,84 @@ function Goals() {
           ]}
         />
 
-        {/* Goals Grid */}
+        {/* Goals Table */}
         {loading ? (
           <div className="flex justify-center py-16">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
-        ) : filteredGoals.length === 0 ? (
-          <div className="card text-center py-12">
-            <Zap className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-            <div className="text-slate-500 text-sm">
-              {goals.length === 0
-                ? 'No goals yet. Create your first OKR to get started.'
-                : 'No goals match your filters.'}
-            </div>
-          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredGoals.map((g) => {
-              const progress = g.targetValue
-                ? Math.min(100, Math.round(((g.currentValue || 0) / g.targetValue) * 100))
-                : null;
-
-              return (
-                <Link
-                  key={g._id}
-                  to={`/goals/${g._id}`}
-                  className="card group hover:border-primary/40 transition-all flex flex-col"
-                >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <span
-                      className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full border ${TIMEFRAME_COLORS[g.timeframe] || TIMEFRAME_COLORS.Custom}`}
-                    >
-                      {g.timeframe}
-                    </span>
-                    <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary transition-colors shrink-0" />
-                  </div>
-
-                  <h3 className="text-sm font-semibold text-slate-700 group-hover:text-primary transition-colors mb-1">
+          (() => {
+            const goalColumns: Column<Goal>[] = [
+              {
+                key: 'title',
+                header: 'Title',
+                sortable: true,
+                render: (g) => (
+                  <Link to={`/goals/${g._id}`} className="text-sm font-semibold text-slate-700 hover:text-primary transition-colors">
                     {g.title}
-                  </h3>
-
-                  {g.objective && (
-                    <p className="text-xs text-slate-500 line-clamp-2 mb-3">{g.objective}</p>
-                  )}
-
-                  <div className="mt-auto pt-3 border-t border-gray-200/50">
-                    {progress !== null ? (
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] text-slate-500">
-                            {g.metric || 'Progress'}
-                          </span>
-                          <span className="text-[10px] font-bold text-slate-600 tabular-nums">
-                            {progress}%
-                          </span>
-                        </div>
-                        <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-primary to-emerald-500 transition-all"
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
-                        <div className="text-[10px] text-slate-500 mt-1 tabular-nums">
-                          {g.currentValue ?? 0} / {g.targetValue}
-                        </div>
+                  </Link>
+                ),
+              },
+              {
+                key: 'timeframe',
+                header: 'Timeframe',
+                sortable: true,
+                render: (g) => (
+                  <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full border ${TIMEFRAME_COLORS[g.timeframe] || TIMEFRAME_COLORS.Custom}`}>
+                    {g.timeframe}
+                  </span>
+                ),
+              },
+              {
+                key: 'objective',
+                header: 'Objective',
+                render: (g) => (
+                  <span className="text-sm text-slate-700 line-clamp-1 max-w-xs block">
+                    {g.objective || '—'}
+                  </span>
+                ),
+              },
+              {
+                key: 'progress',
+                header: 'Progress',
+                sortable: true,
+                render: (g) => {
+                  const progress = g.targetValue
+                    ? Math.min(100, Math.round(((g.currentValue || 0) / g.targetValue) * 100))
+                    : null;
+                  return progress !== null ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                        <div className="h-full rounded-full bg-gradient-to-r from-primary to-emerald-500 transition-all" style={{ width: `${progress}%` }} />
                       </div>
-                    ) : (
-                      <div className="text-[10px] text-slate-500">
-                        {g.metric || 'No metric set'}
-                      </div>
-                    )}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+                      <span className="text-xs font-bold text-slate-600 tabular-nums">{progress}%</span>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-500">{g.metric || 'No metric'}</span>
+                  );
+                },
+              },
+              {
+                key: 'actions',
+                header: 'Actions',
+                className: 'w-[50px]',
+                render: (g) => (
+                  <RowActions items={[
+                    { label: 'View', onClick: () => window.location.href = `/goals/${g._id}` },
+                  ]} />
+                ),
+              },
+            ];
+            return (
+              <AdvancedTable
+                data={filteredGoals}
+                columns={goalColumns}
+                onRowClick={(g) => window.location.href = `/goals/${g._id}`}
+                emptyMessage={goals.length === 0 ? 'No goals yet. Create your first OKR to get started.' : 'No goals match your filters.'}
+                emptyIcon={<Zap className="w-12 h-12 text-slate-600 mx-auto mb-3" />}
+              />
+            );
+          })()
         )}
       </div>
       <CreateGoal
