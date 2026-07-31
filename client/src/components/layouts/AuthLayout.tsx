@@ -69,15 +69,12 @@ function AuthLayout({ children }: { children: ReactNode }) {
         { name: 'Goals', path: '/goals', icon: NavIcons.goals },
         { name: 'Resources', path: '/resources', icon: NavIcons.resources },
       ];
-      if (hasPermission('team:view')) {
-        links.push({ name: 'Teams', path: '/teams', icon: NavIcons.teams });
-      }
       links.push(
         { name: 'Templates', path: '/tasks/templates', icon: NavIcons.templates },
-        { name: 'Notifications', path: '/settings/notifications', icon: NavIcons.notifications },
+        { name: 'Notifications', path: '/settings/notifications', icon: NavIcons.notifications }
       );
-      if (hasPermission('member:manage') || hasPermission('member:invite')) {
-        links.push({ name: 'Manage Users', path: '/users', icon: NavIcons.users });
+      if (hasPermission('member:manage') || hasPermission('member:invite') || hasPermission('team:view')) {
+        links.push({ name: 'Users & Teams', path: '/users', icon: NavIcons.users });
       }
       if (hasPermission('role:manage')) {
         links.push({ name: 'Roles', path: '/settings/roles', icon: NavIcons.roles });

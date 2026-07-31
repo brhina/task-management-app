@@ -363,13 +363,7 @@ function App() {
         {/* Other admin pages */}
         <Route
           path="/teams"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <Teams />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
+          element={<Navigate to="/users?tab=teams" replace />}
         />
         <Route
           path="/reports"

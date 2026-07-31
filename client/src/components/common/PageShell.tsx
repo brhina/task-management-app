@@ -4,7 +4,7 @@ import Breadcrumbs from './Breadcrumbs';
 import NotificationBell from './NotificationBell';
 
 interface PageShellProps {
-  title: string;
+  title: ReactNode;
   subtitle?: ReactNode;
   actions?: ReactNode;
   topSlot?: ReactNode;
@@ -53,9 +53,9 @@ function PageShell({ title, subtitle, actions, topSlot, children }: PageShellPro
             <NotificationBell />
           </div>
         </div>
-        <h1 className="text-xl md:text-2xl font-bold text-slate-800 tracking-tight">
+        <div className="text-xl md:text-2xl font-bold text-slate-800 tracking-tight flex flex-wrap items-center gap-3">
           {title}
-        </h1>
+        </div>
         {subtitle && <div className="text-slate-500 text-sm">{subtitle}</div>}
       </div>
       <div className="page-section">{children}</div>
