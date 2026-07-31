@@ -445,14 +445,14 @@ function ManageUsers() {
                       <div className="flex items-center gap-2 mt-1">
                         <span
                           className={`inline-flex px-1.5 py-0.5 text-[10px] font-semibold rounded-full border ${
-                            u.role === 'OrgAdmin' || u.role === 'Owner'
+                            (u.role as string) === 'OrgAdmin' || (u.role as string) === 'Owner'
                               ? 'bg-violet-500/15 text-violet-400 border-violet-500/30'
                               : 'bg-sky-500/15 text-sky-400 border-sky-500/30'
                           }`}
                         >
-                          {u.role === 'OrgAdmin' || u.role === 'Owner'
+                          {(u.role as string) === 'OrgAdmin' || (u.role as string) === 'Owner'
                             ? 'Owner'
-                            : u.role === 'OrgMember'
+                            : (u.role as string) === 'OrgMember'
                               ? 'Member'
                               : u.role}
                         </span>
@@ -526,7 +526,7 @@ function ManageUsers() {
                         year: 'numeric',
                       })}
                     </span>
-                    {hasPermission('member:manage') && u.role !== 'OrgAdmin' && u.role !== 'Owner' && (
+                    {hasPermission('member:manage') && (u.role as string) !== 'OrgAdmin' && (u.role as string) !== 'Owner' && (
                       <button
                         onClick={() => handleDeleteUser(u._id)}
                         className="text-[10px] text-rose-400 hover:text-rose-300 font-medium opacity-0 group-hover:opacity-100 transition-opacity"
@@ -632,7 +632,7 @@ function ManageUsers() {
                 header: 'Actions',
                 className: 'w-[50px]',
                 render: (u) => {
-                  if (!hasPermission('member:manage') || u.role === 'OrgAdmin' || u.role === 'Owner') return null;
+                  if (!hasPermission('member:manage') || (u.role as string) === 'OrgAdmin' || (u.role as string) === 'Owner') return null;
                   return (
                     <RowActions items={[
                       { label: 'Remove', onClick: () => handleDeleteUser(u._id), className: 'text-rose-500' },
