@@ -4,7 +4,7 @@ import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import Modal from '../../components/common/Modal';
-import type { Goal, Project, User, TaskTemplate, CustomFieldDefinition } from '../../types';
+import type { Goal, Project, User, TaskTemplate } from '../../types';
 
 interface TodoItem {
   text: string;
@@ -103,8 +103,6 @@ function CreateTask({ isOpen, onClose, defaultProjectId = '', onCreated }: Creat
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(false);
   const [recurrenceFreq, setRecurrenceFreq] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
-  const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDefinition[]>([]);
-  const [customFieldValues, setCustomFieldValues] = useState<Record<string, unknown>>({});
 
   useEffect(() => {
     if (isOpen) {
@@ -123,7 +121,6 @@ function CreateTask({ isOpen, onClose, defaultProjectId = '', onCreated }: Creat
       setStartDate('');
       setSelectedTemplateId('');
       setRecurrenceEnabled(false);
-      setCustomFieldValues({});
       setShowAdvanced(false);
       setError('');
 
@@ -132,7 +129,6 @@ function CreateTask({ isOpen, onClose, defaultProjectId = '', onCreated }: Creat
         api.get(apiPaths.PROJECTS.LIST).then((r) => setProjects(r.data?.data?.projects || [])),
         api.get(apiPaths.GOALS.LIST).then((r) => setGoals(r.data?.data?.goals || [])),
         api.get(apiPaths.TASK_TEMPLATES.LIST).then((r) => setTemplates(r.data?.data || [])),
-        api.get(apiPaths.CUSTOM_FIELDS.LIST).then((r) => setCustomFieldDefs(r.data?.data || [])),
       ]).catch(() => {});
     }
   }, [isOpen, defaultProjectId]);
@@ -155,7 +151,6 @@ function CreateTask({ isOpen, onClose, defaultProjectId = '', onCreated }: Creat
     setImpactScore(t.impactScore ?? 5);
     setEffortHours(t.effortHours ?? 1);
     setTodoItems((t.checklist || []).map((c) => ({ text: c.text, isCompleted: false })));
-    setCustomFieldValues((t.customFields as Record<string, unknown>) || {});
   };
 
   const handleGoalToggle = (goalId: string) => {
@@ -202,7 +197,6 @@ function CreateTask({ isOpen, onClose, defaultProjectId = '', onCreated }: Creat
         impactScore,
         effortHours,
         todoCheckList: todoItems.filter((item) => item.text.trim()),
-        customFields: customFieldValues,
         recurrence: recurrenceEnabled
           ? {
               frequency: recurrenceFreq,
@@ -405,46 +399,6 @@ function CreateTask({ isOpen, onClose, defaultProjectId = '', onCreated }: Creat
             )}
           </div>
         </div>
-        {customFieldDefs.length > 0 && (
-          <div className="card space-y-3">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-              Custom fields
-            </div>
-            {customFieldDefs.map((f) => (
-              <div key={f._id}>
-                <label className="text-xs text-slate-500 mb-1 block">{f.label}</label>
-                {f.type === 'select' ? (
-                  <select
-                    className="input-field w-full text-sm"
-                    value={String(customFieldValues[f.key] ?? '')}
-                    onChange={(e) =>
-                      setCustomFieldValues((prev) => ({ ...prev, [f.key]: e.target.value }))
-                    }
-                  >
-                    <option value="">Select...</option>
-                    {(f.options || []).map((o) => (
-                      <option key={o} value={o}>
-                        {o}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    type={f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : 'text'}
-                    className="input-field w-full text-sm"
-                    value={String(customFieldValues[f.key] ?? '')}
-                    onChange={(e) =>
-                      setCustomFieldValues((prev) => ({
-                        ...prev,
-                        [f.key]: f.type === 'number' ? Number(e.target.value) : e.target.value,
-                      }))
-                    }
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
         <div className="card">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
             Assign To *

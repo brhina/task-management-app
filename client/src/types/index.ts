@@ -84,7 +84,6 @@ export interface Task {
   parentTaskId?: string;
   sortOrder?: number;
   sprintId?: string;
-  customFields?: Record<string, unknown>;
   recurrence?: TaskRecurrence | null;
   completedCount?: number;
   totalCount?: number;
@@ -132,17 +131,8 @@ export interface TaskTemplate {
   impactScore?: number;
   effortHours?: number;
   checklist: TodoItem[];
-  customFields?: Record<string, unknown>;
 }
 
-export interface CustomFieldDefinition {
-  _id: string;
-  key: string;
-  label: string;
-  type: 'text' | 'number' | 'date' | 'select' | 'multi-select';
-  options?: string[];
-  required?: boolean;
-}
 
 export interface Sprint {
   _id: string;

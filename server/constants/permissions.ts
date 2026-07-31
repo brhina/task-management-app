@@ -21,7 +21,6 @@ export const PERMISSIONS = [
   "team:view",
   "team:manage",
   "automation:manage",
-  "custom_field:manage",
   "template:manage",
 ] as const;
 

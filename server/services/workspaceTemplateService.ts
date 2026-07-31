@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import Project from "../models/Project.js";
 import Team from "../models/Team.js";
-import CustomFieldDefinition from "../models/CustomFieldDefinition.js";
 import {
   getWorkspaceTemplate,
   WORKSPACE_TEMPLATES,
@@ -36,17 +35,6 @@ export async function applyWorkspaceTemplate(
       memberIds: [userId],
       leadId: userId,
       createdBy: userId,
-    });
-  }
-
-  for (const field of template.customFields) {
-    await CustomFieldDefinition.create({
-      orgId,
-      key: field.key,
-      label: field.label,
-      type: field.type,
-      options: field.options || [],
-      required: false,
     });
   }
 

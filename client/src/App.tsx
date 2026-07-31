@@ -31,7 +31,6 @@ import ProfileUpdate from './pages/users/ProfileUpdate';
 
 import WorkOS from './pages/settings/WorkOS';
 import RolesPermissions from './pages/settings/RolesPermissions';
-import CustomFields from './pages/settings/CustomFields';
 import NotificationSettings from './pages/settings/NotificationSettings';
 
 import Reports from './pages/reports/Reports';
@@ -349,16 +348,7 @@ function App() {
             </AdminRouteWrapper>
           }
         />
-        <Route
-          path="/settings/custom-fields"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <CustomFields />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
-        />
+
         <Route
           path="/settings/notifications"
           element={

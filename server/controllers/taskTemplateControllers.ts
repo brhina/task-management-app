@@ -68,7 +68,6 @@ export const createTemplate = async (
       impactScore: req.body.impactScore,
       effortHours: req.body.effortHours,
       checklist: req.body.checklist || [],
-      customFields: req.body.customFields || {},
       createdBy: req.user._id,
     });
 
@@ -107,7 +106,6 @@ export const updateTemplate = async (
       "impactScore",
       "effortHours",
       "checklist",
-      "customFields",
     ] as const;
     for (const f of fields) {
       if (req.body[f] !== undefined) (template as any)[f] = req.body[f];
@@ -187,7 +185,6 @@ export const createTaskFromTemplate = async (
         isCompleted: false,
       })),
       progress: 0,
-      customFields: template.customFields || {},
     });
 
     await logTaskActivity({
@@ -220,11 +217,6 @@ export const saveTaskAsTemplate = async (
       return;
     }
 
-    const customFields =
-      task.customFields instanceof Map
-        ? Object.fromEntries(task.customFields)
-        : task.customFields || {};
-
     const template = await TaskTemplate.create({
       orgId: req.orgId,
       name: req.body.name || `${task.title} Template`,
@@ -239,7 +231,6 @@ export const saveTaskAsTemplate = async (
         text: c.text,
         isCompleted: false,
       })),
-      customFields,
       createdBy: req.user._id,
     });
 

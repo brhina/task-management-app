@@ -7,7 +7,7 @@ import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { TASK_STATUS } from '../../constants/taskStatus';
-import type { Goal, Project, User, Task, CustomFieldDefinition } from '../../types';
+import type { Goal, Project, User, Task } from '../../types';
 
 interface TodoItem {
   text: string;
@@ -110,8 +110,6 @@ function EditTask() {
   const [startDate, setStartDate] = useState('');
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(false);
   const [recurrenceFreq, setRecurrenceFreq] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
-  const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDefinition[]>([]);
-  const [customFieldValues, setCustomFieldValues] = useState<Record<string, unknown>>({});
 
   const [originalAssignedTo, setOriginalAssignedTo] = useState('');
   const [originalPriority, setOriginalPriority] = useState('Medium');
@@ -128,7 +126,6 @@ function EditTask() {
       api.get(apiPaths.USERS.GET_ALL_USERS).then((r) => setUsers(r.data?.users || r.data)),
       api.get(apiPaths.PROJECTS.LIST).then((r) => setProjects(r.data?.data?.projects || [])),
       api.get(apiPaths.GOALS.LIST).then((r) => setGoals(r.data?.data?.goals || [])),
-      api.get(apiPaths.CUSTOM_FIELDS.LIST).then((r) => setCustomFieldDefs(r.data?.data || [])),
       api.get(apiPaths.TASKS.GET_TASK_BY_ID.replace(':id', id)).then((r) => {
         const task: Task = r.data.data;
         setTitle(task.title);
@@ -141,11 +138,6 @@ function EditTask() {
         );
         setRecurrenceEnabled(Boolean(task.recurrence));
         if (task.recurrence?.frequency) setRecurrenceFreq(task.recurrence.frequency);
-        const cf =
-          task.customFields instanceof Map
-            ? Object.fromEntries(task.customFields as any)
-            : task.customFields || {};
-        setCustomFieldValues(cf as Record<string, unknown>);
         const assigneeId = typeof task.assignedTo === 'string' ? task.assignedTo : task.assignedTo?._id || '';
         setAssignedTo(assigneeId);
         setOriginalAssignedTo(assigneeId);
@@ -240,7 +232,6 @@ function EditTask() {
         impactScore,
         effortHours,
         todoCheckList: todoItems.filter((item) => item.text.trim()),
-        customFields: customFieldValues,
         recurrence: recurrenceEnabled
           ? {
               frequency: recurrenceFreq,
@@ -463,31 +454,6 @@ function EditTask() {
             )}
           </div>
         </div>
-
-        {customFieldDefs.length > 0 && (
-          <div className="card space-y-3">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-              Custom fields
-            </div>
-            {customFieldDefs.map((f) => (
-              <div key={f._id}>
-                <label className="text-xs text-slate-500 mb-1 block">{f.label}</label>
-                <input
-                  type={f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : 'text'}
-                  className="input-field w-full text-sm"
-                  value={String(customFieldValues[f.key] ?? '')}
-                  onChange={(e) =>
-                    setCustomFieldValues((prev) => ({
-                      ...prev,
-                      [f.key]:
-                        f.type === 'number' ? Number(e.target.value) : e.target.value,
-                    }))
-                  }
-                />
-              </div>
-            ))}
-          </div>
-        )}
 
         <div className="card">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">

@@ -60,14 +60,6 @@ const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
 
     filter.orgId = new mongoose.Types.ObjectId(req.orgId);
 
-    // Custom field filters: customField.<key>=value
-    for (const [key, value] of Object.entries(req.query)) {
-      if (key.startsWith("customField.") && value !== undefined) {
-        const fieldKey = key.slice("customField.".length);
-        filter[`customFields.${fieldKey}`] = value;
-      }
-    }
-
     const isSearch = Boolean(search);
 
     if (isSearch) {
@@ -206,7 +198,6 @@ const createTask = async (req: AuthRequest, res: Response): Promise<void> => {
       parentTaskId,
       sortOrder,
       sprintId,
-      customFields,
       recurrence,
     } = req.body;
 
@@ -249,7 +240,6 @@ const createTask = async (req: AuthRequest, res: Response): Promise<void> => {
       parentTaskId,
       sortOrder: sortOrder ?? 0,
       sprintId,
-      customFields: customFields || {},
       recurrence: recurrence || null,
     });
 
@@ -358,10 +348,6 @@ const updateTask = async (req: AuthRequest, res: Response): Promise<void> => {
     if (req.body.progress !== undefined) setIf("progress", req.body.progress);
     if (req.body.sprintId !== undefined) task.sprintId = req.body.sprintId;
     if (req.body.sortOrder !== undefined) task.sortOrder = req.body.sortOrder;
-    if (req.body.customFields !== undefined) {
-      task.customFields = req.body.customFields;
-      tracked.push({ field: "customFields", from: "...", to: "..." });
-    }
     if (req.body.recurrence !== undefined) {
       task.recurrence = req.body.recurrence;
       tracked.push({ field: "recurrence", from: "...", to: "..." });

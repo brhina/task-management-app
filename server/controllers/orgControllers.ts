@@ -30,7 +30,6 @@ export const listWorkspaceTemplates = async (
       description: t.description,
       projectCount: t.projects.length,
       teamCount: t.teams.length,
-      customFieldCount: t.customFields.length,
     })),
   });
 };

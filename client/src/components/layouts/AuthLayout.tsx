@@ -15,7 +15,6 @@ import {
   ChevronsLeft,
   ClipboardList,
   FileText,
-  SlidersHorizontal,
   UsersRound,
   Bell,
   Shield,
@@ -32,7 +31,6 @@ const NavIcons: Record<string, ReactNode> = {
   goals: <Target className="w-5 h-5" />,
   workos: <Settings className="w-5 h-5" />,
   templates: <FileText className="w-5 h-5" />,
-  fields: <SlidersHorizontal className="w-5 h-5" />,
   resources: <UsersRound className="w-5 h-5" />,
   notifications: <Bell className="w-5 h-5" />,
   teams: <UsersRound className="w-5 h-5" />,
@@ -76,7 +74,6 @@ function AuthLayout({ children }: { children: ReactNode }) {
       }
       links.push(
         { name: 'Templates', path: '/tasks/templates', icon: NavIcons.templates },
-        { name: 'Custom Fields', path: '/settings/custom-fields', icon: NavIcons.fields },
         { name: 'Notifications', path: '/settings/notifications', icon: NavIcons.notifications },
       );
       if (hasPermission('member:manage') || hasPermission('member:invite')) {

@@ -69,7 +69,6 @@ export async function processRecurringTasks(): Promise<number> {
         isCompleted: false,
       })),
       progress: 0,
-      customFields: source.customFields,
       sprintId: undefined,
       recurrence: null,
     });

@@ -50,7 +50,6 @@ export interface ITask {
   parentTaskId?: mongoose.Types.ObjectId;
   sortOrder?: number;
   sprintId?: mongoose.Types.ObjectId;
-  customFields?: Map<string, unknown> | Record<string, unknown>;
   recurrence?: ITaskRecurrence | null;
 }
 
@@ -215,11 +214,6 @@ const taskSchema = new mongoose.Schema<ITaskDocument>(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Sprint",
       index: true,
-    },
-    customFields: {
-      type: Map,
-      of: mongoose.Schema.Types.Mixed,
-      default: {},
     },
     recurrence: {
       type: recurrenceSchema,

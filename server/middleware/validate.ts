@@ -49,7 +49,6 @@ export const createTaskSchema = z.object({
   parentTaskId: z.string().optional(),
   sortOrder: z.number().optional(),
   sprintId: z.string().optional().nullable(),
-  customFields: z.record(z.unknown()).optional(),
   recurrence: z
     .object({
       frequency: z.enum(["daily", "weekly", "monthly"]),
@@ -89,7 +88,6 @@ export const updateTaskSchema = z.object({
   parentTaskId: z.string().optional().nullable(),
   sortOrder: z.number().optional(),
   sprintId: z.string().optional().nullable(),
-  customFields: z.record(z.unknown()).optional(),
   recurrence: z
     .object({
       frequency: z.enum(["daily", "weekly", "monthly"]),

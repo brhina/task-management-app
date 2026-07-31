@@ -723,30 +723,6 @@ function ViewTaskDetails() {
             </div>
           </div>
 
-          {task.customFields &&
-            Object.keys(
-              task.customFields instanceof Map
-                ? Object.fromEntries(task.customFields as any)
-                : task.customFields,
-            ).length > 0 && (
-              <div className="card">
-                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
-                  Custom fields
-                </div>
-                <div className="space-y-2">
-                  {Object.entries(
-                    task.customFields instanceof Map
-                      ? Object.fromEntries(task.customFields as any)
-                      : task.customFields,
-                  ).map(([key, value]) => (
-                    <div key={key} className="flex justify-between gap-2 text-xs">
-                      <span className="text-slate-500">{key}</span>
-                      <span className="text-slate-600">{String(value)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
         </div>
       </div>
     </PageShell>

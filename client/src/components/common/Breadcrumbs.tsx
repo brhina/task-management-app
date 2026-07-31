@@ -168,7 +168,7 @@ function Breadcrumbs() {
       const routeLabels: Record<string, string> = {
         dashboard: 'Dashboard', users: 'Users', profile: 'Profile',
         settings: 'Settings', workos: 'WorkOS', roles: 'Roles',
-        'custom-fields': 'Custom Fields', notifications: 'Notifications',
+        notifications: 'Notifications',
         teams: 'Teams', reports: 'Reports', resources: 'Resources',
         audit: 'Audit Log',
       };

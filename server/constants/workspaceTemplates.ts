@@ -4,12 +4,6 @@ export interface WorkspaceTemplateSeed {
   description: string;
   projects: { name: string; description: string }[];
   taskCategories: string[];
-  customFields: {
-    key: string;
-    label: string;
-    type: "text" | "number" | "date" | "select" | "multi-select";
-    options?: string[];
-  }[];
   teams: { name: string; description: string }[];
 }
 
@@ -30,19 +24,6 @@ export const WORKSPACE_TEMPLATES: WorkspaceTemplateSeed[] = [
       },
     ],
     taskCategories: ["Feature", "Bug", "Tech Debt", "Spike"],
-    customFields: [
-      {
-        key: "story_points",
-        label: "Story Points",
-        type: "number",
-      },
-      {
-        key: "component",
-        label: "Component",
-        type: "select",
-        options: ["Frontend", "Backend", "API", "Infra", "Mobile"],
-      },
-    ],
     teams: [
       { name: "Engineering", description: "Product engineering" },
       { name: "QA", description: "Quality assurance" },
@@ -64,19 +45,6 @@ export const WORKSPACE_TEMPLATES: WorkspaceTemplateSeed[] = [
       },
     ],
     taskCategories: ["Campaign", "Content", "Design", "Analytics"],
-    customFields: [
-      {
-        key: "channel",
-        label: "Channel",
-        type: "select",
-        options: ["Email", "Social", "Web", "Paid Ads", "Event"],
-      },
-      {
-        key: "target_audience",
-        label: "Target Audience",
-        type: "text",
-      },
-    ],
     teams: [
       { name: "Growth", description: "Acquisition and growth" },
       { name: "Brand", description: "Brand and creative" },
@@ -98,19 +66,6 @@ export const WORKSPACE_TEMPLATES: WorkspaceTemplateSeed[] = [
       },
     ],
     taskCategories: ["Hiring", "Onboarding", "Policy", "Training"],
-    customFields: [
-      {
-        key: "department",
-        label: "Department",
-        type: "select",
-        options: ["Engineering", "Sales", "Marketing", "Ops", "Finance"],
-      },
-      {
-        key: "hire_date",
-        label: "Target Hire Date",
-        type: "date",
-      },
-    ],
     teams: [
       { name: "Talent", description: "Recruiting" },
       { name: "People Ops", description: "HR operations" },
@@ -122,7 +77,6 @@ export const WORKSPACE_TEMPLATES: WorkspaceTemplateSeed[] = [
     description: "Start empty and configure projects yourself.",
     projects: [],
     taskCategories: [],
-    customFields: [],
     teams: [],
   },
 ];

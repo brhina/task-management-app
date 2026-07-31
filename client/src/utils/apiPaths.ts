@@ -52,12 +52,7 @@ export const apiPaths = {
     DELETE: '/api/task-templates/:id',
     CREATE_TASK: '/api/task-templates/:id/create-task',
   },
-  CUSTOM_FIELDS: {
-    LIST: '/api/custom-fields',
-    CREATE: '/api/custom-fields',
-    UPDATE: '/api/custom-fields/:id',
-    DELETE: '/api/custom-fields/:id',
-  },
+
   SPRINTS: {
     LIST: '/api/sprints',
     GET: '/api/sprints/:id',
