@@ -87,8 +87,8 @@ export default function TaskComments({ taskId, members, canDelete = false, canPo
     typeof c.userId === 'object' ? c.userId.name : 'User';
 
   return (
-    <div className="rounded-2xl border border-slate-700/60 bg-slate-900/40 p-4">
-      <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+    <div className="rounded-2xl border border-gray-200/60 bg-gray-100/40 p-4">
+      <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
         <MessageSquare className="w-4 h-4" /> Comments
       </h3>
       {loading ? (
@@ -99,9 +99,9 @@ export default function TaskComments({ taskId, members, canDelete = false, canPo
             <li className="text-sm text-slate-500">No comments yet.</li>
           )}
           {comments.map((c) => (
-            <li key={c._id} className="text-sm border-b border-slate-800 pb-2">
+            <li key={c._id} className="text-sm border-b border-gray-200 pb-2">
               <div className="flex justify-between gap-2">
-                <span className="font-medium text-slate-300">{authorName(c)}</span>
+                <span className="font-medium text-slate-600">{authorName(c)}</span>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-500">
                     {new Date(c.createdAt).toLocaleString()}
@@ -117,7 +117,7 @@ export default function TaskComments({ taskId, members, canDelete = false, canPo
                   )}
                 </div>
               </div>
-              <p className="text-slate-400 mt-1">
+              <p className="text-slate-500 mt-1">
                 <MentionText text={c.content} />
               </p>
             </li>
@@ -131,15 +131,15 @@ export default function TaskComments({ taskId, members, canDelete = false, canPo
             onChange={(e) => onChange(e.target.value)}
             rows={2}
             placeholder="Write a comment… use @ to mention"
-            className="w-full rounded-xl bg-slate-950/60 border border-slate-700 px-3 py-2 text-sm text-slate-200"
+            className="w-full rounded-xl bg-gray-50 border border-gray-200 px-3 py-2 text-sm text-slate-700"
           />
           {suggestions.length > 0 && (
-            <ul className="absolute left-0 right-0 bottom-full mb-1 rounded-lg border border-slate-700 bg-slate-900 shadow-lg z-10 max-h-32 overflow-y-auto">
+            <ul className="absolute left-0 right-0 bottom-full mb-1 rounded-lg border border-gray-200 bg-gray-100 shadow-lg z-10 max-h-32 overflow-y-auto">
               {suggestions.slice(0, 6).map((m) => (
                 <li key={m._id}>
                   <button
                     type="button"
-                    className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800"
+                    className="w-full text-left px-3 py-1.5 text-sm text-slate-600 hover:bg-white"
                     onClick={() => insertMention(m.name)}
                   >
                     @{m.name}
@@ -151,7 +151,7 @@ export default function TaskComments({ taskId, members, canDelete = false, canPo
           <button
             type="submit"
             disabled={submitting || !content.trim()}
-            className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-cyan-600/80 hover:bg-cyan-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+            className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-cyan-600/80 hover:bg-cyan-600 px-3 py-1.5 text-sm text-slate-800 disabled:opacity-50"
           >
             <Send className="w-3.5 h-3.5" /> Post
           </button>

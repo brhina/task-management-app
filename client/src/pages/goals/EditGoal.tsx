@@ -46,7 +46,7 @@ const TIMEFRAMES: {
     value: 'Custom',
     label: 'Custom',
     desc: 'Flexible timeline',
-    color: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
+    color: 'bg-slate-500/15 text-slate-500 border-slate-500/30',
     icon: 'C',
   },
 ];
@@ -186,35 +186,35 @@ function EditGoal() {
         {error && <div className="alert-error">{error}</div>}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
               Goal Title *
             </div>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="input-dark w-full text-base"
+              className="input-field w-full text-base"
               placeholder="What do you want to achieve?"
               autoFocus
             />
           </div>
 
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
               Objective
             </div>
             <textarea
               value={objective}
               onChange={(e) => setObjective(e.target.value)}
               rows={3}
-              className="input-dark w-full text-sm resize-none"
+              className="input-field w-full text-sm resize-none"
               placeholder="Why does this matter? What's the business impact?"
             />
           </div>
         </div>
 
         <div className="card">
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
             Timeframe
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
@@ -226,13 +226,13 @@ function EditGoal() {
                 className={`p-3 rounded-xl border text-left transition-all ${
                   timeframe === t.value
                     ? t.color + ' ring-1 ring-white/15'
-                    : 'border-slate-700 text-slate-500 hover:text-slate-300 hover:border-slate-600'
+                    : 'border-gray-200 text-slate-500 hover:text-slate-600 hover:border-gray-300'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span
                     className={`inline-flex h-6 w-6 items-center justify-center rounded text-[10px] font-bold ${
-                      timeframe === t.value ? 'bg-white/10' : 'bg-slate-800'
+                      timeframe === t.value ? 'bg-white/10' : 'bg-white'
                     }`}
                   >
                     {t.icon}
@@ -246,7 +246,7 @@ function EditGoal() {
         </div>
 
         <div className="card">
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
             Measurement
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -256,7 +256,7 @@ function EditGoal() {
                 type="text"
                 value={metric}
                 onChange={(e) => setMetric(e.target.value)}
-                className="input-dark w-full text-sm"
+                className="input-field w-full text-sm"
                 placeholder="e.g., Avg onboarding days, Revenue, NPS score"
               />
             </div>
@@ -271,7 +271,7 @@ function EditGoal() {
                 onChange={(e) =>
                   setTargetValue(e.target.value === '' ? '' : Number(e.target.value))
                 }
-                className="input-dark w-full text-sm"
+                className="input-field w-full text-sm"
                 placeholder="e.g., 7"
               />
             </div>
@@ -288,21 +288,21 @@ function EditGoal() {
                 onChange={(e) =>
                   setCurrentValue(e.target.value === '' ? '' : Number(e.target.value))
                 }
-                className="input-dark w-full text-sm"
+                className="input-field w-full text-sm"
                 placeholder="Current progress value"
               />
             </div>
             <div className="flex items-end">
               {targetValue !== '' && currentValue !== '' && (
-                <div className="w-full p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                  <div className="text-xs text-slate-400 mb-1">Progress</div>
-                  <div className="h-2 rounded-full bg-slate-700 overflow-hidden mb-1">
+                <div className="w-full p-3 rounded-lg bg-white/50 border border-gray-200/50">
+                  <div className="text-xs text-slate-500 mb-1">Progress</div>
+                  <div className="h-2 rounded-full bg-gray-200 overflow-hidden mb-1">
                     <div
                       className="h-full rounded-full bg-primary transition-all"
                       style={{ width: `${goalProgress}%` }}
                     />
                   </div>
-                  <div className="text-xs font-bold text-slate-200">{goalProgress}%</div>
+                  <div className="text-xs font-bold text-slate-700">{goalProgress}%</div>
                 </div>
               )}
             </div>
@@ -311,7 +311,7 @@ function EditGoal() {
 
         <div className="card">
           <div className="flex items-center justify-between mb-3">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
               Linked Projects
             </div>
             <div className="relative">
@@ -324,7 +324,7 @@ function EditGoal() {
                 + Add Project
               </button>
               {showLinkDropdown && (
-                <div className="absolute right-0 top-8 z-10 w-64 card border border-slate-700 shadow-lg">
+                <div className="absolute right-0 top-8 z-10 w-64 card border border-gray-200 shadow-lg">
                   {availableProjects.length === 0 ? (
                     <div className="text-xs text-slate-500 p-2">No available projects</div>
                   ) : (
@@ -334,7 +334,7 @@ function EditGoal() {
                           key={p._id}
                           type="button"
                           onClick={() => handleLinkProject(p._id)}
-                          className="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors"
+                          className="w-full text-left px-3 py-2 text-xs text-slate-600 hover:bg-gray-200/50 rounded-lg transition-colors"
                         >
                           {p.name}
                         </button>
@@ -352,10 +352,10 @@ function EditGoal() {
               {linkedProjects.map((p) => (
                 <div
                   key={p._id}
-                  className="flex items-center justify-between px-3 py-2 rounded-lg border border-slate-700 bg-slate-800/50"
+                  className="flex items-center justify-between px-3 py-2 rounded-lg border border-gray-200 bg-white/50"
                 >
                   <div className="min-w-0">
-                    <div className="text-xs font-medium text-slate-300 truncate">{p.name}</div>
+                    <div className="text-xs font-medium text-slate-600 truncate">{p.name}</div>
                     <div className="text-[10px] text-slate-500">{p.status}</div>
                   </div>
                   <button

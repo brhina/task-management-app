@@ -121,30 +121,30 @@ const RolesPermissions = () => {
         </button>
 
         {loading ? (
-          <p className="text-slate-400 text-sm">Loading roles...</p>
+          <p className="text-slate-500 text-sm">Loading roles...</p>
         ) : (
           <>
             <div>
-              <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+              <h3 className="text-slate-800 font-semibold mb-3 flex items-center gap-2">
                 <Shield className="w-4 h-4" /> System roles
               </h3>
               <div className="grid md:grid-cols-2 gap-3">
                 {systemRoles.map((role) => (
                   <div
                     key={role.role}
-                    className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4"
+                    className="bg-white/50 border border-gray-200/50 rounded-xl p-4"
                   >
-                    <div className="text-white font-medium">
+                    <div className="text-slate-800 font-medium">
                       {ROLE_LABELS[role.role as keyof typeof ROLE_LABELS] || role.label}
                     </div>
-                    <p className="text-xs text-slate-400 mt-1 mb-2">
+                    <p className="text-xs text-slate-500 mt-1 mb-2">
                       {role.permissions.length} permissions
                     </p>
                     <div className="flex flex-wrap gap-1">
                       {role.permissions.slice(0, 8).map((p) => (
                         <span
                           key={p}
-                          className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-700"
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-slate-500 border border-gray-200"
                         >
                           {p}
                         </span>
@@ -161,26 +161,26 @@ const RolesPermissions = () => {
             </div>
 
             <div>
-              <h3 className="text-white font-semibold mb-3">Custom roles</h3>
+              <h3 className="text-slate-800 font-semibold mb-3">Custom roles</h3>
               {customRoles.length === 0 ? (
-                <p className="text-sm text-slate-400">No custom roles yet.</p>
+                <p className="text-sm text-slate-500">No custom roles yet.</p>
               ) : (
                 <div className="space-y-2">
                   {customRoles.map((role) => (
                     <div
                       key={role._id}
-                      className="flex items-start justify-between gap-3 bg-slate-800/50 border border-slate-700/50 rounded-xl p-4"
+                      className="flex items-start justify-between gap-3 bg-white/50 border border-gray-200/50 rounded-xl p-4"
                     >
                       <div>
-                        <div className="text-white font-medium">{role.name}</div>
+                        <div className="text-slate-800 font-medium">{role.name}</div>
                         {role.description && (
-                          <p className="text-xs text-slate-400 mt-0.5">{role.description}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{role.description}</p>
                         )}
                         <div className="flex flex-wrap gap-1 mt-2">
                           {role.permissions.map((p: Permission | string) => (
                             <span
                               key={p}
-                              className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-700"
+                              className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-slate-500 border border-gray-200"
                             >
                               {p}
                             </span>
@@ -218,7 +218,7 @@ const RolesPermissions = () => {
                 setShowCreateRole(false);
                 resetForm();
               }}
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium text-slate-300"
+              className="px-4 py-2 bg-gray-200 hover:bg-slate-600 rounded-lg text-sm font-medium text-slate-600"
             >
               Cancel
             </button>
@@ -238,20 +238,20 @@ const RolesPermissions = () => {
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="Role name"
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"
+              className="w-full bg-gray-100 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-800"
             />
             <input
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Description (optional)"
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"
+              className="w-full bg-gray-100 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-800"
             />
           </div>
           <div>
-            <p className="text-sm text-slate-400 mb-2">Permissions</p>
+            <p className="text-sm text-slate-500 mb-2">Permissions</p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
               {PERMISSIONS.map((p) => (
-                <label key={p} className="flex items-center gap-2 text-xs text-slate-300">
+                <label key={p} className="flex items-center gap-2 text-xs text-slate-600">
                   <input
                     type="checkbox"
                     checked={form.permissions.includes(p)}

@@ -40,7 +40,7 @@ const STATUS_OPTIONS = [
   {
     value: '',
     label: 'All',
-    color: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
+    color: 'bg-slate-500/15 text-slate-500 border-slate-500/30',
     dot: 'bg-slate-500',
   },
   {
@@ -354,7 +354,7 @@ function ManageTasks() {
               </span> */}
               <Link
                 to="/projects"
-                className="text-xs text-slate-500 hover:text-slate-300 underline underline-offset-2"
+                className="text-xs text-slate-500 hover:text-slate-600 underline underline-offset-2"
               >
                 All projects
               </Link>
@@ -365,7 +365,7 @@ function ManageTasks() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="input-dark text-xs py-1.5"
+              className="input-field text-xs py-1.5"
             >
               <option value="dueDate">Sort: Due Date</option>
               <option value="priority">Sort: Priority</option>
@@ -373,11 +373,11 @@ function ManageTasks() {
               <option value="assignee">Sort: Assignee</option>
             </select>
 
-            {/* <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg p-1"> */}
+            {/* <div className="flex items-center bg-white border border-gray-200 rounded-lg p-1"> */}
             <button
               type="button"
               onClick={() => setViewMode('board')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'board' ? 'bg-primary text-white' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'board' ? 'bg-primary text-white' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
               Board
@@ -385,7 +385,7 @@ function ManageTasks() {
             <button
               type="button"
               onClick={() => setViewMode('list')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'list' ? 'bg-primary text-white' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'list' ? 'bg-primary text-white' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <List className="w-3.5 h-3.5" />
               List
@@ -398,7 +398,7 @@ function ManageTasks() {
               className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
                 sidebarOpen
                   ? 'border-primary/40 bg-primary/10 text-primary'
-                  : 'border-slate-700 bg-slate-800 text-slate-400 hover:text-slate-200'
+                  : 'border-gray-200 bg-white text-slate-500 hover:text-slate-700'
               }`}
             >
               <Users className="w-3.5 h-3.5" />
@@ -415,7 +415,7 @@ function ManageTasks() {
         ) : filteredTasks.length === 0 ? (
           <div className="card text-center py-12">
             <ClipboardList className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-            <div className="text-slate-400 text-sm">
+            <div className="text-slate-500 text-sm">
               {tasks.length === 0
                 ? 'No tasks yet. Create your first task to get started.'
                 : 'No tasks match your filters.'}
@@ -434,7 +434,7 @@ function ManageTasks() {
                 <div className="hidden lg:block w-48 xl:w-56 shrink-0">
                   <div className="sticky top-4">
                     <div className="card p-3">
-                      <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3 px-1">
+                      <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 px-1">
                         Assign to
                       </h3>
                       <div className="space-y-1.5">
@@ -470,14 +470,14 @@ function ManageTasks() {
                 return (
                   <div
                     key={task._id}
-                    className="px-4 py-3 hover:bg-slate-700/30 transition-colors group"
+                    className="px-4 py-3 hover:bg-gray-200/30 transition-colors group"
                   >
                     <div className="flex items-center gap-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <Link
                             to={`/tasks/${task._id}`}
-                            className="text-sm font-medium text-slate-200 group-hover:text-primary truncate transition-colors"
+                            className="text-sm font-medium text-slate-700 group-hover:text-primary truncate transition-colors"
                           >
                             {task.title}
                           </Link>
@@ -510,7 +510,7 @@ function ManageTasks() {
 
                       {task.progress != null && task.progress > 0 && (
                         <div className="hidden sm:flex items-center gap-1.5 shrink-0">
-                          <div className="w-16 h-1.5 rounded-full bg-slate-700 overflow-hidden">
+                          <div className="w-16 h-1.5 rounded-full bg-gray-200 overflow-hidden">
                             <div
                               className="h-full rounded-full bg-primary"
                               style={{ width: `${task.progress}%` }}
@@ -525,7 +525,7 @@ function ManageTasks() {
                       <select
                         value={task.status}
                         onChange={(e) => handleStatusUpdate(task._id, e.target.value)}
-                        className="input-dark text-[10px] py-1 px-2 w-24 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
+                        className="input-field text-[10px] py-1 px-2 w-24 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
                         disabled={!hasPermission('task:update')}
                       >
                         <option value="Pending">Pending</option>
@@ -543,7 +543,7 @@ function ManageTasks() {
                         </Link>
                         <Link
                           to={`/tasks/${task._id}/edit`}
-                          className="text-[10px] text-slate-400 hover:text-slate-200 font-medium"
+                          className="text-[10px] text-slate-500 hover:text-slate-700 font-medium"
                         >
                           Edit
                         </Link>

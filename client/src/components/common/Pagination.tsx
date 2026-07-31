@@ -49,7 +49,7 @@ function Pagination({ pagination, onPageChange }: PaginationProps) {
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-gray-200/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -65,7 +65,7 @@ function Pagination({ pagination, onPageChange }: PaginationProps) {
               className={`min-w-[28px] h-7 rounded-lg text-xs font-medium transition-colors ${
                 p === page
                   ? 'bg-primary text-white'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-gray-200/50'
               }`}
             >
               {p}
@@ -75,7 +75,7 @@ function Pagination({ pagination, onPageChange }: PaginationProps) {
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-gray-200/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronRight className="w-4 h-4" />
         </button>

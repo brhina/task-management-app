@@ -70,19 +70,19 @@ export default function TaskTimeTracking({ taskId, canEdit = true }: Props) {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-700/60 bg-slate-900/40 p-4">
-      <h3 className="text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
+    <div className="rounded-2xl border border-gray-200/60 bg-gray-100/40 p-4">
+      <h3 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
         <Timer className="w-4 h-4" /> Time tracking
       </h3>
       <p className="text-xs text-slate-500 mb-3">
-        Total logged: <span className="text-slate-300">{reportHours.toFixed(2)}h</span>
+        Total logged: <span className="text-slate-600">{reportHours.toFixed(2)}h</span>
       </p>
       <div className="flex flex-wrap gap-2 mb-3">
         {running ? (
           <button
             type="button"
             onClick={stop}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/80 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/80 px-3 py-1.5 text-sm text-slate-800 disabled:opacity-50"
             disabled={!canEdit}
           >
             <Square className="w-3.5 h-3.5" /> Stop timer
@@ -91,13 +91,13 @@ export default function TaskTimeTracking({ taskId, canEdit = true }: Props) {
           <button
             type="button"
             onClick={start}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600/80 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600/80 px-3 py-1.5 text-sm text-slate-800 disabled:opacity-50"
             disabled={!canEdit}
           >
             <Play className="w-3.5 h-3.5" /> Start timer
           </button>
         )}
-        <label className="flex items-center gap-1.5 text-xs text-slate-400">
+        <label className="flex items-center gap-1.5 text-xs text-slate-500">
           <input
             type="checkbox"
             checked={billable}
@@ -113,24 +113,24 @@ export default function TaskTimeTracking({ taskId, canEdit = true }: Props) {
           step="0.25"
           value={manualHours}
           onChange={(e) => setManualHours(e.target.value)}
-          className="w-20 rounded-lg bg-slate-950 border border-slate-700 px-2 py-1 text-sm text-slate-200"
+          className="w-20 rounded-lg bg-white border border-gray-200 px-2 py-1 text-sm text-slate-700"
         />
         <input
           type="text"
           placeholder="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="flex-1 min-w-[120px] rounded-lg bg-slate-950 border border-slate-700 px-2 py-1 text-sm text-slate-200"
+          className="flex-1 min-w-[120px] rounded-lg bg-white border border-gray-200 px-2 py-1 text-sm text-slate-700"
         />
         <button
           type="submit"
-          className="inline-flex items-center gap-1 rounded-lg border border-slate-600 px-2 py-1 text-sm text-slate-300 disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-lg border border-slate-600 px-2 py-1 text-sm text-slate-600 disabled:opacity-50"
           disabled={!canEdit}
         >
           <Plus className="w-3.5 h-3.5" /> Log
         </button>
       </form>
-      <ul className="space-y-1 max-h-32 overflow-y-auto text-xs text-slate-400">
+      <ul className="space-y-1 max-h-32 overflow-y-auto text-xs text-slate-500">
         {entries.slice(0, 10).map((e) => (
           <li key={e._id} className="flex justify-between gap-2">
             <span>{e.description || 'Time entry'}</span>

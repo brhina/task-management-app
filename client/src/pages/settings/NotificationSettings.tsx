@@ -64,9 +64,9 @@ export default function NotificationSettings() {
       <form onSubmit={save} className="card max-w-xl space-y-4">
         {rows.map((row) => (
           <div key={row.key} className="flex items-center justify-between gap-3">
-            <label className="text-sm text-slate-300">{row.label}</label>
+            <label className="text-sm text-slate-600">{row.label}</label>
             <select
-              className="input-dark text-sm"
+              className="input-field text-sm"
               value={prefs[row.key] as string}
               onChange={(e) =>
                 setPrefs({
@@ -83,10 +83,10 @@ export default function NotificationSettings() {
             </select>
           </div>
         ))}
-        <div className="flex items-center justify-between gap-3 border-t border-slate-700 pt-4">
-          <label className="text-sm text-slate-300">Email digest</label>
+        <div className="flex items-center justify-between gap-3 border-t border-gray-200 pt-4">
+          <label className="text-sm text-slate-600">Email digest</label>
           <select
-            className="input-dark text-sm"
+            className="input-field text-sm"
             value={prefs.digestFrequency}
             onChange={(e) =>
               setPrefs({

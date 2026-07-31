@@ -75,8 +75,8 @@ export default function TaskAttachments({ task, onUpdated, canDelete = false, ca
   };
 
   return (
-    <div className="rounded-2xl border border-slate-700/60 bg-slate-900/40 p-4">
-      <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+    <div className="rounded-2xl border border-gray-200/60 bg-gray-100/40 p-4">
+      <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
         <Paperclip className="w-4 h-4" /> Attachments
       </h3>
       <ul className="space-y-2 mb-3">
@@ -86,7 +86,7 @@ export default function TaskAttachments({ task, onUpdated, canDelete = false, ca
         {attachments.map((a) => (
           <li
             key={a._id}
-            className="flex items-center justify-between gap-2 text-sm text-slate-300"
+            className="flex items-center justify-between gap-2 text-sm text-slate-600"
           >
             <span className="truncate">{a.name}</span>
             <div className="flex items-center gap-2 shrink-0">
@@ -112,7 +112,7 @@ export default function TaskAttachments({ task, onUpdated, canDelete = false, ca
         ))}
       </ul>
       {canUpload && (
-        <label className="inline-flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-300 cursor-pointer hover:bg-slate-800">
+        <label className="inline-flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-600 cursor-pointer hover:bg-white">
           {uploading ? 'Uploading…' : 'Upload file'}
           <input
             type="file"
@@ -125,15 +125,15 @@ export default function TaskAttachments({ task, onUpdated, canDelete = false, ca
 
       {preview && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-slate-900 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto p-4 relative">
+          <div className="bg-gray-100 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto p-4 relative">
             <button
               type="button"
-              className="absolute top-3 right-3 text-slate-400 hover:text-white"
+              className="absolute top-3 right-3 text-slate-500 hover:text-slate-800"
               onClick={() => setPreview(null)}
             >
               <X className="w-5 h-5" />
             </button>
-            <h4 className="text-slate-200 mb-3 pr-8">{preview.name}</h4>
+            <h4 className="text-slate-700 mb-3 pr-8">{preview.name}</h4>
             {preview.mimeType.startsWith('image/') ? (
               <img
                 src={resolveUrl(preview.url)}

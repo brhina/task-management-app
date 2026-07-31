@@ -15,7 +15,7 @@ interface TodoItem {
 }
 
 const PRIORITY_OPTIONS = [
-  { value: 'Low', label: 'Low', color: 'bg-slate-500/15 text-slate-400 border-slate-500/30' },
+  { value: 'Low', label: 'Low', color: 'bg-slate-500/15 text-slate-500 border-slate-500/30' },
   { value: 'Medium', label: 'Medium', color: 'bg-blue-500/15 text-blue-400 border-blue-500/30' },
   { value: 'High', label: 'High', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
   {
@@ -289,8 +289,8 @@ function EditTask() {
       {confirmDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="card max-w-sm w-full mx-4 space-y-4">
-            <div className="text-sm font-semibold text-slate-200">Confirm Change</div>
-            <p className="text-sm text-slate-400">{confirmDialog.message}</p>
+            <div className="text-sm font-semibold text-slate-700">Confirm Change</div>
+            <p className="text-sm text-slate-500">{confirmDialog.message}</p>
             <div className="flex justify-end gap-2">
               <button onClick={cancelAction} className="btn-secondary text-sm">
                 Cancel
@@ -307,13 +307,13 @@ function EditTask() {
         {error && <div className="alert-error">{error}</div>}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
               Project *
             </div>
             <select
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
-              className="input-dark w-full text-sm"
+              className="input-field w-full text-sm"
               required
             >
               <option value="">Select a project</option>
@@ -326,27 +326,27 @@ function EditTask() {
           </div>
 
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
               Title *
             </div>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="input-dark w-full text-base"
+              className="input-field w-full text-base"
               placeholder="What needs to be done?"
               autoFocus
             />
           </div>
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
               Description
             </div>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="input-dark w-full text-sm resize-none"
+              className="input-field w-full text-sm resize-none"
               placeholder="Add details, context, or acceptance criteria..."
             />
           </div>
@@ -354,7 +354,7 @@ function EditTask() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
               Priority
             </div>
             <div className="flex gap-2">
@@ -366,7 +366,7 @@ function EditTask() {
                   className={`flex-1 px-3 py-2 text-xs font-semibold rounded-lg border transition-all ${
                     priority === p.value
                       ? p.color + ' ring-1 ring-white/15'
-                      : 'border-slate-700 text-slate-500 hover:text-slate-300 hover:border-slate-600'
+                      : 'border-gray-200 text-slate-500 hover:text-slate-600 hover:border-gray-300'
                   }`}
                 >
                   {p.label}
@@ -376,7 +376,7 @@ function EditTask() {
           </div>
 
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
               Status
             </div>
             <div className="flex gap-2">
@@ -388,7 +388,7 @@ function EditTask() {
                   className={`flex-1 px-3 py-2 text-xs font-semibold rounded-lg border transition-all ${
                     status === s.value
                       ? 'bg-primary/15 text-primary border-primary/30 ring-1 ring-white/15'
-                      : 'border-slate-700 text-slate-500 hover:text-slate-300 hover:border-slate-600'
+                      : 'border-gray-200 text-slate-500 hover:text-slate-600 hover:border-gray-300'
                   }`}
                 >
                   {s.label}
@@ -398,14 +398,14 @@ function EditTask() {
           </div>
 
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
               Due Date *
             </div>
             <input
               type="datetime-local"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="input-dark w-full text-sm mb-2"
+              className="input-field w-full text-sm mb-2"
               required
             />
             <div className="flex flex-wrap gap-1.5">
@@ -414,7 +414,7 @@ function EditTask() {
                   key={preset.label}
                   type="button"
                   onClick={() => setDueDate(preset.getValue())}
-                  className="px-2 py-1 text-[10px] font-medium rounded bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-700 transition-colors"
+                  className="px-2 py-1 text-[10px] font-medium rounded bg-white text-slate-500 hover:text-slate-700 hover:bg-gray-200 transition-colors"
                 >
                   {preset.label}
                 </button>
@@ -425,21 +425,21 @@ function EditTask() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
               Start date
             </div>
             <input
               type="datetime-local"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="input-dark w-full text-sm"
+              className="input-field w-full text-sm"
             />
           </div>
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
               Recurring
             </div>
-            <label className="flex items-center gap-2 text-sm text-slate-300 mb-2">
+            <label className="flex items-center gap-2 text-sm text-slate-600 mb-2">
               <input
                 type="checkbox"
                 checked={recurrenceEnabled}
@@ -453,7 +453,7 @@ function EditTask() {
                 onChange={(e) =>
                   setRecurrenceFreq(e.target.value as 'daily' | 'weekly' | 'monthly')
                 }
-                className="input-dark w-full text-sm"
+                className="input-field w-full text-sm"
               >
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
@@ -465,15 +465,15 @@ function EditTask() {
 
         {customFieldDefs.length > 0 && (
           <div className="card space-y-3">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
               Custom fields
             </div>
             {customFieldDefs.map((f) => (
               <div key={f._id}>
-                <label className="text-xs text-slate-400 mb-1 block">{f.label}</label>
+                <label className="text-xs text-slate-500 mb-1 block">{f.label}</label>
                 <input
                   type={f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : 'text'}
-                  className="input-dark w-full text-sm"
+                  className="input-field w-full text-sm"
                   value={String(customFieldValues[f.key] ?? '')}
                   onChange={(e) =>
                     setCustomFieldValues((prev) => ({
@@ -489,7 +489,7 @@ function EditTask() {
         )}
 
         <div className="card">
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
             Assign To *
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
@@ -501,14 +501,14 @@ function EditTask() {
                 className={`flex items-center gap-2.5 p-2.5 rounded-lg border text-left transition-all ${
                   assignedTo === u._id
                     ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
-                    : 'border-slate-700 hover:border-slate-600 hover:bg-slate-800/50'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-white/50'
                 }`}
               >
                 <div
                   className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
                     assignedTo === u._id
                       ? 'bg-primary/20 text-primary'
-                      : 'bg-slate-700 text-slate-400'
+                      : 'bg-gray-200 text-slate-500'
                   }`}
                 >
                   <span className="text-xs font-semibold">
@@ -517,7 +517,7 @@ function EditTask() {
                 </div>
                 <div className="min-w-0">
                   <div
-                    className={`text-xs font-medium truncate ${assignedTo === u._id ? 'text-primary' : 'text-slate-300'}`}
+                    className={`text-xs font-medium truncate ${assignedTo === u._id ? 'text-primary' : 'text-slate-600'}`}
                   >
                     {u.name}
                   </div>
@@ -533,7 +533,7 @@ function EditTask() {
 
         <div className="card">
           <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
               Checklist
             </div>
             <button
@@ -548,7 +548,7 @@ function EditTask() {
             <button
               type="button"
               onClick={addTodoItem}
-              className="w-full py-3 border border-dashed border-slate-700 rounded-lg text-xs text-slate-500 hover:border-primary/50 hover:text-primary transition-colors"
+              className="w-full py-3 border border-dashed border-gray-200 rounded-lg text-xs text-slate-500 hover:border-primary/50 hover:text-primary transition-colors"
             >
               + Add checklist items
             </button>
@@ -561,7 +561,7 @@ function EditTask() {
                     type="text"
                     value={todo.text}
                     onChange={(e) => updateTodoText(idx, e.target.value)}
-                    className="flex-1 input-dark text-sm py-1.5"
+                    className="flex-1 input-field text-sm py-1.5"
                     placeholder="Checklist item..."
                     autoFocus={idx === todoItems.length - 1}
                   />
@@ -582,7 +582,7 @@ function EditTask() {
           <button
             type="button"
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="w-full flex items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wide"
+            className="w-full flex items-center justify-between text-xs font-semibold text-slate-500 uppercase tracking-wide"
           >
             <span>Advanced Options</span>
             <ChevronDown
@@ -601,7 +601,7 @@ function EditTask() {
                     type="text"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="input-dark w-full text-sm"
+                    className="input-field w-full text-sm"
                     placeholder="e.g., Product, Engineering"
                   />
                 </div>
@@ -613,7 +613,7 @@ function EditTask() {
                     type="text"
                     value={tags}
                     onChange={(e) => setTags(e.target.value)}
-                    className="input-dark w-full text-sm"
+                    className="input-field w-full text-sm"
                     placeholder="e.g., api, urgent, onboarding"
                   />
                 </div>
@@ -630,9 +630,9 @@ function EditTask() {
                     max={10}
                     value={impactScore}
                     onChange={(e) => setImpactScore(Number(e.target.value))}
-                    className="w-full h-2 bg-slate-700 rounded-full appearance-none cursor-pointer accent-primary"
+                    className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-primary"
                   />
-                  <div className="text-center text-xs font-bold text-slate-300 mt-1">
+                  <div className="text-center text-xs font-bold text-slate-600 mt-1">
                     {impactScore}
                   </div>
                 </div>
@@ -645,7 +645,7 @@ function EditTask() {
                     min={0}
                     value={effortHours}
                     onChange={(e) => setEffortHours(Number(e.target.value))}
-                    className="input-dark w-full text-sm"
+                    className="input-field w-full text-sm"
                   />
                 </div>
               </div>
@@ -659,7 +659,7 @@ function EditTask() {
                     {goals.slice(0, 8).map((g) => (
                       <label
                         key={g._id}
-                        className="flex items-center gap-2 p-2 rounded-lg border border-slate-700/50 hover:bg-slate-800/50 cursor-pointer"
+                        className="flex items-center gap-2 p-2 rounded-lg border border-gray-200/50 hover:bg-white/50 cursor-pointer"
                       >
                         <input
                           type="checkbox"
@@ -667,7 +667,7 @@ function EditTask() {
                           onChange={() => handleGoalToggle(g._id)}
                           className="h-3.5 w-3.5"
                         />
-                        <span className="text-xs text-slate-300 truncate">{g.title}</span>
+                        <span className="text-xs text-slate-600 truncate">{g.title}</span>
                       </label>
                     ))}
                   </div>

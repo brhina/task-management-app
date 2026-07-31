@@ -34,18 +34,18 @@ function Modal({ isOpen, onClose, title, subtitle, children, footer, maxWidth = 
       <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
         <div
           ref={overlayRef}
-          className="fixed inset-0 bg-slate-900/80 transition-opacity"
+          className="fixed inset-0 bg-gray-100/80 transition-opacity"
           onClick={onClose}
         />
-        <div className={`relative transform overflow-hidden rounded-xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all sm:my-8 w-full ${maxWidth}`}>
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700/50">
+        <div className={`relative transform overflow-hidden rounded-xl bg-white border border-gray-200 text-left shadow-xl transition-all sm:my-8 w-full ${maxWidth}`}>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/50">
             <div>
-              <h2 className="text-lg font-semibold text-white">{title}</h2>
-              {subtitle && <p className="text-sm text-slate-400 mt-0.5">{subtitle}</p>}
+              <h2 className="text-lg font-semibold text-slate-800">{title}</h2>
+              {subtitle && <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>}
             </div>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-200 transition-colors p-1 rounded-lg hover:bg-slate-700/50"
+              className="text-slate-500 hover:text-slate-700 transition-colors p-1 rounded-lg hover:bg-gray-200/50"
             >
               <X className="w-5 h-5" />
             </button>
@@ -54,7 +54,7 @@ function Modal({ isOpen, onClose, title, subtitle, children, footer, maxWidth = 
             {children}
           </div>
           {footer && (
-            <div className="px-6 py-4 border-t border-slate-700/50 flex justify-end gap-2">
+            <div className="px-6 py-4 border-t border-gray-200/50 flex justify-end gap-2">
               {footer}
             </div>
           )}

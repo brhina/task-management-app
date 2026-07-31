@@ -79,11 +79,11 @@ function CreateProject({ isOpen, onClose, onCreated }: CreateProjectProps) {
         {error && <div className="alert-error">{error}</div>}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2">
-            <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+            <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
               Project name *
             </label>
             <input
-              className="input-dark w-full"
+              className="input-field w-full"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Q3 Customer Onboarding"
@@ -91,11 +91,11 @@ function CreateProject({ isOpen, onClose, onCreated }: CreateProjectProps) {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+            <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
               Status
             </label>
             <select
-              className="input-dark w-full"
+              className="input-field w-full"
               value={status}
               onChange={(e) => setStatus(e.target.value as ProjectStatus)}
             >
@@ -108,11 +108,11 @@ function CreateProject({ isOpen, onClose, onCreated }: CreateProjectProps) {
           </div>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+          <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
             Description
           </label>
           <textarea
-            className="input-dark w-full"
+            className="input-field w-full"
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}

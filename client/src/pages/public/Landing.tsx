@@ -35,15 +35,15 @@ function Landing() {
       <div className="flex flex-col">
         <section className="py-12 lg:py-16">
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+            <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-100 px-3 py-1 text-xs text-slate-600">
               Task management for teams
             </div>
-            <h2 className="mt-4 text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+            <h2 className="mt-4 text-4xl md:text-5xl font-extrabold text-slate-800 tracking-tight">
               Organize work.
               <br />
               <span className="text-primary">Deliver outcomes.</span>
             </h2>
-            <p className="mt-4 text-lg text-slate-300 mb-8 max-w-2xl mx-auto leading-relaxed">
+            <p className="mt-4 text-lg text-slate-600 mb-8 max-w-2xl mx-auto leading-relaxed">
               A professional task management system designed to help teams and individuals stay
               organized, productive, and on track with goals.
             </p>
@@ -60,8 +60,8 @@ function Landing() {
 
         <section className="py-10 lg:py-14">
           <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-white">Everything you need</h2>
-            <p className="mt-2 text-slate-300">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-800">Everything you need</h2>
+            <p className="mt-2 text-slate-600">
               Built for modern workflows, from planning to delivery.
             </p>
           </div>
@@ -69,17 +69,17 @@ function Landing() {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/7 transition-all duration-200 shadow-card"
+                className="rounded-2xl border border-gray-200 bg-gray-100 p-6 hover:bg-white/7 transition-all duration-200 shadow-card"
               >
                 <div className="text-primary mb-4">{feature.icon}</div>
-                <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                <p className="text-slate-300 leading-relaxed">{feature.description}</p>
+                <h3 className="text-lg font-semibold text-slate-800 mb-2">{feature.title}</h3>
+                <p className="text-slate-600 leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <footer className="py-8 border-t border-white/10">
+        <footer className="py-8 border-t border-gray-200">
           <div className="text-center text-slate-500 text-sm">
             <p>&copy; {new Date().getFullYear()} Cadence. All rights reserved.</p>
           </div>

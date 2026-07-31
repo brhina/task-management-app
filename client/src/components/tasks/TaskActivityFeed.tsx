@@ -34,11 +34,11 @@ export default function TaskActivityFeed({ taskId }: Props) {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-700/60 bg-slate-900/40 p-4">
+    <div className="rounded-2xl border border-gray-200/60 bg-gray-100/40 p-4">
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between text-sm font-semibold text-slate-200"
+        className="w-full flex items-center justify-between text-sm font-semibold text-slate-700"
       >
         <span className="flex items-center gap-2">
           <History className="w-4 h-4" /> Activity
@@ -51,8 +51,8 @@ export default function TaskActivityFeed({ taskId }: Props) {
             <li className="text-sm text-slate-500">No activity yet.</li>
           )}
           {items.map((a) => (
-            <li key={a._id} className="text-xs text-slate-400 border-l-2 border-slate-700 pl-2">
-              <span className="text-slate-300">{actorName(a)}</span> {label(a)}
+            <li key={a._id} className="text-xs text-slate-500 border-l-2 border-gray-200 pl-2">
+              <span className="text-slate-600">{actorName(a)}</span> {label(a)}
               <div className="text-slate-600">
                 {new Date(a.createdAt).toLocaleString()}
               </div>

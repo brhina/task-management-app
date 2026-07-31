@@ -27,23 +27,23 @@ export default function UserDropZone({ user, taskCount }: UserDropZoneProps) {
                 ${
                   isOver
                     ? 'border-primary bg-primary/10 ring-2 ring-primary/30 scale-[1.02]'
-                    : 'border-slate-700/60 bg-slate-800/50 hover:border-slate-600 hover:bg-slate-800'
+                    : 'border-gray-200/60 bg-white/50 hover:border-gray-300 hover:bg-white'
                 }
             `}
     >
       {user.profileImageUrl ? (
         <img
-          className="h-8 w-8 rounded-full ring-2 ring-slate-700"
+          className="h-8 w-8 rounded-full ring-2 ring-gray-200"
           src={user.profileImageUrl}
           alt={user.name}
         />
       ) : (
-        <div className="h-8 w-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold ring-2 ring-slate-700">
+        <div className="h-8 w-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold ring-2 ring-gray-200">
           {initials}
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-slate-200 truncate">{user.name}</div>
+        <div className="text-sm font-medium text-slate-700 truncate">{user.name}</div>
         <div className="text-[10px] text-slate-500 truncate">
           {taskCount} task{taskCount !== 1 ? 's' : ''}
         </div>

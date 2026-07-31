@@ -222,8 +222,8 @@ function ProfileUpdate() {
                   {previewImage ? (
                     <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full bg-slate-700 flex items-center justify-center">
-                      <UserIcon className="w-12 h-12 text-slate-400" />
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <UserIcon className="w-12 h-12 text-slate-500" />
                     </div>
                   )}
                 </div>
@@ -237,7 +237,7 @@ function ProfileUpdate() {
                   />
                 </label>
               </div>
-              <p className="text-sm text-slate-400 mt-2">
+              <p className="text-sm text-slate-500 mt-2">
                 Click the camera icon to upload a new profile picture
               </p>
             </div>
@@ -245,7 +245,7 @@ function ProfileUpdate() {
             <div>
               <label
                 htmlFor="name"
-                className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1"
+                className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
               >
                 Full Name
               </label>
@@ -256,7 +256,7 @@ function ProfileUpdate() {
                 value={formData.name}
                 onChange={handleInputChange}
                 required
-                className="input-dark w-full"
+                className="input-field w-full"
                 placeholder="Enter your full name"
               />
             </div>
@@ -264,7 +264,7 @@ function ProfileUpdate() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1"
+                className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
               >
                 Email Address
               </label>
@@ -275,7 +275,7 @@ function ProfileUpdate() {
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                className="input-dark w-full"
+                className="input-field w-full"
                 placeholder="Enter your email address"
               />
             </div>
@@ -283,7 +283,7 @@ function ProfileUpdate() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1"
+                className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
               >
                 New Password (optional)
               </label>
@@ -293,7 +293,7 @@ function ProfileUpdate() {
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className="input-dark w-full"
+                className="input-field w-full"
                 placeholder="Enter new password (min 6 characters)"
               />
             </div>
@@ -301,7 +301,7 @@ function ProfileUpdate() {
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1"
+                className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
               >
                 Confirm New Password
               </label>
@@ -311,17 +311,17 @@ function ProfileUpdate() {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                className="input-dark w-full"
+                className="input-field w-full"
                 placeholder="Confirm new password"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+              <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
                 Role
               </label>
-              <div className="input-dark w-full cursor-default">{user.role}</div>
-              <p className="text-sm text-slate-400 mt-1">Role cannot be changed</p>
+              <div className="input-field w-full cursor-default">{user.role}</div>
+              <p className="text-sm text-slate-500 mt-1">Role cannot be changed</p>
             </div>
 
             <div className="flex space-x-3 pt-4">
@@ -348,7 +348,7 @@ function ProfileUpdate() {
               </button>
             </div>
 
-            <div className="pt-4 border-t border-slate-700">
+            <div className="pt-4 border-t border-gray-200">
               <button
                 type="button"
                 onClick={handleLogout}

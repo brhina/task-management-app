@@ -27,13 +27,13 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
       {...attributes}
       onClick={onClick}
       className={`
-                bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 cursor-grab active:cursor-grabbing
-                hover:border-slate-600 hover:bg-slate-750 transition-all
+                bg-white border border-gray-200 rounded-lg px-3 py-2 cursor-grab active:cursor-grabbing
+                hover:border-gray-300 hover:bg-gray-100 transition-all
                 ${isDragging ? 'opacity-50 shadow-lg shadow-primary/20 ring-2 ring-primary/40 z-50' : ''}
             `}
     >
       <div className="flex items-center justify-between gap-2">
-        <h4 className="text-xs font-medium text-slate-200 line-clamp-1 flex-1">{task.title}</h4>
+        <h4 className="text-xs font-medium text-slate-700 line-clamp-1 flex-1">{task.title}</h4>
         <span
           className={`shrink-0 inline-flex px-1 py-0.5 text-[9px] font-semibold rounded ${getPriorityColor(task.priority)}`}
         >

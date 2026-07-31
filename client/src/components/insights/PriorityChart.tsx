@@ -35,12 +35,12 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: any[] }
   const total = toNumber(item?.payload?.total);
   const pct = total > 0 ? Math.round((value / total) * 100) : 0;
   return (
-    <div className="rounded-xl border border-white/10 bg-slate-950/90 backdrop-blur px-4 py-3 shadow-xl">
-      <div className="text-xs text-slate-400 mb-1">{name} priority</div>
+    <div className="rounded-xl border border-gray-200 bg-white/90 backdrop-blur px-4 py-3 shadow-xl">
+      <div className="text-xs text-slate-500 mb-1">{name} priority</div>
       <div className="flex items-baseline gap-2">
-        <span className="text-xl font-bold text-white tabular-nums">{value}</span>
+        <span className="text-xl font-bold text-slate-800 tabular-nums">{value}</span>
         <span className="text-xs text-slate-500">tasks</span>
-        <span className="text-xs text-slate-400 ml-1">({pct}%)</span>
+        <span className="text-xs text-slate-500 ml-1">({pct}%)</span>
       </div>
     </div>
   );
@@ -84,7 +84,7 @@ export default function PriorityChart({
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center text-sm text-slate-400" style={{ height }}>
+      <div className="flex items-center justify-center text-sm text-slate-500" style={{ height }}>
         No priority data
       </div>
     );

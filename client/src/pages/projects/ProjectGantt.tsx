@@ -194,7 +194,7 @@ export default function ProjectGantt() {
               const width = widthPct(start, end);
               return (
                 <li key={t._id} className="flex items-center gap-2">
-                  <div className="w-40 shrink-0 text-xs text-slate-300 truncate pr-2">
+                  <div className="w-40 shrink-0 text-xs text-slate-600 truncate pr-2">
                     <Link
                       to={`/tasks/${t._id}`}
                       className="hover:text-cyan-400"
@@ -202,7 +202,7 @@ export default function ProjectGantt() {
                       {t.title}
                     </Link>
                   </div>
-                  <div className="flex-1 relative h-7 bg-slate-950/50 rounded">
+                  <div className="flex-1 relative h-7 bg-white rounded">
                     <div
                       className="absolute top-1 h-5 rounded bg-cyan-600/70 border border-cyan-500/40"
                       style={{ left: `${left}%`, width: `${width}%` }}

@@ -76,7 +76,7 @@ export default function TaskTemplates() {
             className="card flex items-center justify-between gap-3"
           >
             <div>
-              <div className="text-sm font-medium text-slate-200">{t.name}</div>
+              <div className="text-sm font-medium text-slate-700">{t.name}</div>
               <div className="text-xs text-slate-500">{t.title}</div>
             </div>
             <button
@@ -114,21 +114,21 @@ export default function TaskTemplates() {
       >
         <form id="create-template-form" onSubmit={create} className="space-y-3">
           <input
-            className="input-dark w-full text-sm"
+            className="input-field w-full text-sm"
             placeholder="Template name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
           <input
-            className="input-dark w-full text-sm"
+            className="input-field w-full text-sm"
             placeholder="Task title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
           />
           <textarea
-            className="input-dark w-full text-sm"
+            className="input-field w-full text-sm"
             placeholder="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}

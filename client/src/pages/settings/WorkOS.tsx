@@ -58,12 +58,12 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
       <div className="card bg-gradient-to-r from-primary/10 to-transparent border-primary/20">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex-1">
-            <div className="text-sm font-medium text-slate-200">
+            <div className="text-sm font-medium text-slate-700">
               {data?.summary || 'No summary available.'}
             </div>
-            <div className="text-xs text-slate-400 mt-1">{data?.objective}</div>
+            <div className="text-xs text-slate-500 mt-1">{data?.objective}</div>
           </div>
-          <div className="flex items-center gap-4 text-xs text-slate-400">
+          <div className="flex items-center gap-4 text-xs text-slate-500">
             <span>{data?.estimated_effort?.hours ?? 0}h estimated</span>
             <span>Goal alignment: {data?.goal_alignment?.score ?? 0}%</span>
           </div>
@@ -71,7 +71,7 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-800/50 rounded-lg p-1">
+      <div className="flex gap-1 bg-white/50 rounded-lg p-1">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -79,8 +79,8 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
             onClick={() => setActiveTab(tab.id)}
             className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
               activeTab === tab.id
-                ? 'bg-slate-700 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-gray-200 text-slate-800 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             {tab.label}
@@ -92,12 +92,12 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="card">
-            <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
               <Zap className="w-4 h-4 text-primary" />
               Next Best Actions
             </h3>
             {(data?.next_best_actions || []).length === 0 ? (
-              <div className="text-sm text-slate-400 py-4 text-center">No actions suggested.</div>
+              <div className="text-sm text-slate-500 py-4 text-center">No actions suggested.</div>
             ) : (
               <ul className="space-y-2">
                 {data.next_best_actions.map((a: string, idx: number) => (
@@ -105,7 +105,7 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
                     <span className="shrink-0 w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">
                       {idx + 1}
                     </span>
-                    <span className="text-slate-300">{a}</span>
+                    <span className="text-slate-600">{a}</span>
                   </li>
                 ))}
               </ul>
@@ -113,7 +113,7 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
           </div>
 
           <div className="card">
-            <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-400" />
               Risks & Mitigations
             </h3>
@@ -125,7 +125,7 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
                   </div>
                   <ul className="space-y-1">
                     {(data?.risk?.risks || []).map((r: string, idx: number) => (
-                      <li key={idx} className="text-sm text-slate-300 flex gap-2">
+                      <li key={idx} className="text-sm text-slate-600 flex gap-2">
                         <span className="text-rose-400 mt-0.5">•</span>
                         {r}
                       </li>
@@ -140,7 +140,7 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
                   </div>
                   <ul className="space-y-1">
                     {(data?.risk?.mitigations || []).map((m: string, idx: number) => (
-                      <li key={idx} className="text-sm text-slate-300 flex gap-2">
+                      <li key={idx} className="text-sm text-slate-600 flex gap-2">
                         <span className="text-emerald-400 mt-0.5">•</span>
                         {m}
                       </li>
@@ -149,19 +149,19 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
                 </div>
               )}
               {(data?.risk?.risks || []).length === 0 && (
-                <div className="text-sm text-slate-400 py-2 text-center">No risks detected.</div>
+                <div className="text-sm text-slate-500 py-2 text-center">No risks detected.</div>
               )}
             </div>
           </div>
 
           <div className="card">
-            <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
               <Users className="w-4 h-4 text-blue-400" />
               Workload
             </h3>
             <ul className="space-y-1.5">
               {(data?.workload?.recommendations || []).map((r: string, idx: number) => (
-                <li key={idx} className="text-sm text-slate-300 flex gap-2">
+                <li key={idx} className="text-sm text-slate-600 flex gap-2">
                   <span className="text-blue-400 mt-0.5">•</span>
                   {r}
                 </li>
@@ -170,13 +170,13 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
           </div>
 
           <div className="card">
-            <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
               <Lightbulb className="w-4 h-4 text-purple-400" />
               Recommendations
             </h3>
             <ul className="space-y-1.5">
               {(data?.recommendations || []).map((r: string, idx: number) => (
-                <li key={idx} className="text-sm text-slate-300 flex gap-2">
+                <li key={idx} className="text-sm text-slate-600 flex gap-2">
                   <span className="text-purple-400 mt-0.5">•</span>
                   {r}
                 </li>
@@ -189,16 +189,16 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
       {activeTab === 'actions' && (
         <div className="space-y-4">
           <div className="card !p-0 overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-700 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-200">Top Priorities</h3>
+            <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-700">Top Priorities</h3>
               <span className="text-[10px] text-slate-500">Ranked by priority score</span>
             </div>
             {topTasks.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-sm">No active tasks.</div>
+              <div className="p-8 text-center text-slate-500 text-sm">No active tasks.</div>
             ) : (
               <div className="divide-y divide-slate-700/50">
                 {topTasks.map((t: any, idx: number) => (
-                  <div key={t._id} className="px-4 py-3 hover:bg-slate-700/30 transition-colors">
+                  <div key={t._id} className="px-4 py-3 hover:bg-gray-200/30 transition-colors">
                     <div className="flex items-start gap-3">
                       <div className="shrink-0 w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold mt-0.5">
                         {idx + 1}
@@ -207,7 +207,7 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
                         <div className="flex items-center gap-2">
                           <Link
                             to={`/tasks/${t._id}`}
-                            className="text-sm font-medium text-slate-200 hover:text-primary truncate"
+                            className="text-sm font-medium text-slate-700 hover:text-primary truncate"
                           >
                             {t.title}
                           </Link>
@@ -248,7 +248,7 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
 
           {blockedTasks.length > 0 && (
             <div className="card !p-0 overflow-hidden">
-              <div className="px-4 py-3 border-b border-slate-700 flex items-center justify-between gap-2">
+              <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between gap-2">
                 <h3 className="text-sm font-semibold text-rose-400">
                   Blocked Tasks ({blockedTasks.length})
                 </h3>
@@ -258,7 +258,7 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
                   <div key={t._id} className="px-4 py-3">
                     <Link
                       to={`/tasks/${t._id}`}
-                      className="text-sm font-medium text-slate-200 hover:text-primary"
+                      className="text-sm font-medium text-slate-700 hover:text-primary"
                     >
                       {t.title}
                     </Link>
@@ -273,14 +273,14 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
 
       {activeTab === 'schedule' && (
         <div className="card !p-0 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-700">
-            <h3 className="text-sm font-semibold text-slate-200">Suggested Schedule</h3>
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h3 className="text-sm font-semibold text-slate-700">Suggested Schedule</h3>
             <p className="text-[10px] text-slate-500 mt-0.5">
               Deep-work blocks for top priority tasks
             </p>
           </div>
           {(data?.suggested_schedule || []).length === 0 ? (
-            <div className="p-8 text-center text-slate-400 text-sm">No schedule suggestions.</div>
+            <div className="p-8 text-center text-slate-500 text-sm">No schedule suggestions.</div>
           ) : (
             <div className="divide-y divide-slate-700/50">
               {data.suggested_schedule.map((s: any, idx: number) => (
@@ -291,11 +291,11 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
                   <div className="flex-1">
                     <Link
                       to={`/tasks/${s.taskId}`}
-                      className="text-sm font-medium text-slate-200 hover:text-primary"
+                      className="text-sm font-medium text-slate-700 hover:text-primary"
                     >
                       {topTasks.find((t: any) => t._id === s.taskId)?.title || s.taskId}
                     </Link>
-                    <div className="text-xs text-slate-400 mt-1">{s.suggestion}</div>
+                    <div className="text-xs text-slate-500 mt-1">{s.suggestion}</div>
                   </div>
                 </div>
               ))}
@@ -307,13 +307,13 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
       {activeTab === 'insights' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="card">
-            <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
               <RefreshCw className="w-4 h-4 text-cyan-400" />
               Active Automations
             </h3>
             <ul className="space-y-2">
               {(data?.automations || []).map((a: string, idx: number) => (
-                <li key={idx} className="text-sm text-slate-300 flex gap-2">
+                <li key={idx} className="text-sm text-slate-600 flex gap-2">
                   <span className="text-cyan-400 mt-0.5">•</span>
                   {a}
                 </li>
@@ -322,30 +322,30 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
           </div>
 
           <div className="card">
-            <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
               <Target className="w-4 h-4 text-emerald-400" />
               Goal Alignment
             </h3>
             <div className="flex items-center gap-4 mb-3">
-              <div className="text-3xl font-bold text-slate-200">
+              <div className="text-3xl font-bold text-slate-700">
                 {data?.goal_alignment?.score ?? 0}%
               </div>
-              <div className="text-xs text-slate-400">Strategic alignment score</div>
+              <div className="text-xs text-slate-500">Strategic alignment score</div>
             </div>
             {(data?.goal_alignment?.related_goals || []).length > 0 && (
-              <div className="text-xs text-slate-400">
+              <div className="text-xs text-slate-500">
                 {data.goal_alignment.related_goals.length} goals linked
               </div>
             )}
           </div>
 
           <div className="card lg:col-span-2">
-            <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-amber-400" />
               Critical Path
             </h3>
             {(data?.critical_path || []).length === 0 ? (
-              <div className="text-sm text-slate-400 py-2">No critical path detected.</div>
+              <div className="text-sm text-slate-500 py-2">No critical path detected.</div>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {data.critical_path.map((taskId: string, idx: number) => {
@@ -354,7 +354,7 @@ function AdminWorkOS({ data, loading, error, runningDaily, onRunDaily, onDownloa
                     <div key={idx} className="flex items-center gap-2">
                       <Link
                         to={`/tasks/${taskId}`}
-                        className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-primary/50 hover:text-primary transition-colors"
+                        className="text-xs px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-slate-600 hover:border-primary/50 hover:text-primary transition-colors"
                       >
                         {task?.title || taskId}
                       </Link>
@@ -427,14 +427,14 @@ function UserWorkOSView({ tasks }: { tasks: Task[] }) {
       {/* Weekly Activity */}
       <div className="card">
         <div className="flex items-center justify-between mb-2">
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
             This Week
           </div>
           <span className="text-xs text-slate-500">
             {weeklyProgress.completedThisWeek} tasks completed
           </span>
         </div>
-        <div className="h-3 rounded-full bg-slate-700 overflow-hidden">
+        <div className="h-3 rounded-full bg-gray-200 overflow-hidden">
           <div
             className="h-full rounded-full bg-gradient-to-r from-primary to-emerald-500 transition-all duration-500"
             style={{ width: `${stats.completionRate}%` }}
@@ -442,7 +442,7 @@ function UserWorkOSView({ tasks }: { tasks: Task[] }) {
         </div>
         <div className="flex justify-between mt-1.5 text-[10px] text-slate-500">
           <span>{weeklyProgress.totalActive} active tasks remaining</span>
-          <span className="font-bold text-slate-300">{stats.completionRate}% overall</span>
+          <span className="font-bold text-slate-600">{stats.completionRate}% overall</span>
         </div>
       </div>
 
@@ -471,13 +471,13 @@ function UserWorkOSView({ tasks }: { tasks: Task[] }) {
                     <Link
                       key={t._id}
                       to={`/tasks/${t._id}`}
-                      className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-slate-700/30 transition-colors group"
+                      className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-gray-200/30 transition-colors group"
                     >
                       <div
                         className={`h-2 w-2 rounded-full shrink-0 ${overdue ? 'bg-rose-500 animate-pulse' : 'bg-amber-500'}`}
                       />
                       <div className="min-w-0 flex-1">
-                        <div className="text-sm font-medium text-slate-200 group-hover:text-primary truncate transition-colors">
+                        <div className="text-sm font-medium text-slate-700 group-hover:text-primary truncate transition-colors">
                           {t.title}
                         </div>
                         <div className="flex items-center gap-2 mt-1">
@@ -535,10 +535,10 @@ function UserWorkOSView({ tasks }: { tasks: Task[] }) {
                   <Link
                     key={t._id}
                     to={`/tasks/${t._id}`}
-                    className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-slate-700/30 transition-colors group"
+                    className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-gray-200/30 transition-colors group"
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium text-slate-200 group-hover:text-primary truncate transition-colors">
+                      <div className="text-sm font-medium text-slate-700 group-hover:text-primary truncate transition-colors">
                         {t.title}
                       </div>
                       <div className="flex items-center gap-2 mt-1">
@@ -574,7 +574,7 @@ function UserWorkOSView({ tasks }: { tasks: Task[] }) {
         {/* Right Column - Sidebar */}
         <div className="space-y-4">
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
               Task Breakdown
             </div>
             <div className="space-y-2">
@@ -587,7 +587,7 @@ function UserWorkOSView({ tasks }: { tasks: Task[] }) {
                 <div key={item.label} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${item.color}`} />
-                    <span className="text-xs text-slate-400">{item.label}</span>
+                    <span className="text-xs text-slate-500">{item.label}</span>
                   </div>
                   <span className={`text-xs font-bold tabular-nums ${item.textColor}`}>
                     {item.count}
@@ -619,11 +619,11 @@ function UserWorkOSView({ tasks }: { tasks: Task[] }) {
                   <Link
                     key={t._id}
                     to={`/tasks/${t._id}`}
-                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-700/30 transition-colors group"
+                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-200/30 transition-colors group"
                   >
                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium text-slate-300 group-hover:text-primary truncate transition-colors">
+                      <div className="text-xs font-medium text-slate-600 group-hover:text-primary truncate transition-colors">
                         {t.title}
                       </div>
                       <div className="text-[10px] text-slate-500">
@@ -637,15 +637,15 @@ function UserWorkOSView({ tasks }: { tasks: Task[] }) {
           </div>
 
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
               Insights
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-500">Completion rate</span>
-                <span className="text-xs font-bold text-slate-200">{stats.completionRate}%</span>
+                <span className="text-xs font-bold text-slate-700">{stats.completionRate}%</span>
               </div>
-              <div className="h-1 rounded-full bg-slate-700 overflow-hidden">
+              <div className="h-1 rounded-full bg-gray-200 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-emerald-500"
                   style={{ width: `${stats.completionRate}%` }}
@@ -661,7 +661,7 @@ function UserWorkOSView({ tasks }: { tasks: Task[] }) {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-500">Avg. tasks/day</span>
-                <span className="text-xs font-bold text-slate-200">
+                <span className="text-xs font-bold text-slate-700">
                   {stats.total > 0 ? Math.round(stats.total / 7) : 0}
                 </span>
               </div>

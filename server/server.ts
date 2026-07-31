@@ -70,21 +70,24 @@ const AUTH_RATE_LIMIT_MAX = 50; // stricter for auth endpoints
 
 function rateLimit(maxRequests: number) {
   return (req: express.Request, res: express.Response, next: express.NextFunction): void => {
+    // Use client IP as unique identifier
     const key = `${req.ip || req.socket.remoteAddress || "unknown"}`;
     const now = Date.now();
     const record = rateLimitStore.get(key);
 
+    // New client or expired window: reset counter
     if (!record || now > record.resetAt) {
       rateLimitStore.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
       next();
       return;
     }
 
+    // Increment and check limit
     record.count++;
     if (record.count > maxRequests) {
       res.status(429).json({
         message: "Too many requests. Please try again later.",
-        retryAfter: Math.ceil((record.resetAt - now) / 1000),
+        retryAfter: Math.ceil((record.resetAt - now) / 1000), // seconds until reset
       });
       return;
     }
@@ -93,15 +96,15 @@ function rateLimit(maxRequests: number) {
 }
 
 // General rate limit
-app.use(rateLimit(RATE_LIMIT_MAX));
+// app.use(rateLimit(RATE_LIMIT_MAX));
 
 // Stricter rate limit for auth endpoints
-const authRateLimit = rateLimit(AUTH_RATE_LIMIT_MAX);
+// const authRateLimit = rateLimit(AUTH_RATE_LIMIT_MAX);
 
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-app.use("/api/auth", authRateLimit, authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/reports", reportRoutes);

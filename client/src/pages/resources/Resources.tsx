@@ -51,7 +51,7 @@ export default function Resources() {
           <label className="text-xs text-slate-500 block mb-1">From</label>
           <input
             type="date"
-            className="input-dark text-sm"
+            className="input-field text-sm"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
           />
@@ -60,7 +60,7 @@ export default function Resources() {
           <label className="text-xs text-slate-500 block mb-1">To</label>
           <input
             type="date"
-            className="input-dark text-sm"
+            className="input-field text-sm"
             value={to}
             onChange={(e) => setTo(e.target.value)}
           />
@@ -79,7 +79,7 @@ export default function Resources() {
       <div className="overflow-x-auto card">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs text-slate-500 border-b border-slate-700">
+            <tr className="text-left text-xs text-slate-500 border-b border-gray-200">
               <th className="py-2 pr-3">Member</th>
               <th className="py-2 pr-3">Capacity/wk</th>
               <th className="py-2 pr-3">Window capacity</th>
@@ -93,11 +93,11 @@ export default function Resources() {
             {allocation.map((row) => (
               <tr
                 key={String(row.userId)}
-                className={`border-b border-slate-800 ${
+                className={`border-b border-gray-200 ${
                   row.overloaded ? 'bg-rose-500/5' : ''
                 }`}
               >
-                <td className="py-2 pr-3 text-slate-200">
+                <td className="py-2 pr-3 text-slate-700">
                   {row.user?.name || 'User'}
                   {row.overloaded && (
                     <span className="ml-2 text-[10px] text-rose-400 font-semibold">
@@ -105,22 +105,22 @@ export default function Resources() {
                     </span>
                   )}
                 </td>
-                <td className="py-2 pr-3 text-slate-400">
+                <td className="py-2 pr-3 text-slate-500">
                   {row.capacityHoursPerWeek}h
                 </td>
-                <td className="py-2 pr-3 text-slate-400">
+                <td className="py-2 pr-3 text-slate-500">
                   {row.capacityInWindow.toFixed(1)}h
                 </td>
-                <td className="py-2 pr-3 text-slate-300">
+                <td className="py-2 pr-3 text-slate-600">
                   {row.assignedHours.toFixed(1)}h
                 </td>
-                <td className="py-2 pr-3 text-slate-300">
+                <td className="py-2 pr-3 text-slate-600">
                   {row.loggedHours.toFixed(1)}h
                 </td>
-                <td className="py-2 pr-3 text-slate-400">{row.openTaskCount}</td>
+                <td className="py-2 pr-3 text-slate-500">{row.openTaskCount}</td>
                 <td className="py-2 pr-3">
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 rounded bg-slate-800 max-w-[80px] overflow-hidden">
+                    <div className="flex-1 h-1.5 rounded bg-white max-w-[80px] overflow-hidden">
                       <div
                         className={`h-full ${
                           row.overloaded ? 'bg-rose-500' : 'bg-cyan-500'
@@ -130,7 +130,7 @@ export default function Resources() {
                         }}
                       />
                     </div>
-                    <span className="text-xs text-slate-400 tabular-nums">
+                    <span className="text-xs text-slate-500 tabular-nums">
                       {row.utilizationPercent}%
                     </span>
                   </div>

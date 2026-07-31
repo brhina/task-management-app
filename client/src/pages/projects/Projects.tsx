@@ -13,7 +13,7 @@ import type { Project, ProjectStatus } from '../../types';
 const STATUS_OPTIONS: ProjectStatus[] = ['Planned', 'Active', 'Paused', 'Completed', 'Archived'];
 
 const STATUS_COLORS: Record<string, string> = {
-  Planned: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
+  Planned: 'bg-slate-500/15 text-slate-500 border-slate-500/30',
   Active: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
   Paused: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
   Completed: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
@@ -112,7 +112,7 @@ function Projects() {
         ) : filteredProjects.length === 0 ? (
           <div className="card text-center py-12">
             <Folder className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-            <div className="text-slate-400 text-sm">
+            <div className="text-slate-500 text-sm">
               {projects.length === 0
                 ? 'No projects yet. Create your first project to get started.'
                 : 'No projects match your filters.'}
@@ -137,7 +137,7 @@ function Projects() {
                   className="card group hover:border-primary/40 transition-all cursor-pointer"
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="text-sm font-semibold text-slate-200 group-hover:text-primary truncate transition-colors">
+                    <h3 className="text-sm font-semibold text-slate-700 group-hover:text-primary truncate transition-colors">
                       {p.name}
                     </h3>
                     <span
@@ -148,10 +148,10 @@ function Projects() {
                   </div>
 
                   {p.description && (
-                    <p className="text-xs text-slate-400 line-clamp-2 mb-3">{p.description}</p>
+                    <p className="text-xs text-slate-500 line-clamp-2 mb-3">{p.description}</p>
                   )}
 
-                  <div className="flex items-center justify-between text-[10px] text-slate-500 mt-auto pt-2 border-t border-slate-700/50">
+                  <div className="flex items-center justify-between text-[10px] text-slate-500 mt-auto pt-2 border-t border-gray-200/50">
                     <div className="flex items-center gap-3">
                       {p.startDate && (
                         <span>
@@ -198,7 +198,7 @@ function Projects() {
                           e.stopPropagation();
                           navigate(`/projects/${p._id}/edit`);
                         }}
-                        className="p-1 text-slate-600 hover:text-slate-300 transition-colors"
+                        className="p-1 text-slate-600 hover:text-slate-600 transition-colors"
                         title="Edit project"
                       >
                         <Pencil className="w-3 h-3" />

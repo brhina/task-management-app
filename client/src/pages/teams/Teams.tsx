@@ -143,17 +143,17 @@ const Teams = () => {
         )}
 
         {loading ? (
-          <p className="text-slate-400 text-sm">Loading teams...</p>
+          <p className="text-slate-500 text-sm">Loading teams...</p>
         ) : (
           <div className="grid lg:grid-cols-2 gap-4">
             {teams.map((team) => (
               <div
                 key={team._id}
-                className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4"
+                className="bg-white/50 border border-gray-200/50 rounded-xl p-4"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <div className="flex items-center gap-2 text-white font-semibold">
+                    <div className="flex items-center gap-2 text-slate-800 font-semibold">
                       <UsersRound className="w-4 h-4 text-primary" />
                       {team.name}
                     </div>
@@ -163,16 +163,16 @@ const Teams = () => {
                       </p>
                     )}
                     {team.description && (
-                      <p className="text-sm text-slate-400 mt-1">{team.description}</p>
+                      <p className="text-sm text-slate-500 mt-1">{team.description}</p>
                     )}
-                    <p className="text-xs text-slate-400 mt-2">
+                    <p className="text-xs text-slate-500 mt-2">
                       Lead: {team.leadId?.name || '—'} · Members: {team.memberIds?.length || 0}
                     </p>
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => loadDashboard(team._id)}
-                      className="text-xs px-2 py-1 rounded border border-slate-600 text-slate-300 hover:bg-slate-700"
+                      className="text-xs px-2 py-1 rounded border border-slate-600 text-slate-600 hover:bg-gray-200"
                     >
                       Dashboard
                     </button>
@@ -189,40 +189,40 @@ const Teams = () => {
               </div>
             ))}
             {teams.length === 0 && (
-              <p className="text-sm text-slate-400">No teams yet. Create one to get started.</p>
+              <p className="text-sm text-slate-500">No teams yet. Create one to get started.</p>
             )}
           </div>
         )}
 
         {selectedDashboard && (
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-            <h3 className="text-white font-semibold mb-2">
+          <div className="bg-white/50 border border-gray-200/50 rounded-xl p-4">
+            <h3 className="text-slate-800 font-semibold mb-2">
               {selectedDashboard.team?.name} dashboard
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-              <div className="bg-slate-900/60 rounded-lg p-3">
-                <div className="text-lg font-bold text-white">
+              <div className="bg-gray-100/60 rounded-lg p-3">
+                <div className="text-lg font-bold text-slate-800">
                   {selectedDashboard.statistics?.totalTasks || 0}
                 </div>
-                <div className="text-[10px] uppercase text-slate-400">Tasks</div>
+                <div className="text-[10px] uppercase text-slate-500">Tasks</div>
               </div>
-              <div className="bg-slate-900/60 rounded-lg p-3">
-                <div className="text-lg font-bold text-white">
+              <div className="bg-gray-100/60 rounded-lg p-3">
+                <div className="text-lg font-bold text-slate-800">
                   {selectedDashboard.statistics?.overdueTasks || 0}
                 </div>
-                <div className="text-[10px] uppercase text-slate-400">Overdue</div>
+                <div className="text-[10px] uppercase text-slate-500">Overdue</div>
               </div>
-              <div className="bg-slate-900/60 rounded-lg p-3">
-                <div className="text-lg font-bold text-white">
+              <div className="bg-gray-100/60 rounded-lg p-3">
+                <div className="text-lg font-bold text-slate-800">
                   {selectedDashboard.statistics?.completedLast30Days || 0}
                 </div>
-                <div className="text-[10px] uppercase text-slate-400">Done (30d)</div>
+                <div className="text-[10px] uppercase text-slate-500">Done (30d)</div>
               </div>
-              <div className="bg-slate-900/60 rounded-lg p-3">
-                <div className="text-lg font-bold text-white">
+              <div className="bg-gray-100/60 rounded-lg p-3">
+                <div className="text-lg font-bold text-slate-800">
                   {selectedDashboard.team?.memberCount || 0}
                 </div>
-                <div className="text-[10px] uppercase text-slate-400">Members</div>
+                <div className="text-[10px] uppercase text-slate-500">Members</div>
               </div>
             </div>
           </div>
@@ -254,12 +254,12 @@ const Teams = () => {
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="Team name"
-              className="input-dark w-full text-sm"
+              className="input-field w-full text-sm"
             />
             <select
               value={form.parentTeamId}
               onChange={(e) => setForm({ ...form, parentTeamId: e.target.value })}
-              className="input-dark w-full text-sm"
+              className="input-field w-full text-sm"
             >
               <option value="">No parent team</option>
               {teams.map((t) => (
@@ -272,12 +272,12 @@ const Teams = () => {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Description"
-              className="input-dark w-full text-sm md:col-span-2"
+              className="input-field w-full text-sm md:col-span-2"
             />
             <select
               value={form.leadId}
               onChange={(e) => setForm({ ...form, leadId: e.target.value })}
-              className="input-dark w-full text-sm"
+              className="input-field w-full text-sm"
             >
               <option value="">Select lead</option>
               {users.map((u) => (
@@ -288,12 +288,12 @@ const Teams = () => {
             </select>
           </div>
           <div>
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
               Members
             </div>
             <div className="max-h-32 overflow-y-auto grid sm:grid-cols-2 gap-1">
               {users.map((u) => (
-                <label key={u._id} className="flex items-center gap-2 text-xs text-slate-300">
+                <label key={u._id} className="flex items-center gap-2 text-xs text-slate-600">
                   <input
                     type="checkbox"
                     checked={form.memberIds.includes(u._id)}

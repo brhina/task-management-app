@@ -12,8 +12,8 @@ function NotFound() {
   return (
     <div className="min-h-screen bg-app-bg flex items-center justify-center px-4">
       <div className="text-center max-w-md">
-        <h1 className="text-8xl font-bold text-slate-200 mb-4">404</h1>
-        <h2 className="text-2xl font-semibold text-slate-300 mb-3">Page not found</h2>
+        <h1 className="text-8xl font-bold text-slate-700 mb-4">404</h1>
+        <h2 className="text-2xl font-semibold text-slate-600 mb-3">Page not found</h2>
         <p className="text-slate-500 mb-8">
           The page you're looking for doesn't exist or has been moved.
         </p>

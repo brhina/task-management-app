@@ -13,7 +13,7 @@ const TIMEFRAME_COLORS: Record<string, string> = {
   Monthly: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
   Quarterly: 'bg-violet-500/15 text-violet-400 border-violet-500/30',
   Yearly: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  Custom: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
+  Custom: 'bg-slate-500/15 text-slate-500 border-slate-500/30',
 };
 
 function GoalDetails() {
@@ -117,7 +117,7 @@ function GoalDetails() {
           >
             {goal.timeframe}
           </span>
-          {goal.objective && <span className="text-slate-400 text-sm">{goal.objective}</span>}
+          {goal.objective && <span className="text-slate-500 text-sm">{goal.objective}</span>}
         </div>
       }
       actions={
@@ -140,14 +140,14 @@ function GoalDetails() {
           {goalProgress !== null && (
             <div className="card">
               <div className="flex items-center justify-between mb-2">
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                   Progress
                 </div>
-                <span className="text-sm font-bold text-slate-200 tabular-nums">
+                <span className="text-sm font-bold text-slate-700 tabular-nums">
                   {goalProgress}%
                 </span>
               </div>
-              <div className="h-3 rounded-full bg-slate-700 overflow-hidden">
+              <div className="h-3 rounded-full bg-gray-200 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-primary to-emerald-500 transition-all duration-500"
                   style={{ width: `${goalProgress}%` }}
@@ -162,17 +162,17 @@ function GoalDetails() {
 
           {/* Key Results */}
           <div className="card space-y-3">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
               Key Results ({keyResults.length})
             </div>
             {keyResults.map((kr) => (
               <div
                 key={kr._id}
-                className="border border-slate-700/50 rounded-lg p-3"
+                className="border border-gray-200/50 rounded-lg p-3"
               >
                 <div className="flex justify-between gap-2 mb-2">
                   <div>
-                    <div className="text-sm text-slate-200 font-medium">{kr.title}</div>
+                    <div className="text-sm text-slate-700 font-medium">{kr.title}</div>
                     {kr.metric && (
                       <div className="text-xs text-slate-500">{kr.metric}</div>
                     )}
@@ -186,7 +186,7 @@ function GoalDetails() {
                     Delete
                   </button>
                 </div>
-                <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden mb-1">
+                <div className="h-1.5 rounded-full bg-white overflow-hidden mb-1">
                   <div
                     className="h-full bg-violet-500"
                     style={{ width: `${kr.progressPercent ?? 0}%` }}
@@ -200,20 +200,20 @@ function GoalDetails() {
             ))}
             <div className="flex flex-wrap gap-2 pt-2">
               <input
-                className="input-dark text-sm flex-1 min-w-[140px]"
+                className="input-field text-sm flex-1 min-w-[140px]"
                 placeholder="Key result title"
                 value={krTitle}
                 onChange={(e) => setKrTitle(e.target.value)}
               />
               <input
-                className="input-dark text-sm w-28"
+                className="input-field text-sm w-28"
                 placeholder="Metric"
                 value={krMetric}
                 onChange={(e) => setKrMetric(e.target.value)}
               />
               <input
                 type="number"
-                className="input-dark text-sm w-24"
+                className="input-field text-sm w-24"
                 value={krTarget}
                 onChange={(e) => setKrTarget(Number(e.target.value))}
               />
@@ -226,14 +226,14 @@ function GoalDetails() {
           {/* OKR alignment */}
           {okrTree && (
             <div className="card">
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
                 OKR alignment
               </div>
-              <div className="text-sm text-slate-300 mb-2">Goal → Key Results → Projects → Tasks</div>
-              <ul className="space-y-2 text-xs text-slate-400">
+              <div className="text-sm text-slate-600 mb-2">Goal → Key Results → Projects → Tasks</div>
+              <ul className="space-y-2 text-xs text-slate-500">
                 {(okrTree.keyResults || []).map((kr: any) => (
                   <li key={kr._id} className="border-l-2 border-violet-500/40 pl-3">
-                    <span className="text-slate-200">{kr.title}</span> ({kr.progressPercent ?? 0}%)
+                    <span className="text-slate-700">{kr.title}</span> ({kr.progressPercent ?? 0}%)
                     <ul className="mt-1 ml-2 space-y-0.5">
                       {(kr.projects || []).map((p: any) => (
                         <li key={p._id}>Project: {p.name}</li>
@@ -253,7 +253,7 @@ function GoalDetails() {
           {/* Linked Projects */}
           <div className="card">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 Linked Projects ({linkedProjects.length})
               </div>
             </div>
@@ -268,13 +268,13 @@ function GoalDetails() {
                   <Link
                     key={p._id}
                     to={`/tasks?projectId=${p._id}`}
-                    className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-slate-700/30 transition-colors group"
+                    className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-gray-200/30 transition-colors group"
                   >
                     <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                       <Folder className="w-4 h-4 text-primary" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium text-slate-200 group-hover:text-primary truncate transition-colors">
+                      <div className="text-sm font-medium text-slate-700 group-hover:text-primary truncate transition-colors">
                         {p.name}
                       </div>
                       <div className="text-[10px] text-slate-500">{p.status}</div>
@@ -289,7 +289,7 @@ function GoalDetails() {
           {/* Linked Tasks */}
           <div className="card">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 Linked Tasks ({linkedTasks.length})
               </div>
             </div>
@@ -304,10 +304,10 @@ function GoalDetails() {
                   <Link
                     key={t._id}
                     to={`/tasks/${t._id}`}
-                    className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-slate-700/30 transition-colors group"
+                    className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-gray-200/30 transition-colors group"
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium text-slate-200 group-hover:text-primary truncate transition-colors">
+                      <div className="text-sm font-medium text-slate-700 group-hover:text-primary truncate transition-colors">
                         {t.title}
                       </div>
                       <div className="flex items-center gap-2 mt-1">
@@ -336,17 +336,17 @@ function GoalDetails() {
           {/* Task Completion */}
           {linkedTasks.length > 0 && (
             <div className="card">
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
                 Task Completion
               </div>
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-2 rounded-full bg-slate-700 overflow-hidden">
+                <div className="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden">
                   <div
                     className="h-full rounded-full bg-emerald-500 transition-all"
                     style={{ width: `${taskStats.progress}%` }}
                   />
                 </div>
-                <span className="text-xs font-bold text-slate-300 tabular-nums">
+                <span className="text-xs font-bold text-slate-600 tabular-nums">
                   {taskStats.progress}%
                 </span>
               </div>
@@ -355,7 +355,7 @@ function GoalDetails() {
 
           {/* Goal Info */}
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
               Goal Details
             </div>
             <div className="space-y-2.5">
@@ -370,19 +370,19 @@ function GoalDetails() {
               {goal.metric && (
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-500">Metric</span>
-                  <span className="text-xs text-slate-300">{goal.metric}</span>
+                  <span className="text-xs text-slate-600">{goal.metric}</span>
                 </div>
               )}
               {goal.targetValue != null && (
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-500">Target</span>
-                  <span className="text-xs font-bold text-slate-200">{goal.targetValue}</span>
+                  <span className="text-xs font-bold text-slate-700">{goal.targetValue}</span>
                 </div>
               )}
               {goal.currentValue != null && (
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-500">Current</span>
-                  <span className="text-xs text-slate-300">{goal.currentValue}</span>
+                  <span className="text-xs text-slate-600">{goal.currentValue}</span>
                 </div>
               )}
             </div>

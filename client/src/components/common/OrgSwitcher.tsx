@@ -173,7 +173,7 @@ function OrgSwitcher() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-white/5 transition-colors text-left"
+        className="w-full flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-gray-100 transition-colors text-left"
       >
         <div className="h-8 w-8 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0">
           <span className="text-sm font-bold text-primary">
@@ -181,23 +181,23 @@ function OrgSwitcher() {
           </span>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium text-white truncate">
+          <div className="text-sm font-medium text-slate-800 truncate">
             {currentOrg?.name || 'Select Organization'}
           </div>
-          <div className="text-[10px] text-slate-400 truncate">
+          <div className="text-[10px] text-slate-500 truncate">
             {currentOrg?.role ? roleLabel(currentOrg.role) : 'Member'} • {orgs.length} org
             {orgs.length !== 1 ? 's' : ''}
           </div>
         </div>
-        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute bottom-full left-0 right-0 mb-2 rounded-xl bg-slate-900 border border-white/10 shadow-lg z-50 overflow-hidden">
-            <div className="px-3 py-2 border-b border-slate-700 flex items-center justify-between">
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          <div className="absolute bottom-full left-0 right-0 mb-2 rounded-xl bg-gray-100 border border-gray-200 shadow-lg z-50 overflow-hidden">
+            <div className="px-3 py-2 border-b border-gray-200 flex items-center justify-between">
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Organizations
               </div>
               {hasPermission('org:manage') && (
@@ -227,28 +227,28 @@ function OrgSwitcher() {
             </div>
             <div className="max-h-64 overflow-y-auto">
               {loading ? (
-                <div className="px-3 py-4 text-center text-sm text-slate-400">Loading...</div>
+                <div className="px-3 py-4 text-center text-sm text-slate-500">Loading...</div>
               ) : orgs.length === 0 ? (
-                <div className="px-3 py-4 text-center text-sm text-slate-400">
+                <div className="px-3 py-4 text-center text-sm text-slate-500">
                   No organizations yet
                 </div>
               ) : (
                 orgs.map((org) => (
                   <div key={org._id} className="relative">
                     <div
-                      className={`flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 cursor-pointer transition-colors ${
+                      className={`flex items-center gap-3 px-3 py-2.5 hover:bg-gray-100 cursor-pointer transition-colors ${
                         org._id === user?.activeOrgId ? 'bg-primary/10' : ''
                       }`}
                       onClick={() => handleSwitchOrg(org._id)}
                     >
-                      <div className="h-8 w-8 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center shrink-0">
-                        <span className="text-sm font-bold text-slate-300">
+                      <div className="h-8 w-8 rounded-lg bg-gray-200 border border-slate-600 flex items-center justify-center shrink-0">
+                        <span className="text-sm font-bold text-slate-600">
                           {org.name?.charAt(0)?.toUpperCase() || 'O'}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-white truncate">{org.name}</div>
-                        <div className="text-[10px] text-slate-400">
+                        <div className="text-sm font-medium text-slate-800 truncate">{org.name}</div>
+                        <div className="text-[10px] text-slate-500">
                           {roleLabel(org.role)}
                           {org.plan && ` • ${org.plan}`}
                         </div>
@@ -284,21 +284,21 @@ function OrgSwitcher() {
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <div
-              className="fixed inset-0 bg-slate-900/80 transition-opacity"
+              className="fixed inset-0 bg-gray-100/80 transition-opacity"
               onClick={() => setShowLeaveConfirm(null)}
             />
-            <div className="relative transform overflow-hidden rounded-xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+            <div className="relative transform overflow-hidden rounded-xl bg-white border border-gray-200 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
               <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
                   <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-rose-500/10 sm:mx-0 sm:h-10 sm:w-10">
                     <AlertTriangle className="h-6 w-6 text-rose-400" />
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg font-semibold leading-6 text-white">
+                    <h3 className="text-lg font-semibold leading-6 text-slate-800">
                       Leave Organization
                     </h3>
                     <div className="mt-2">
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-slate-500">
                         Are you sure you want to leave this organization? You will lose access to
                         all its projects and tasks.
                       </p>
@@ -306,7 +306,7 @@ function OrgSwitcher() {
                   </div>
                 </div>
               </div>
-              <div className="bg-slate-800/50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+              <div className="bg-white/50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
                 <button
                   type="button"
                   onClick={() => handleLeaveOrg(showLeaveConfirm)}
@@ -331,23 +331,23 @@ function OrgSwitcher() {
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <div
-              className="fixed inset-0 bg-slate-900/80 transition-opacity"
+              className="fixed inset-0 bg-gray-100/80 transition-opacity"
               onClick={() => setCreateModal((prev) => ({ ...prev, isOpen: false }))}
             />
-            <div className="relative transform overflow-hidden rounded-xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+            <div className="relative transform overflow-hidden rounded-xl bg-white border border-gray-200 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
               <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
                   <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 sm:mx-0 sm:h-10 sm:w-10">
                     <Building2 className="h-6 w-6 text-primary" />
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 className="text-lg font-semibold leading-6 text-white">
+                    <h3 className="text-lg font-semibold leading-6 text-slate-800">
                       Create Organization
                     </h3>
                     <div className="mt-4">
                       <label
                         htmlFor="orgName"
-                        className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1"
+                        className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
                       >
                         Organization Name
                       </label>
@@ -358,11 +358,11 @@ function OrgSwitcher() {
                         onChange={(e) =>
                           setCreateModal((prev) => ({ ...prev, name: e.target.value, error: '' }))
                         }
-                        className="input-dark block w-full px-3 py-2 text-sm"
+                        className="input-field block w-full px-3 py-2 text-sm"
                         placeholder="My Team Workspace"
                         autoFocus
                       />
-                      <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1 mt-3">
+                      <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1 mt-3">
                         Workspace Template
                       </label>
                       <select
@@ -370,7 +370,7 @@ function OrgSwitcher() {
                         onChange={(e) =>
                           setCreateModal((prev) => ({ ...prev, templateId: e.target.value }))
                         }
-                        className="input-dark block w-full px-3 py-2 text-sm"
+                        className="input-field block w-full px-3 py-2 text-sm"
                       >
                         {(templates.length
                           ? templates
@@ -399,7 +399,7 @@ function OrgSwitcher() {
                   </div>
                 </div>
               </div>
-              <div className="bg-slate-800/50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+              <div className="bg-white/50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
                 <button
                   type="button"
                   onClick={handleCreateOrg}

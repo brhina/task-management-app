@@ -110,22 +110,22 @@ function EditProject() {
           <form onSubmit={handleSubmit} className="card space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
                   Project name *
                 </label>
                 <input
-                  className="input-dark w-full"
+                  className="input-field w-full"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g., Q3 Customer Onboarding"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
                   Status
                 </label>
                 <select
-                  className="input-dark w-full"
+                  className="input-field w-full"
                   value={status}
                   onChange={(e) => setStatus(e.target.value as ProjectStatus)}
                 >
@@ -138,11 +138,11 @@ function EditProject() {
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+              <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
                 Description
               </label>
               <textarea
-                className="input-dark w-full"
+                className="input-field w-full"
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -151,23 +151,23 @@ function EditProject() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
                   Start Date
                 </label>
                 <input
                   type="date"
-                  className="input-dark w-full"
+                  className="input-field w-full"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
                   Target Date
                 </label>
                 <input
                   type="date"
-                  className="input-dark w-full"
+                  className="input-field w-full"
                   value={targetDate}
                   onChange={(e) => setTargetDate(e.target.value)}
                 />
@@ -190,33 +190,33 @@ function EditProject() {
 
         <div className="space-y-4">
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
               Project Stats
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-400">Total Tasks</span>
-                <span className="text-sm font-bold text-slate-200">{totalTasks}</span>
+                <span className="text-sm text-slate-500">Total Tasks</span>
+                <span className="text-sm font-bold text-slate-700">{totalTasks}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-400">Completed</span>
+                <span className="text-sm text-slate-500">Completed</span>
                 <span className="text-sm font-bold text-emerald-400">{completedTasks}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-400">Overdue</span>
-                <span className={`text-sm font-bold ${overdueTasks > 0 ? 'text-rose-400' : 'text-slate-400'}`}>
+                <span className="text-sm text-slate-500">Overdue</span>
+                <span className={`text-sm font-bold ${overdueTasks > 0 ? 'text-rose-400' : 'text-slate-500'}`}>
                   {overdueTasks}
                 </span>
               </div>
               {totalTasks > 0 && (
-                <div className="pt-2 border-t border-slate-700/50">
+                <div className="pt-2 border-t border-gray-200/50">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-slate-500">Completion</span>
-                    <span className="text-xs font-medium text-slate-300">
+                    <span className="text-xs font-medium text-slate-600">
                       {Math.round((completedTasks / totalTasks) * 100)}%
                     </span>
                   </div>
-                  <div className="h-1.5 rounded-full bg-slate-700 overflow-hidden">
+                  <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
                     <div
                       className="h-full rounded-full bg-emerald-500 transition-all"
                       style={{ width: `${(completedTasks / totalTasks) * 100}%` }}

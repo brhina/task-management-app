@@ -16,7 +16,7 @@ const TIMEFRAME_COLORS: Record<string, string> = {
   Monthly: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
   Quarterly: 'bg-violet-500/15 text-violet-400 border-violet-500/30',
   Yearly: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  Custom: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
+  Custom: 'bg-slate-500/15 text-slate-500 border-slate-500/30',
 };
 
 const TIMEFRAME_ICONS: Record<string, string> = {
@@ -119,7 +119,7 @@ function Goals() {
         ) : filteredGoals.length === 0 ? (
           <div className="card text-center py-12">
             <Zap className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-            <div className="text-slate-400 text-sm">
+            <div className="text-slate-500 text-sm">
               {goals.length === 0
                 ? 'No goals yet. Create your first OKR to get started.'
                 : 'No goals match your filters.'}
@@ -147,26 +147,26 @@ function Goals() {
                     <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary transition-colors shrink-0" />
                   </div>
 
-                  <h3 className="text-sm font-semibold text-slate-200 group-hover:text-primary transition-colors mb-1">
+                  <h3 className="text-sm font-semibold text-slate-700 group-hover:text-primary transition-colors mb-1">
                     {g.title}
                   </h3>
 
                   {g.objective && (
-                    <p className="text-xs text-slate-400 line-clamp-2 mb-3">{g.objective}</p>
+                    <p className="text-xs text-slate-500 line-clamp-2 mb-3">{g.objective}</p>
                   )}
 
-                  <div className="mt-auto pt-3 border-t border-slate-700/50">
+                  <div className="mt-auto pt-3 border-t border-gray-200/50">
                     {progress !== null ? (
                       <div>
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-[10px] text-slate-500">
                             {g.metric || 'Progress'}
                           </span>
-                          <span className="text-[10px] font-bold text-slate-300 tabular-nums">
+                          <span className="text-[10px] font-bold text-slate-600 tabular-nums">
                             {progress}%
                           </span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-slate-700 overflow-hidden">
+                        <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
                           <div
                             className="h-full rounded-full bg-gradient-to-r from-primary to-emerald-500 transition-all"
                             style={{ width: `${progress}%` }}

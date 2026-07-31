@@ -303,18 +303,18 @@ const Reports = () => {
           ].map((kpi) => (
             <div
               key={kpi.label}
-              className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4"
+              className="bg-white/50 border border-gray-200/50 rounded-xl p-4"
             >
-              <div className="text-xl font-bold text-white">{kpi.value}</div>
-              <div className="text-[10px] uppercase tracking-wide text-slate-400">{kpi.label}</div>
+              <div className="text-xl font-bold text-slate-800">{kpi.value}</div>
+              <div className="text-[10px] uppercase tracking-wide text-slate-500">{kpi.label}</div>
             </div>
           ))}
         </div>
 
         {/* Charts row */}
         <div className="grid lg:grid-cols-2 gap-4">
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-            <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+          <div className="bg-white/50 border border-gray-200/50 rounded-xl p-4">
+            <h3 className="text-slate-800 font-semibold mb-3 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-primary" /> Completion trends (30d)
             </h3>
             <div className="h-56">
@@ -341,8 +341,8 @@ const Reports = () => {
             </div>
           </div>
 
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-            <h3 className="text-white font-semibold mb-3">Status distribution</h3>
+          <div className="bg-white/50 border border-gray-200/50 rounded-xl p-4">
+            <h3 className="text-slate-800 font-semibold mb-3">Status distribution</h3>
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -364,8 +364,8 @@ const Reports = () => {
             </div>
           </div>
 
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 lg:col-span-2">
-            <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+          <div className="bg-white/50 border border-gray-200/50 rounded-xl p-4 lg:col-span-2">
+            <h3 className="text-slate-800 font-semibold mb-3 flex items-center gap-2">
               <Activity className="w-4 h-4 text-primary" /> Cumulative flow
             </h3>
             <div className="h-56">
@@ -390,16 +390,16 @@ const Reports = () => {
             </div>
           </div>
 
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+          <div className="bg-white/50 border border-gray-200/50 rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-white font-semibold">Sprint burndown</h3>
+              <h3 className="text-slate-800 font-semibold">Sprint burndown</h3>
               <select
                 value={selectedSprint}
                 onChange={(e) => {
                   setSelectedSprint(e.target.value);
                   if (e.target.value) loadBurndown(e.target.value);
                 }}
-                className="bg-slate-900 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white"
+                className="bg-gray-100 border border-slate-600 rounded-lg px-2 py-1 text-xs text-slate-800"
               >
                 <option value="">Select sprint</option>
                 {sprints.map((s) => (
@@ -433,8 +433,8 @@ const Reports = () => {
             </div>
           </div>
 
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-            <h3 className="text-white font-semibold mb-3">Sprint velocity</h3>
+          <div className="bg-white/50 border border-gray-200/50 rounded-xl p-4">
+            <h3 className="text-slate-800 font-semibold mb-3">Sprint velocity</h3>
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={sprints}>
@@ -458,10 +458,10 @@ const Reports = () => {
 
         {/* Team performance + health */}
         <div className="grid lg:grid-cols-2 gap-4">
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 overflow-x-auto">
-            <h3 className="text-white font-semibold mb-3">Team performance</h3>
+          <div className="bg-white/50 border border-gray-200/50 rounded-xl p-4 overflow-x-auto">
+            <h3 className="text-slate-800 font-semibold mb-3">Team performance</h3>
             <table className="w-full text-xs">
-              <thead className="text-slate-400 text-left">
+              <thead className="text-slate-500 text-left">
                 <tr>
                   <th className="py-1 pr-2">Member</th>
                   <th className="py-1 pr-2">Done/wk</th>
@@ -472,13 +472,13 @@ const Reports = () => {
               </thead>
               <tbody>
                 {teamPerf.slice(0, 10).map((m) => (
-                  <tr key={m.userId} className="border-t border-slate-700/40 text-slate-300">
-                    <td className="py-1.5 pr-2 text-white">{m.name}</td>
+                  <tr key={m.userId} className="border-t border-gray-200/40 text-slate-600">
+                    <td className="py-1.5 pr-2 text-slate-800">{m.name}</td>
                     <td className="py-1.5 pr-2">{m.completedThisWeek}</td>
                     <td className="py-1.5 pr-2">{m.completionRate}%</td>
                     <td className="py-1.5 pr-2">{m.hoursLoggedThisWeek}</td>
                     <td className="py-1.5">
-                      <div className="w-20 h-1.5 bg-slate-900 rounded-full overflow-hidden">
+                      <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-primary"
                           style={{ width: `${Math.min(100, m.workloadScore)}%` }}
@@ -491,16 +491,16 @@ const Reports = () => {
             </table>
           </div>
 
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-            <h3 className="text-white font-semibold mb-3">Project health</h3>
+          <div className="bg-white/50 border border-gray-200/50 rounded-xl p-4">
+            <h3 className="text-slate-800 font-semibold mb-3">Project health</h3>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {projectHealth.map((p) => (
                 <div
                   key={p.projectId}
-                  className="flex items-center justify-between gap-3 bg-slate-900/50 rounded-lg px-3 py-2"
+                  className="flex items-center justify-between gap-3 bg-gray-100/50 rounded-lg px-3 py-2"
                 >
                   <div>
-                    <div className="text-sm text-white">{p.name}</div>
+                    <div className="text-sm text-slate-800">{p.name}</div>
                     <div className="text-[10px] text-slate-500">
                       {p.completionRate}% complete · {p.overdueTasks} overdue
                     </div>
@@ -526,17 +526,17 @@ const Reports = () => {
         </div>
 
         {/* Workload heatmap */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 overflow-x-auto">
-          <h3 className="text-white font-semibold mb-3">Workload heatmap (this week)</h3>
+        <div className="bg-white/50 border border-gray-200/50 rounded-xl p-4 overflow-x-auto">
+          <h3 className="text-slate-800 font-semibold mb-3">Workload heatmap (this week)</h3>
           {heatmapUsers.length === 0 ? (
             <p className="text-sm text-slate-500">No workload data.</p>
           ) : (
             <table className="text-xs">
               <thead>
                 <tr>
-                  <th className="text-left text-slate-400 pr-3 py-1">Member</th>
+                  <th className="text-left text-slate-500 pr-3 py-1">Member</th>
                   {heatmapDays.map((d) => (
-                    <th key={d} className="text-slate-400 px-1 py-1 font-normal">
+                    <th key={d} className="text-slate-500 px-1 py-1 font-normal">
                       {d.slice(5)}
                     </th>
                   ))}
@@ -545,14 +545,14 @@ const Reports = () => {
               <tbody>
                 {heatmapUsers.map((name) => (
                   <tr key={name}>
-                    <td className="text-slate-300 pr-3 py-1 whitespace-nowrap">{name}</td>
+                    <td className="text-slate-600 pr-3 py-1 whitespace-nowrap">{name}</td>
                     {heatmapDays.map((day) => {
                       const cell = heatmap.find((c) => c.name === name && c.day === day);
                       const intensity = Math.min(1, (cell?.taskCount || 0) / 5);
                       return (
                         <td key={day} className="px-1 py-1">
                           <div
-                            className="w-8 h-8 rounded flex items-center justify-center text-[10px] text-white"
+                            className="w-8 h-8 rounded flex items-center justify-center text-[10px] text-slate-800"
                             style={{
                               backgroundColor: `rgba(59, 130, 246, ${0.15 + intensity * 0.75})`,
                             }}
@@ -572,59 +572,59 @@ const Reports = () => {
 
         {/* Time tracking summary */}
         {timeReport && (
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-            <h3 className="text-white font-semibold mb-3">Time tracking</h3>
+          <div className="bg-white/50 border border-gray-200/50 rounded-xl p-4">
+            <h3 className="text-slate-800 font-semibold mb-3">Time tracking</h3>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <div className="text-lg font-bold text-white">
+                <div className="text-lg font-bold text-slate-800">
                   {Math.round((timeReport.totalHours || 0) * 10) / 10}h
                 </div>
-                <div className="text-[10px] uppercase text-slate-400">Total</div>
+                <div className="text-[10px] uppercase text-slate-500">Total</div>
               </div>
               <div>
-                <div className="text-lg font-bold text-white">
+                <div className="text-lg font-bold text-slate-800">
                   {Math.round((timeReport.billableHours || 0) * 10) / 10}h
                 </div>
-                <div className="text-[10px] uppercase text-slate-400">Billable</div>
+                <div className="text-[10px] uppercase text-slate-500">Billable</div>
               </div>
               <div>
-                <div className="text-lg font-bold text-white">
+                <div className="text-lg font-bold text-slate-800">
                   {Math.round((timeReport.nonBillableHours || 0) * 10) / 10}h
                 </div>
-                <div className="text-[10px] uppercase text-slate-400">Non-billable</div>
+                <div className="text-[10px] uppercase text-slate-500">Non-billable</div>
               </div>
             </div>
           </div>
         )}
 
         {deps && (
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-            <h3 className="text-white font-semibold mb-3">Dependency analysis</h3>
+          <div className="bg-white/50 border border-gray-200/50 rounded-xl p-4">
+            <h3 className="text-slate-800 font-semibold mb-3">Dependency analysis</h3>
             <div className="grid sm:grid-cols-3 gap-3 mb-3">
-              <div className="bg-slate-900/60 rounded-lg p-3">
-                <div className="text-lg font-bold text-white">
+              <div className="bg-gray-100/60 rounded-lg p-3">
+                <div className="text-lg font-bold text-slate-800">
                   {deps.criticalPath?.length || 0}
                 </div>
-                <div className="text-[10px] uppercase text-slate-400">Critical path</div>
+                <div className="text-[10px] uppercase text-slate-500">Critical path</div>
               </div>
-              <div className="bg-slate-900/60 rounded-lg p-3">
-                <div className="text-lg font-bold text-white">
+              <div className="bg-gray-100/60 rounded-lg p-3">
+                <div className="text-lg font-bold text-slate-800">
                   {deps.blockedTaskIds?.length || 0}
                 </div>
-                <div className="text-[10px] uppercase text-slate-400">Blocked</div>
+                <div className="text-[10px] uppercase text-slate-500">Blocked</div>
               </div>
-              <div className="bg-slate-900/60 rounded-lg p-3">
-                <div className="text-lg font-bold text-white">{deps.cycles?.length || 0}</div>
-                <div className="text-[10px] uppercase text-slate-400">Cycles</div>
+              <div className="bg-gray-100/60 rounded-lg p-3">
+                <div className="text-lg font-bold text-slate-800">{deps.cycles?.length || 0}</div>
+                <div className="text-[10px] uppercase text-slate-500">Cycles</div>
               </div>
             </div>
             {(deps.bottlenecks || []).slice(0, 5).length > 0 && (
               <div className="space-y-1">
-                <p className="text-xs text-slate-400 mb-1">Top bottlenecks</p>
+                <p className="text-xs text-slate-500 mb-1">Top bottlenecks</p>
                 {deps.bottlenecks.slice(0, 5).map((b: any) => (
                   <div
                     key={b.taskId}
-                    className="flex justify-between text-xs text-slate-300 bg-slate-900/40 rounded px-2 py-1.5"
+                    className="flex justify-between text-xs text-slate-600 bg-gray-100/40 rounded px-2 py-1.5"
                   >
                     <span className="font-mono">{String(b.taskId).slice(-8)}</span>
                     <span>{b.blockedDependents} dependents</span>
@@ -636,28 +636,28 @@ const Reports = () => {
         )}
 
         {/* Filters + exports */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+        <div className="bg-white/50 border border-gray-200/50 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-3">
-            <Filter className="w-4 h-4 text-slate-400" />
-            <span className="text-sm font-medium text-slate-300">Export filters</span>
+            <Filter className="w-4 h-4 text-slate-500" />
+            <span className="text-sm font-medium text-slate-600">Export filters</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <input
               type="date"
               value={dateRange.startDate}
               onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"
+              className="w-full bg-gray-100 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-800"
             />
             <input
               type="date"
               value={dateRange.endDate}
               onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"
+              className="w-full bg-gray-100 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-800"
             />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"
+              className="w-full bg-gray-100 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-800"
             >
               <option value="">All Statuses</option>
               <option value="Pending">Pending</option>
@@ -668,7 +668,7 @@ const Reports = () => {
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"
+              className="w-full bg-gray-100 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-800"
             >
               <option value="">All Priorities</option>
               <option value="Low">Low</option>
@@ -685,15 +685,15 @@ const Reports = () => {
               <div key={report.id} className="card hover:border-primary/40 transition-all">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="text-primary">{report.icon}</div>
-                  <h3 className="text-lg font-semibold text-white">{report.title}</h3>
+                  <h3 className="text-lg font-semibold text-slate-800">{report.title}</h3>
                 </div>
-                <p className="text-sm text-slate-300 mb-4">{report.description}</p>
+                <p className="text-sm text-slate-600 mb-4">{report.description}</p>
                 {report.stats.length > 0 && (
                   <div className="flex gap-4 mb-4">
                     {report.stats.map((stat, idx) => (
                       <div key={idx} className="text-center">
-                        <div className="text-lg font-bold text-white">{stat.value}</div>
-                        <div className="text-[10px] text-slate-400 uppercase">{stat.label}</div>
+                        <div className="text-lg font-bold text-slate-800">{stat.value}</div>
+                        <div className="text-[10px] text-slate-500 uppercase">{stat.label}</div>
                       </div>
                     ))}
                   </div>
@@ -701,7 +701,7 @@ const Reports = () => {
                 <button
                   onClick={() => downloadReport(report.id)}
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-600/50 rounded-lg text-sm font-medium text-white disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white/80 hover:bg-gray-200/80 border border-slate-600/50 rounded-lg text-sm font-medium text-slate-800 disabled:opacity-50"
                 >
                   <Download className="w-4 h-4" />
                   Download Excel
@@ -711,11 +711,11 @@ const Reports = () => {
           </div>
         )}
 
-        <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4">
+        <div className="bg-white/30 border border-gray-200/50 rounded-xl p-4">
           <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-slate-400 mt-0.5" />
-            <div className="text-sm text-slate-400 space-y-1">
-              <p className="font-medium text-slate-300">About analytics</p>
+            <Info className="w-5 h-5 text-slate-500 mt-0.5" />
+            <div className="text-sm text-slate-500 space-y-1">
+              <p className="font-medium text-slate-600">About analytics</p>
               <p>• Predictive completion uses the last 7 days of completed-task velocity.</p>
               <p>• Burndown uses sprint effort hours and status-change activity.</p>
               <p>• Project health scores weigh overdue work, completion rate, and target dates.</p>

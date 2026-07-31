@@ -210,7 +210,7 @@ function ManageUsers() {
   const getWorkloadStatus = (u: UserWithTaskCounts) => {
     const active = (u.pendingTasks || 0) + (u.inProgressTasks || 0);
     if (active === 0)
-      return { label: 'Idle', color: 'text-slate-400', bg: 'bg-slate-500/15', bar: 'bg-slate-500' };
+      return { label: 'Idle', color: 'text-slate-500', bg: 'bg-slate-500/15', bar: 'bg-slate-500' };
     if (active <= 3)
       return {
         label: 'Light',
@@ -374,18 +374,18 @@ function ManageUsers() {
             },
           ]}
           actions={
-            <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg p-1">
+            <div className="flex items-center bg-white border border-gray-200 rounded-lg p-1">
               <button
                 type="button"
                 onClick={() => setViewMode('grid')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'grid' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'grid' ? 'bg-gray-200 text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 Grid
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode('list')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'list' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'list' ? 'bg-gray-200 text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 List
               </button>
@@ -401,7 +401,7 @@ function ManageUsers() {
         ) : filteredUsers.length === 0 ? (
           <div className="card text-center py-12">
             <Users className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-            <div className="text-slate-400 text-sm">
+            <div className="text-slate-500 text-sm">
               {users.length === 0 ? 'No team members yet.' : 'No members match your filters.'}
             </div>
           </div>
@@ -420,19 +420,19 @@ function ManageUsers() {
                   <div className="flex items-start gap-3 mb-3">
                     {u.profileImageUrl ? (
                       <img
-                        className="h-12 w-12 rounded-full ring-2 ring-slate-700"
+                        className="h-12 w-12 rounded-full ring-2 ring-gray-200"
                         src={u.profileImageUrl}
                         alt={u.name}
                       />
                     ) : (
-                      <div className="h-12 w-12 rounded-full bg-slate-700 flex items-center justify-center ring-2 ring-slate-700">
-                        <span className="text-lg font-bold text-slate-400">
+                      <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center ring-2 ring-gray-200">
+                        <span className="text-lg font-bold text-slate-500">
                           {u.name?.charAt(0).toUpperCase() || '?'}
                         </span>
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-slate-200 truncate">{u.name}</div>
+                      <div className="text-sm font-semibold text-slate-700 truncate">{u.name}</div>
                       <div className="text-xs text-slate-500 truncate">{u.email}</div>
                       <div className="flex items-center gap-2 mt-1">
                         <span
@@ -489,7 +489,7 @@ function ManageUsers() {
                       <span className="text-slate-500">Workload</span>
                       <span className={`font-bold tabular-nums ${wl.color}`}>{active} active</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-slate-700 overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
                       <div
                         className={`h-full rounded-full ${wl.bar} transition-all`}
                         style={{ width: `${Math.min(100, (active / 15) * 100)}%` }}
@@ -500,9 +500,9 @@ function ManageUsers() {
                   {/* Completion Rate */}
                   <div className="flex items-center justify-between text-[10px] mb-1">
                     <span className="text-slate-500">Completion rate</span>
-                    <span className="font-bold text-slate-300 tabular-nums">{completion}%</span>
+                    <span className="font-bold text-slate-600 tabular-nums">{completion}%</span>
                   </div>
-                  <div className="h-1 rounded-full bg-slate-700 overflow-hidden mb-3">
+                  <div className="h-1 rounded-full bg-gray-200 overflow-hidden mb-3">
                     <div
                       className="h-full rounded-full bg-emerald-500 transition-all"
                       style={{ width: `${completion}%` }}
@@ -510,7 +510,7 @@ function ManageUsers() {
                   </div>
 
                   {/* Footer */}
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-200/50">
                     <span className="text-[10px] text-slate-500">
                       Joined{' '}
                       {new Date(u.createdAt || '').toLocaleDateString('en-US', {
@@ -535,29 +535,29 @@ function ManageUsers() {
           <div className="card !p-0 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-700">
-                <thead className="bg-slate-900">
+                <thead className="bg-gray-100">
                   <tr>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
                       Member
                     </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
                       Projects
                     </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
                       Workload
                     </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
                       Tasks
                     </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
                       Completion
                     </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-slate-800 divide-y divide-slate-700">
+                <tbody className="bg-white divide-y divide-slate-700">
                   {filteredUsers.map((u) => {
                     const total = getTotalTasks(u);
                     const wl = getWorkloadStatus(u);
@@ -566,24 +566,24 @@ function ManageUsers() {
                     const userProjects = getUserProjects(u._id);
 
                     return (
-                      <tr key={u._id} className="hover:bg-slate-700/30 transition-colors">
+                      <tr key={u._id} className="hover:bg-gray-200/30 transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             {u.profileImageUrl ? (
                               <img
-                                className="h-8 w-8 rounded-full ring-2 ring-slate-700"
+                                className="h-8 w-8 rounded-full ring-2 ring-gray-200"
                                 src={u.profileImageUrl}
                                 alt={u.name}
                               />
                             ) : (
-                              <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center ring-2 ring-slate-700">
-                                <span className="text-xs font-bold text-slate-400">
+                              <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center ring-2 ring-gray-200">
+                                <span className="text-xs font-bold text-slate-500">
                                   {u.name?.charAt(0).toUpperCase() || '?'}
                                 </span>
                               </div>
                             )}
                             <div>
-                              <div className="text-sm font-medium text-slate-200">{u.name}</div>
+                              <div className="text-sm font-medium text-slate-700">{u.name}</div>
                               <div className="text-xs text-slate-500">{u.email}</div>
                             </div>
                           </div>
@@ -608,7 +608,7 @@ function ManageUsers() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div className="w-16 h-1.5 rounded-full bg-slate-700 overflow-hidden">
+                            <div className="w-16 h-1.5 rounded-full bg-gray-200 overflow-hidden">
                               <div
                                 className={`h-full rounded-full ${wl.bar}`}
                                 style={{ width: `${Math.min(100, (active / 15) * 100)}%` }}
@@ -629,13 +629,13 @@ function ManageUsers() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div className="w-12 h-1.5 rounded-full bg-slate-700 overflow-hidden">
+                            <div className="w-12 h-1.5 rounded-full bg-gray-200 overflow-hidden">
                               <div
                                 className="h-full rounded-full bg-emerald-500"
                                 style={{ width: `${completion}%` }}
                               />
                             </div>
-                            <span className="text-xs font-bold text-slate-300 tabular-nums">
+                            <span className="text-xs font-bold text-slate-600 tabular-nums">
                               {completion}%
                             </span>
                           </div>
@@ -665,28 +665,28 @@ function ManageUsers() {
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <div
-              className="fixed inset-0 bg-slate-900/80 transition-opacity"
+              className="fixed inset-0 bg-gray-100/80 transition-opacity"
               onClick={handleCloseInviteModal}
             />
-            <div className="relative transform overflow-hidden rounded-xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+            <div className="relative transform overflow-hidden rounded-xl bg-white border border-gray-200 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
               <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
                   <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 sm:mx-0 sm:h-10 sm:w-10">
                     <UserPlus className="h-6 w-6 text-primary" />
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 className="text-lg font-semibold leading-6 text-white">
+                    <h3 className="text-lg font-semibold leading-6 text-slate-800">
                       Invite Team Member
                     </h3>
                     <div className="mt-2">
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-slate-500">
                         Generate an invite link to add a new member to your organization.
                       </p>
                     </div>
 
                     {inviteModal.inviteToken ? (
-                      <div className="mt-4 p-4 bg-slate-900 rounded-lg border border-slate-700">
-                        <div className="text-sm font-medium text-slate-300 mb-2">
+                      <div className="mt-4 p-4 bg-gray-100 rounded-lg border border-gray-200">
+                        <div className="text-sm font-medium text-slate-600 mb-2">
                           Invite Link Generated!
                         </div>
                         <div className="flex items-center gap-2">
@@ -694,7 +694,7 @@ function ManageUsers() {
                             type="text"
                             readOnly
                             value={`${window.location.origin}/signup?invite=${inviteModal.inviteToken}`}
-                            className="input-dark flex-1 text-xs"
+                            className="input-field flex-1 text-xs"
                           />
                           <button
                             type="button"
@@ -718,7 +718,7 @@ function ManageUsers() {
                         <div>
                           <label
                             htmlFor="inviteEmail"
-                            className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1"
+                            className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
                           >
                             Email Address
                           </label>
@@ -734,7 +734,7 @@ function ManageUsers() {
                                   lookupUser(email);
                                 }
                               }}
-                              className="input-dark block w-full px-3 py-2 text-sm"
+                              className="input-field block w-full px-3 py-2 text-sm"
                               placeholder="member@example.com"
                             />
                             {inviteModal.userLookup.loading && (
@@ -752,8 +752,8 @@ function ManageUsers() {
                                   alt=""
                                 />
                               ) : (
-                                <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center">
-                                  <span className="text-xs font-bold text-slate-400">
+                                <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                  <span className="text-xs font-bold text-slate-500">
                                     {inviteModal.userLookup.user.name?.charAt(0)?.toUpperCase() ||
                                       '?'}
                                   </span>
@@ -763,7 +763,7 @@ function ManageUsers() {
                                 <div className="text-sm font-medium text-emerald-400">
                                   {inviteModal.userLookup.user.name}
                                 </div>
-                                <div className="text-xs text-slate-400">
+                                <div className="text-xs text-slate-500">
                                   User found - can be added directly
                                 </div>
                               </div>
@@ -782,7 +782,7 @@ function ManageUsers() {
                         <div>
                           <label
                             htmlFor="inviteRole"
-                            className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1"
+                            className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
                           >
                             Role
                           </label>
@@ -795,7 +795,7 @@ function ManageUsers() {
                                 role: e.target.value as 'OrgMember' | 'OrgAdmin',
                               }))
                             }
-                            className="input-dark block w-full px-3 py-2 text-sm"
+                            className="input-field block w-full px-3 py-2 text-sm"
                           >
                             <option value="OrgMember">Member</option>
                             <option value="OrgAdmin">Owner</option>
@@ -810,7 +810,7 @@ function ManageUsers() {
                   </div>
                 </div>
               </div>
-              <div className="bg-slate-800/50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+              <div className="bg-white/50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
                 {inviteModal.inviteToken ? (
                   <button
                     type="button"

@@ -108,7 +108,7 @@ function Dashboard() {
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
               Status Distribution
             </div>
             <StatusChart
@@ -122,7 +122,7 @@ function Dashboard() {
             />
           </div>
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
               Priority Distribution
             </div>
             <PriorityChart distribution={dashboardData?.charts?.taskPriorityLevels} />
@@ -152,13 +152,13 @@ function Dashboard() {
                   <Link
                     key={t._id}
                     to={`/tasks/${t._id}`}
-                    className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-slate-700/30 transition-colors group"
+                    className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-gray-200/30 transition-colors group"
                   >
                     <div
                       className={`h-2 w-2 rounded-full shrink-0 ${overdue ? 'bg-rose-500 animate-pulse' : 'bg-amber-500'}`}
                     />
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium text-slate-200 group-hover:text-primary truncate transition-colors">
+                      <div className="text-sm font-medium text-slate-700 group-hover:text-primary truncate transition-colors">
                         {t.title}
                       </div>
                       <div className="flex items-center gap-2 mt-1">
@@ -197,7 +197,7 @@ function Dashboard() {
           {/* Recent Tasks */}
           <div className={`${isAdmin ? '' : 'lg:col-span-2'} card`}>
             <div className="flex items-center justify-between mb-3">
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 Recent Tasks
               </div>
               <Link
@@ -223,10 +223,10 @@ function Dashboard() {
                     <Link
                       key={task._id}
                       to={`/tasks/${task._id}`}
-                      className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-slate-700/30 transition-colors group"
+                      className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-gray-200/30 transition-colors group"
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="text-sm font-medium text-slate-200 group-hover:text-primary truncate transition-colors">
+                        <div className="text-sm font-medium text-slate-700 group-hover:text-primary truncate transition-colors">
                           {task.title}
                         </div>
                         <div className="flex items-center gap-2 mt-1">
@@ -265,7 +265,7 @@ function Dashboard() {
           {!isAdmin && (
             <div className="space-y-4">
               <div className="card">
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
                   Task Status
                 </div>
                 <div className="space-y-2">
@@ -278,9 +278,9 @@ function Dashboard() {
                     <div key={item.label} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${item.color}`} />
-                        <span className="text-xs text-slate-400">{item.label}</span>
+                        <span className="text-xs text-slate-500">{item.label}</span>
                       </div>
-                      <span className="text-xs font-bold text-slate-300 tabular-nums">
+                      <span className="text-xs font-bold text-slate-600 tabular-nums">
                         {item.count}
                       </span>
                     </div>

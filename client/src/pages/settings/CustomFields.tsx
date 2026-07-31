@@ -63,7 +63,7 @@ export default function CustomFields() {
         {fields.map((f) => (
           <li key={f._id} className="card flex justify-between items-center gap-3">
             <div>
-              <div className="text-sm text-slate-200">
+              <div className="text-sm text-slate-700">
                 {f.label}{' '}
                 <span className="text-xs text-slate-500">({f.type})</span>
               </div>
@@ -109,11 +109,11 @@ export default function CustomFields() {
       >
         <form id="create-field-form" onSubmit={create} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+            <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
               Label *
             </label>
             <input
-              className="input-dark w-full text-sm"
+              className="input-field w-full text-sm"
               placeholder="Label"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
@@ -122,11 +122,11 @@ export default function CustomFields() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+            <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
               Type
             </label>
             <select
-              className="input-dark w-full text-sm"
+              className="input-field w-full text-sm"
               value={type}
               onChange={(e) => setType(e.target.value as CustomFieldDefinition['type'])}
             >
@@ -139,18 +139,18 @@ export default function CustomFields() {
           </div>
           {(type === 'select' || type === 'multi-select') && (
             <div>
-              <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+              <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
                 Options (comma-separated)
               </label>
               <input
-                className="input-dark w-full text-sm"
+                className="input-field w-full text-sm"
                 placeholder="Options (comma-separated)"
                 value={options}
                 onChange={(e) => setOptions(e.target.value)}
               />
             </div>
           )}
-          <label className="flex items-center gap-2 text-sm text-slate-300">
+          <label className="flex items-center gap-2 text-sm text-slate-600">
             <input
               type="checkbox"
               checked={required}

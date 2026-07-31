@@ -37,8 +37,8 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
               <AlertTriangle className="w-6 h-6 text-rose-400" />
             </div>
             <div className="mt-4 text-center">
-              <h3 className="text-lg font-medium text-slate-200">Something went wrong</h3>
-              <p className="mt-2 text-sm text-slate-400">
+              <h3 className="text-lg font-medium text-slate-700">Something went wrong</h3>
+              <p className="mt-2 text-sm text-slate-500">
                 We're sorry, but something unexpected happened. Please try refreshing the page.
               </p>
               {import.meta.env.MODE === 'development' && this.state.error && (
@@ -53,13 +53,13 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
             <div className="mt-6">
               <button
                 onClick={this.handleReset}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-primary hover:bg-emerald-600 transition-colors"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg text-sm font-medium text-slate-800 bg-primary hover:bg-emerald-600 transition-colors"
               >
                 Try Again
               </button>
               <button
                 onClick={() => window.location.reload()}
-                className="mt-2 w-full flex justify-center py-2 px-4 border border-app-border rounded-lg text-sm font-medium text-slate-300 bg-app-panel2 hover:bg-slate-700 transition-colors"
+                className="mt-2 w-full flex justify-center py-2 px-4 border border-app-border rounded-lg text-sm font-medium text-slate-600 bg-app-panel2 hover:bg-gray-200 transition-colors"
               >
                 Refresh Page
               </button>

@@ -162,26 +162,26 @@ function SignUp() {
   };
 
   const inputClass = (hasError: boolean) =>
-    `input-dark block w-full pl-10 pr-3 py-2 text-sm transition-colors ${hasError ? 'border-rose-500/60 ring-2 ring-rose-500/15' : ''}`;
+    `input-field block w-full pl-10 pr-3 py-2 text-sm transition-colors ${hasError ? 'border-rose-500/60 ring-2 ring-rose-500/15' : ''}`;
 
   return (
     <PublicLayout>
       <div className="grid min-h-[calc(100vh-4rem)] lg:grid-cols-2 gap-8 items-center py-8">
         <div className="hidden lg:block">
           <div className="max-w-lg">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+            <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-100 px-3 py-1 text-xs text-slate-600">
               Create account
             </div>
-            <h1 className="mt-4 text-4xl font-extrabold text-white tracking-tight">
+            <h1 className="mt-4 text-4xl font-extrabold text-slate-800 tracking-tight">
               Start managing work with clarity.
             </h1>
-            <p className="mt-3 text-slate-300 leading-relaxed">
+            <p className="mt-3 text-slate-600 leading-relaxed">
               Create your account to access projects, goals, and task insights for your
               organization.
             </p>
-            <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-4">
-              <div className="text-sm font-semibold text-slate-100">Admin token (optional)</div>
-              <div className="mt-1 text-sm text-slate-400">
+            <div className="mt-8 rounded-2xl border border-gray-200 bg-gray-100 p-4">
+              <div className="text-sm font-semibold text-slate-800">Admin token (optional)</div>
+              <div className="mt-1 text-sm text-slate-500">
                 If you have an invite token, you can register as an admin during sign-up.
               </div>
             </div>
@@ -190,8 +190,8 @@ function SignUp() {
 
         <div className="mx-auto w-full max-w-md">
           <div className="text-center mb-6 lg:hidden">
-            <h2 className="text-3xl font-extrabold text-white mb-2">Create your account</h2>
-            <p className="text-sm text-slate-300">Join Cadence and start managing tasks</p>
+            <h2 className="text-3xl font-extrabold text-slate-800 mb-2">Create your account</h2>
+            <p className="text-sm text-slate-600">Join Cadence and start managing tasks</p>
           </div>
 
           <div className="card p-5 sm:p-6">
@@ -215,7 +215,7 @@ function SignUp() {
                     <span className="font-medium text-primary">
                       You've been invited to join an organization!
                     </span>
-                    <span className="text-slate-400 ml-1">
+                    <span className="text-slate-500 ml-1">
                       Complete your registration to accept.
                     </span>
                   </div>
@@ -242,7 +242,7 @@ function SignUp() {
                     <span className="font-medium text-rose-400">
                       Invalid or expired invite link.
                     </span>
-                    <span className="text-slate-400 ml-1">You can still create an account.</span>
+                    <span className="text-slate-500 ml-1">You can still create an account.</span>
                   </div>
                 </div>
               </div>
@@ -253,14 +253,14 @@ function SignUp() {
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1"
+                  className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
                 >
                   Full Name
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg
-                      className="h-5 w-5 text-slate-400"
+                      className="h-5 w-5 text-slate-500"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -306,14 +306,14 @@ function SignUp() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1"
+                  className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
                 >
                   Email address
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg
-                      className="h-5 w-5 text-slate-400"
+                      className="h-5 w-5 text-slate-500"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -359,14 +359,14 @@ function SignUp() {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1"
+                  className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
                 >
                   Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg
-                      className="h-5 w-5 text-slate-400"
+                      className="h-5 w-5 text-slate-500"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -398,7 +398,7 @@ function SignUp() {
                   >
                     {showPassword ? (
                       <svg
-                        className="h-5 w-5 text-slate-400 hover:text-slate-200"
+                        className="h-5 w-5 text-slate-500 hover:text-slate-700"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -412,7 +412,7 @@ function SignUp() {
                       </svg>
                     ) : (
                       <svg
-                        className="h-5 w-5 text-slate-400 hover:text-slate-200"
+                        className="h-5 w-5 text-slate-500 hover:text-slate-700"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -436,7 +436,7 @@ function SignUp() {
                 {formData.password && passwordStrength && passwordStrengthLabel && (
                   <div className="mt-2">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-slate-400">Password strength:</span>
+                      <span className="text-xs text-slate-500">Password strength:</span>
                       <span className={`text-xs font-semibold ${passwordStrengthLabel.color}`}>
                         {passwordStrengthLabel.label}
                       </span>
@@ -448,7 +448,7 @@ function SignUp() {
                       ></div>
                     </div>
                     {passwordStrength.feedback.length > 0 && (
-                      <ul className="mt-2 text-xs text-slate-400 space-y-1">
+                      <ul className="mt-2 text-xs text-slate-500 space-y-1">
                         {passwordStrength.feedback.map((item, index) => (
                           <li key={index} className="flex items-center">
                             <svg
@@ -490,14 +490,14 @@ function SignUp() {
               <div>
                 <label
                   htmlFor="confirmPassword"
-                  className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1"
+                  className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
                 >
                   Confirm Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg
-                      className="h-5 w-5 text-slate-400"
+                      className="h-5 w-5 text-slate-500"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -518,7 +518,7 @@ function SignUp() {
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`input-dark block w-full pl-10 pr-10 py-2 text-sm transition-colors ${
+                    className={`input-field block w-full pl-10 pr-10 py-2 text-sm transition-colors ${
                       fieldErrors.confirmPassword
                         ? 'border-rose-500/60 ring-2 ring-rose-500/15'
                         : ''
@@ -533,7 +533,7 @@ function SignUp() {
                   >
                     {showConfirmPassword ? (
                       <svg
-                        className="h-5 w-5 text-slate-400 hover:text-slate-200"
+                        className="h-5 w-5 text-slate-500 hover:text-slate-700"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -547,7 +547,7 @@ function SignUp() {
                       </svg>
                     ) : (
                       <svg
-                        className="h-5 w-5 text-slate-400 hover:text-slate-200"
+                        className="h-5 w-5 text-slate-500 hover:text-slate-700"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -603,14 +603,14 @@ function SignUp() {
               <div>
                 <label
                   htmlFor="profileImageUrl"
-                  className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1"
+                  className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
                 >
                   Profile Image URL <span className="text-slate-500 font-normal">(Optional)</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg
-                      className="h-5 w-5 text-slate-400"
+                      className="h-5 w-5 text-slate-500"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -651,7 +651,7 @@ function SignUp() {
                 )}
               </div>
 
-              <div className="flex items-center p-3 bg-white/5 rounded-xl border border-white/10">
+              <div className="flex items-center p-3 bg-gray-100 rounded-xl border border-gray-200">
                 <input
                   id="showAdminToken"
                   name="showAdminToken"
@@ -660,7 +660,7 @@ function SignUp() {
                   onChange={(e) => setShowAdminToken(e.target.checked)}
                   className="h-4 w-4 text-primary focus:ring-primary border-white/20 rounded"
                 />
-                <label htmlFor="showAdminToken" className="ml-3 block text-sm text-slate-200">
+                <label htmlFor="showAdminToken" className="ml-3 block text-sm text-slate-700">
                   I have an admin invite token
                 </label>
               </div>
@@ -669,14 +669,14 @@ function SignUp() {
                 <div>
                   <label
                     htmlFor="adminInviteToken"
-                    className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1"
+                    className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
                   >
                     Admin Invite Token
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <svg
-                        className="h-5 w-5 text-slate-400"
+                        className="h-5 w-5 text-slate-500"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -695,7 +695,7 @@ function SignUp() {
                       type="text"
                       value={formData.adminInviteToken}
                       onChange={handleChange}
-                      className="input-dark block w-full pl-10 pr-3 py-2 text-sm"
+                      className="input-field block w-full pl-10 pr-3 py-2 text-sm"
                       placeholder="Enter admin invite token"
                     />
                   </div>
@@ -738,7 +738,7 @@ function SignUp() {
             <div className="mt-4">
               <div className="relative my-4">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/10" />
+                  <div className="w-full border-t border-gray-200" />
                 </div>
                 <div className="relative flex justify-center text-xs">
                   <span className="px-3 bg-app-panel2 text-slate-500">

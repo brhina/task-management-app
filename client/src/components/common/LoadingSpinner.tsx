@@ -24,7 +24,7 @@ const LoadingSpinner = ({
       >
         <span className="sr-only">{text}</span>
       </div>
-      {text && <p className="mt-4 text-slate-400">{text}</p>}
+      {text && <p className="mt-4 text-slate-500">{text}</p>}
     </div>
   );
 };

@@ -17,29 +17,29 @@ export const TASK_PRIORITY: Record<string, TaskPriority> = {
 export const getStatusColor = (status: string): string => {
   switch (status) {
     case TASK_STATUS.PENDING:
-      return 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30';
+      return 'bg-amber-50 text-amber-700 border-amber-200';
     case TASK_STATUS.IN_PROGRESS:
-      return 'bg-blue-500/15 text-blue-400 border-blue-500/30';
+      return 'bg-blue-50 text-blue-700 border-blue-200';
     case TASK_STATUS.IN_REVIEW:
-      return 'bg-purple-500/15 text-purple-400 border-purple-500/30';
+      return 'bg-purple-50 text-purple-700 border-purple-200';
     case TASK_STATUS.COMPLETED:
-      return 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
     default:
-      return 'bg-slate-500/15 text-slate-400 border-slate-500/30';
+      return 'bg-gray-50 text-gray-600 border-gray-200';
   }
 };
 
 export const getPriorityColor = (priority: string): string => {
   switch (priority) {
     case TASK_PRIORITY.CRITICAL:
-      return 'bg-rose-500/15 text-rose-400 border-rose-500/30';
+      return 'bg-red-50 text-red-700 border-red-200';
     case TASK_PRIORITY.HIGH:
-      return 'bg-orange-500/15 text-orange-400 border-orange-500/30';
+      return 'bg-orange-50 text-orange-700 border-orange-200';
     case TASK_PRIORITY.MEDIUM:
-      return 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30';
+      return 'bg-amber-50 text-amber-700 border-amber-200';
     case TASK_PRIORITY.LOW:
-      return 'bg-slate-500/15 text-slate-400 border-slate-500/30';
+      return 'bg-gray-50 text-gray-600 border-gray-200';
     default:
-      return 'bg-slate-500/15 text-slate-400 border-slate-500/30';
+      return 'bg-gray-50 text-gray-600 border-gray-200';
   }
 };

@@ -119,19 +119,19 @@ function AuthLayout({ children }: { children: ReactNode }) {
         {isSidebarOpen && (
           <button
             type="button"
-            className="fixed inset-0 z-40 bg-slate-900/50 md:hidden"
+            className="fixed inset-0 z-40 bg-black/30 md:hidden"
             onClick={closeSidebar}
             aria-label="Close sidebar"
           />
         )}
 
         <aside
-          className={`fixed inset-y-0 left-0 z-50 bg-sidebar text-white flex flex-col transform transition-all duration-200 ease-in-out md:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-50 bg-sidebar text-slate-700 flex flex-col transform transition-all duration-200 ease-in-out md:translate-x-0 border-r border-gray-200 ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           } ${isSidebarCollapsed ? 'md:w-[72px]' : 'md:w-72'} w-72`}
         >
         <div
-          className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-3'} px-2 h-12 border-b border-slate-700/60`}
+          className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-3'} px-2 h-12 border-b border-gray-200`}
         >
           <div className="bg-primary p-2.5 rounded-xl shadow shrink-0">
             <ClipboardList className="w-5 h-5 text-white" />
@@ -139,7 +139,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
           {!isSidebarCollapsed && (
             <Link
               to="/"
-              className="text-lg font-bold text-white whitespace-nowrap"
+              className="text-lg font-bold text-slate-800 whitespace-nowrap"
               onClick={closeSidebar}
             >
               Cadence
@@ -158,12 +158,12 @@ function AuthLayout({ children }: { children: ReactNode }) {
                 isSidebarCollapsed ? 'justify-center px-1.5 py-2.5' : 'px-2 py-2.5'
               } ${
                 isActive(link.path)
-                  ? 'bg-white/6 text-white border border-white/10 shadow-sm'
-                  : 'text-slate-300/80 hover:bg-white/5 hover:text-white border border-transparent'
+                  ? 'bg-primary/10 text-primary border border-primary/20'
+                  : 'text-slate-600 hover:bg-gray-100 hover:text-slate-800 border border-transparent'
               }`}
             >
               <span
-                className={`shrink-0 text-slate-300/70 group-hover:text-white ${isActive(link.path) ? 'text-white' : ''}`}
+                className={`shrink-0 ${isActive(link.path) ? 'text-primary' : 'text-slate-500 group-hover:text-slate-700'}`}
               >
                 {link.icon}
               </span>
@@ -180,7 +180,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
           <div className="px-2 pb-2">
             <div className="flex justify-center">
               <div
-                className="h-8 w-8 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center"
+                className="h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center"
                 title="Organization"
               >
                 <span className="text-sm font-bold text-primary">
@@ -191,11 +191,11 @@ function AuthLayout({ children }: { children: ReactNode }) {
           </div>
         )}
 
-        <div className="border-t border-slate-700/60 p-2">
+        <div className="border-t border-gray-200 p-2">
           <button
             type="button"
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="hidden md:flex items-center justify-center w-full mb-3 p-2 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-colors"
+            className="hidden md:flex items-center justify-center w-full mb-3 p-2 rounded-xl text-slate-500 hover:bg-gray-100 hover:text-slate-700 transition-colors"
             title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <ChevronsLeft
@@ -206,7 +206,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
             <Link
               to="/users/profile"
               onClick={closeSidebar}
-              className={`flex items-center w-full px-2 py-2 rounded-xl hover:bg-white/5 transition-colors ${isSidebarCollapsed ? 'justify-center' : 'gap-3'}`}
+              className={`flex items-center w-full px-2 py-2 rounded-xl hover:bg-gray-100 transition-colors ${isSidebarCollapsed ? 'justify-center' : 'gap-3'}`}
               title={isSidebarCollapsed ? user.name : undefined}
             >
               {user.profileImageUrl ? (
@@ -216,14 +216,14 @@ function AuthLayout({ children }: { children: ReactNode }) {
                   alt={`${user.name}'s profile`}
                 />
               ) : (
-                <div className="h-9 w-9 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-sm font-semibold shrink-0">
+                <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-sm font-semibold text-primary shrink-0">
                   {user.name?.charAt(0)?.toUpperCase() || 'U'}
                 </div>
               )}
               {!isSidebarCollapsed && (
                 <div className="flex-1 text-left min-w-0">
-                  <div className="text-sm font-medium text-white truncate">{user.name}</div>
-                  <div className="text-xs text-slate-400 truncate">
+                  <div className="text-sm font-medium text-slate-800 truncate">{user.name}</div>
+                  <div className="text-xs text-slate-500 truncate">
                     {(() => {
                       const role = getEffectiveRole();
                       if (!role) return 'Member';
@@ -242,17 +242,17 @@ function AuthLayout({ children }: { children: ReactNode }) {
           className={`flex-1 flex h-screen overflow-hidden transition-all duration-200 ${isSidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-72'}`}
         >
           <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-            <header className="sticky top-0 z-30 flex items-center justify-between h-12 px-4 bg-sidebar/95 backdrop-blur border-b border-slate-700/70 shrink-0">
+            <header className="sticky top-0 z-30 flex items-center justify-between h-12 px-4 bg-white/95 backdrop-blur border-b border-gray-200 shrink-0">
               <div className="flex items-center md:hidden">
                 <button
                   type="button"
                   onClick={() => setIsSidebarOpen(true)}
-                  className="p-2 rounded-xl text-slate-300 hover:bg-white/5"
+                  className="p-2 rounded-xl text-slate-600 hover:bg-gray-100"
                   aria-label="Open sidebar"
                 >
                   <Menu className="h-6 w-6" />
                 </button>
-                <span className="ml-3 text-lg font-semibold text-white">Cadence</span>
+                <span className="ml-3 text-lg font-semibold text-slate-800">Cadence</span>
               </div>
               <div className="hidden md:block" />
               <div className="flex items-center gap-2">

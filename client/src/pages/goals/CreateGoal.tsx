@@ -16,7 +16,7 @@ const TIMEFRAMES: {
   { value: 'Monthly', label: 'Monthly', desc: '30-day milestones', color: 'bg-blue-500/15 text-blue-400 border-blue-500/30', icon: 'M' },
   { value: 'Quarterly', label: 'Quarterly', desc: '90-day objectives', color: 'bg-violet-500/15 text-violet-400 border-violet-500/30', icon: 'Q' },
   { value: 'Yearly', label: 'Yearly', desc: 'Annual vision', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30', icon: 'Y' },
-  { value: 'Custom', label: 'Custom', desc: 'Flexible timeline', color: 'bg-slate-500/15 text-slate-400 border-slate-500/30', icon: 'C' },
+  { value: 'Custom', label: 'Custom', desc: 'Flexible timeline', color: 'bg-slate-500/15 text-slate-500 border-slate-500/30', icon: 'C' },
 ];
 
 interface CreateGoalProps {
@@ -106,33 +106,33 @@ function CreateGoal({ isOpen, onClose, onCreated }: CreateGoalProps) {
         {error && <div className="alert-error">{error}</div>}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
               Goal Title *
             </div>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="input-dark w-full text-base"
+              className="input-field w-full text-base"
               placeholder="What do you want to achieve?"
               autoFocus
             />
           </div>
           <div className="card">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
               Objective
             </div>
             <textarea
               value={objective}
               onChange={(e) => setObjective(e.target.value)}
               rows={3}
-              className="input-dark w-full text-sm resize-none"
+              className="input-field w-full text-sm resize-none"
               placeholder="Why does this matter? What's the business impact?"
             />
           </div>
         </div>
         <div className="card">
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
             Timeframe
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
@@ -144,13 +144,13 @@ function CreateGoal({ isOpen, onClose, onCreated }: CreateGoalProps) {
                 className={`p-3 rounded-xl border text-left transition-all ${
                   timeframe === t.value
                     ? t.color + ' ring-1 ring-white/15'
-                    : 'border-slate-700 text-slate-500 hover:text-slate-300 hover:border-slate-600'
+                    : 'border-gray-200 text-slate-500 hover:text-slate-600 hover:border-gray-300'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span
                     className={`inline-flex h-6 w-6 items-center justify-center rounded text-[10px] font-bold ${
-                      timeframe === t.value ? 'bg-white/10' : 'bg-slate-800'
+                      timeframe === t.value ? 'bg-white/10' : 'bg-white'
                     }`}
                   >
                     {t.icon}
@@ -163,7 +163,7 @@ function CreateGoal({ isOpen, onClose, onCreated }: CreateGoalProps) {
           </div>
         </div>
         <div className="card">
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
             Measurement
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -173,7 +173,7 @@ function CreateGoal({ isOpen, onClose, onCreated }: CreateGoalProps) {
                 type="text"
                 value={metric}
                 onChange={(e) => setMetric(e.target.value)}
-                className="input-dark w-full text-sm"
+                className="input-field w-full text-sm"
                 placeholder="e.g., Avg onboarding days, Revenue, NPS score"
               />
             </div>
@@ -186,15 +186,15 @@ function CreateGoal({ isOpen, onClose, onCreated }: CreateGoalProps) {
                 min={0}
                 value={targetValue}
                 onChange={(e) => setTargetValue(e.target.value === '' ? '' : Number(e.target.value))}
-                className="input-dark w-full text-sm"
+                className="input-field w-full text-sm"
                 placeholder="e.g., 7"
               />
             </div>
           </div>
           {metric && targetValue !== '' && (
-            <div className="mt-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
-              <div className="text-xs text-slate-400">Goal preview</div>
-              <div className="text-sm text-slate-200 mt-1">
+            <div className="mt-3 p-3 rounded-lg bg-white/50 border border-gray-200/50">
+              <div className="text-xs text-slate-500">Goal preview</div>
+              <div className="text-sm text-slate-700 mt-1">
                 Achieve <span className="font-semibold text-primary">{metric}</span> ={' '}
                 <span className="font-semibold text-primary">{targetValue}</span> within{' '}
                 <span className="font-semibold">{timeframe.toLowerCase()}</span> timeframe

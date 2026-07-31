@@ -134,12 +134,12 @@ export default function ProjectSprints() {
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-slate-200">Sprints</h3>
+          <h3 className="text-sm font-semibold text-slate-700">Sprints</h3>
           {sprints.map((s) => (
             <div key={s._id} className="card">
               <div className="flex justify-between gap-2 mb-2">
                 <div>
-                  <div className="text-sm text-slate-200 font-medium">{s.name}</div>
+                  <div className="text-sm text-slate-700 font-medium">{s.name}</div>
                   <div className="text-xs text-slate-500">
                     {new Date(s.startDate).toLocaleDateString()} –{' '}
                     {new Date(s.endDate).toLocaleDateString()} · {s.status}
@@ -164,7 +164,7 @@ export default function ProjectSprints() {
               {selectedSprint === s._id && (
                 <div className="mt-2 space-y-2">
                   <textarea
-                    className="input-dark w-full text-sm"
+                    className="input-field w-full text-sm"
                     rows={3}
                     value={retro}
                     onChange={(e) => setRetro(e.target.value)}
@@ -185,10 +185,10 @@ export default function ProjectSprints() {
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-slate-200">Milestones</h3>
+          <h3 className="text-sm font-semibold text-slate-700">Milestones</h3>
           {milestones.map((m) => (
             <div key={m._id} className="card text-sm">
-              <div className="text-slate-200 font-medium">{m.title}</div>
+              <div className="text-slate-700 font-medium">{m.title}</div>
               <div className="text-xs text-slate-500">
                 {new Date(m.targetDate).toLocaleDateString()} · {m.status} ·{' '}
                 {m.progress ?? 0}%
@@ -196,17 +196,17 @@ export default function ProjectSprints() {
             </div>
           ))}
 
-          <h3 className="text-sm font-semibold text-slate-200 pt-2">
+          <h3 className="text-sm font-semibold text-slate-700 pt-2">
             Assign tasks to sprint
           </h3>
           {tasks.map((t) => (
             <div
               key={t._id}
-              className="flex items-center justify-between gap-2 text-sm border-b border-slate-800 py-1.5"
+              className="flex items-center justify-between gap-2 text-sm border-b border-gray-200 py-1.5"
             >
-              <span className="text-slate-300 truncate">{t.title}</span>
+              <span className="text-slate-600 truncate">{t.title}</span>
               <select
-                className="input-dark text-xs"
+                className="input-field text-xs"
                 value={t.sprintId || ''}
                 onChange={(e) =>
                   assignTask(t._id, e.target.value || null)
@@ -252,7 +252,7 @@ export default function ProjectSprints() {
       >
         <form id="create-sprint-form" onSubmit={createSprint} className="space-y-4">
           <input
-            className="input-dark w-full text-sm"
+            className="input-field w-full text-sm"
             placeholder="Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -260,21 +260,21 @@ export default function ProjectSprints() {
           />
           <input
             type="date"
-            className="input-dark w-full text-sm"
+            className="input-field w-full text-sm"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             required
           />
           <input
             type="date"
-            className="input-dark w-full text-sm"
+            className="input-field w-full text-sm"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
             required
           />
           <input
             type="number"
-            className="input-dark w-full text-sm"
+            className="input-field w-full text-sm"
             value={capacityHours}
             onChange={(e) => setCapacityHours(Number(e.target.value))}
             placeholder="Capacity hours"
@@ -309,7 +309,7 @@ export default function ProjectSprints() {
       >
         <form id="create-milestone-form" onSubmit={createMilestone} className="space-y-4">
           <input
-            className="input-dark w-full text-sm"
+            className="input-field w-full text-sm"
             placeholder="Title"
             value={msTitle}
             onChange={(e) => setMsTitle(e.target.value)}
@@ -317,7 +317,7 @@ export default function ProjectSprints() {
           />
           <input
             type="date"
-            className="input-dark w-full text-sm"
+            className="input-field w-full text-sm"
             value={msDate}
             onChange={(e) => setMsDate(e.target.value)}
             required
