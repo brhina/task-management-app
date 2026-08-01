@@ -1,86 +1,89 @@
-# Deployment Checklist
+# Production Deployment Guide & Strategies
 
-## Pre-Deployment
+This guide outlines the recommended deployment strategies and operational setup for the **Task Management Application**.
 
-- [ ] Update environment variables for production
-- [ ] Set strong JWT_SECRET and ADMIN_INVITE_TOKEN
-- [ ] Configure production database (MongoDB Atlas recommended)
-- [ ] Update CLIENT_URL to production domain
-- [ ] Test application locally with production build
+---
 
-## Security Checklist
+## 🚀 Recommended Deployment Strategies
 
-- [ ] Use HTTPS in production
-- [ ] Set secure CORS origins
-- [ ] Use environment variables for sensitive data
-- [ ] Enable MongoDB authentication
-- [ ] Set up proper file upload limits
-- [ ] Configure rate limiting (recommended)
+### Strategy 1: Containerized Monolith (Recommended / Simplest)
 
-## Performance Checklist
+Deploy the single multi-stage Docker image containing both the compiled React frontend and the Express Node.js backend. Express serves the frontend static build from `client/dist` and handles API routes `/api/*`.
 
-- [ ] Enable gzip compression
-- [ ] Set up CDN for static assets
-- [ ] Configure caching headers
-- [ ] Optimize images
-- [ ] Set up monitoring and logging
+- **Target Host Options**: Render, Railway, Fly.io, AWS App Runner, Google Cloud Run, or DigitalOcean App Platform.
+- **Database**: Managed MongoDB Atlas Cluster.
+- **Cache / Queue**: Managed Redis (Upstash, Redis Cloud, or AWS ElastiCache).
 
-## Database Setup
+#### Step-by-Step Container Deployment:
 
-### MongoDB Atlas (Recommended)
+1. **Build Container Image**:
+   ```bash
+   docker build -t task-manager:latest .
+   ```
 
-1. Create MongoDB Atlas account
-2. Create a new cluster
-3. Create database user
-4. Whitelist your server IP
-5. Get connection string
-6. Update MONGO_URI in environment variables
+2. **Run Container**:
+   ```bash
+   docker run -d \
+     --name task-manager \
+     -p 3001:3001 \
+     -e NODE_ENV=production \
+     -e PORT=3001 \
+     -e MONGO_URI="mongodb+srv://user:pass@cluster.mongodb.net/taskmanager" \
+     -e REDIS_URL="rediss://:password@redis-host:6379" \
+     -e JWT_SECRET="your-64-byte-hex-jwt-secret" \
+     -e ADMIN_INVITE_TOKEN="your-secure-admin-token" \
+     -e CLIENT_URL="https://yourdomain.com" \
+     task-manager:latest
+   ```
 
-### Local MongoDB
+---
 
+### Strategy 2: Self-Hosted Production Stack (Docker Compose & Nginx)
+
+Ideal for dedicated VPS instances (Ubuntu / Debian / RHEL). Runs the App, MongoDB, and Redis with healthchecks and persistent volumes behind an Nginx reverse proxy with SSL certificates.
+
+#### 1. Setup Environment File
+Copy the primary template and edit your secrets:
 ```bash
-# Install MongoDB
-# Ubuntu/Debian
-sudo apt-get install mongodb
+cp .env.example .env
+nano .env
+```
+Ensure `NODE_ENV=production`, `JWT_SECRET`, `MONGO_URI`, and `REDIS_URL` are configured properly.
 
-# macOS
-brew install mongodb-community
-
-# Start MongoDB
-sudo systemctl start mongod
+#### 2. Launch Production Stack
+```bash
+docker-compose -f docker-compose.prod.yml up -d --build
 ```
 
-## SSL/HTTPS Setup
-
-### Using Let's Encrypt (Nginx)
-
+#### 3. Verify Health
 ```bash
-# Install certbot
-sudo apt-get install certbot python3-certbot-nginx
-
-# Get SSL certificate
-sudo certbot --nginx -d yourdomain.com
-
-# Auto-renewal
-sudo crontab -e
-# Add: 0 12 * * * /usr/bin/certbot renew --quiet
+docker-compose -f docker-compose.prod.yml ps
+curl http://localhost:3001/health
 ```
 
-### Nginx Configuration
+#### 4. Configure Nginx & SSL (Certbot)
+Install Nginx & Certbot on your host:
+```bash
+sudo apt update
+sudo apt install -y nginx certbot python3-certbot-nginx
+```
 
+Sample Nginx Configuration (`/etc/nginx/sites-available/taskmanager`):
 ```nginx
 server {
     listen 80;
-    server_name yourdomain.com;
-    return 301 https://$server_name$request_uri;
+    server_name taskmanager.yourdomain.com;
+    return 301 https://$host$request_uri;
 }
 
 server {
-    listen 443 ssl;
-    server_name yourdomain.com;
+    listen 443 ssl http2;
+    server_name taskmanager.yourdomain.com;
 
-    ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/taskmanager.yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/taskmanager.yourdomain.com/privkey.pem;
+
+    client_max_body_size 50M;
 
     location / {
         proxy_pass http://localhost:3001;
@@ -96,74 +99,66 @@ server {
 }
 ```
 
-## Monitoring
-
-### Health Check Endpoint
-
-The application includes a health check at `/test-jwt` for monitoring.
-
-### Logging
-
-Set up application logging:
-
+Enable site & enable SSL:
 ```bash
-# Install PM2 for process management
-npm install -g pm2
-
-# Start application with PM2
-pm2 start server/server.js --name "task-manager"
-
-# Monitor logs
-pm2 logs task-manager
-
-# Auto-restart on failure
-pm2 startup
-pm2 save
+sudo ln -s /etc/nginx/sites-available/taskmanager /etc/nginx/sites-enabled/
+sudo certbot --nginx -d taskmanager.yourdomain.com
+sudo systemctl reload nginx
 ```
 
-## Backup Strategy
+---
 
-### Database Backup
+### Strategy 3: Decoupled Deployments (Vercel/Netlify + Render/Fly.io)
 
+For teams preferring decoupled static client distribution:
+
+1. **Backend (Express)**:
+   - Deploy `server/` to **Render** / **Fly.io** / **Railway**.
+   - Set environment variables (`MONGO_URI`, `REDIS_URL`, `JWT_SECRET`, `CLIENT_URL=https://app.yourdomain.com`).
+
+2. **Frontend (React / Vite)**:
+   - Deploy `client/` to **Vercel** or **Netlify**.
+   - Set build setting environment variable: `VITE_API_BASE_URL=https://api.yourdomain.com`.
+
+---
+
+## 🔑 Environment Variables Reference
+
+See [.env.example](file:///home/brie/Projects/Task-management/task-management-app/.env.example) for full inline documentation.
+
+| Variable Name | Required | Default / Example | Purpose |
+|---|---|---|---|
+| `NODE_ENV` | Yes | `production` | Enables production optimizations & logs |
+| `PORT` | Yes | `3001` | HTTP port for backend server |
+| `MONGO_URI` | Yes | `mongodb+srv://...` | MongoDB connection URI |
+| `REDIS_URL` | Yes | `rediss://...` | Redis connection URL for caching & BullMQ |
+| `JWT_SECRET` | Yes | `(64-byte hex)` | Secret token for JWT auth validation |
+| `ADMIN_INVITE_TOKEN` | Yes | `(random string)` | Token required for admin registration |
+| `CLIENT_URL` | Yes | `https://yourdomain.com` | Allowed CORS origin & email CTA URL |
+| `VITE_API_BASE_URL` | No | `http://localhost:3001` | Client API endpoint (empty for monolith) |
+| `AWS_S3_BUCKET` | Optional | `my-uploads-bucket` | AWS S3 bucket for persistent file storage |
+| `SMTP_HOST` | Optional | `smtp.mailtrap.io` | SMTP server host for email notifications |
+
+---
+
+## 🔒 Security & Checklist
+
+- [ ] Generate strong secret for `JWT_SECRET` (`node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`).
+- [ ] Configure MongoDB Atlas network access (IP Whitelisting).
+- [ ] Enforce HTTPS/SSL across all client and API traffic.
+- [ ] Set up daily automated database backups.
+- [ ] Verify health check endpoint responds with `200 OK` (`/health`).
+
+---
+
+## 📊 Database & Upload Backup Strategies
+
+### MongoDB Backup
 ```bash
-# MongoDB backup
-mongodump --uri="mongodb+srv://username:password@cluster.mongodb.net/taskmanager" --out=backup/
-
-# Restore
-mongorestore --uri="mongodb+srv://username:password@cluster.mongodb.net/taskmanager" backup/taskmanager/
+mongodump --uri="mongodb+srv://<user>:<password>@cluster.mongodb.net/taskmanager" --out=./backups/$(date +%F)
 ```
 
-### File Uploads Backup
-
+### Local Uploads Folder Backup
 ```bash
-# Backup uploads directory
-tar -czf uploads-backup-$(date +%Y%m%d).tar.gz uploads/
-
-# Restore
-tar -xzf uploads-backup-YYYYMMDD.tar.gz
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **CORS Errors**: Check CLIENT_URL environment variable
-2. **Database Connection**: Verify MONGO_URI and network access
-3. **File Uploads**: Check uploads directory permissions
-4. **Build Errors**: Ensure all dependencies are installed
-
-### Debug Commands
-
-```bash
-# Check application status
-pm2 status
-
-# View logs
-pm2 logs
-
-# Restart application
-pm2 restart task-manager
-
-# Check environment variables
-pm2 env 0
+tar -czf ./backups/uploads-$(date +%F).tar.gz uploads/
 ```

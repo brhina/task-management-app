@@ -1,7 +1,6 @@
 export const BASE_URL =
-  import.meta.env.MODE === 'production'
-    ? 'https://task-management-app-ma8h.onrender.com'
-    : 'http://localhost:3001';
+  import.meta.env.VITE_API_BASE_URL ??
+  (import.meta.env.MODE === 'production' ? '' : 'http://localhost:3001');
 
 export const apiPaths = {
   AUTH: {

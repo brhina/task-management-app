@@ -7,14 +7,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3001:3001"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
-      - PORT=3001
-      - MONGO_URI=mongodb://mongo:27017/taskmanager
-      - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=${JWT_SECRET:-dev_super_secret_jwt_key_12345}
-      - ADMIN_INVITE_TOKEN=${ADMIN_INVITE_TOKEN:-admin_invite_token_123}
-      - CLIENT_URL=${CLIENT_URL:-http://localhost:3001}
     depends_on:
       mongo:
         condition: service_healthy
@@ -22,12 +18,18 @@ services:
         condition: service_healthy
     volumes:
       - uploads_data:/app/uploads
-    restart: unless-stopped
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   mongo:
     image: mongo:6.0
-    ports:
-      - "27017:27017"
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: taskmanager
     volumes:
       - mongo_data:/data/db
     healthcheck:
@@ -35,12 +37,16 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    restart: always
+    command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
     healthcheck:
@@ -48,7 +54,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   mongo_data:

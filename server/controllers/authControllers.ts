@@ -72,13 +72,30 @@ export const registerUser = async (
       return;
     }
 
-    let role: "Admin" | "Member" = "Member";
+    const expectedAdminToken =
+      process.env.ADMIN_INVITE_TOKEN || "ADMIN-SECRET-KEY-2026";
+    const isAdminRegistration = Boolean(
+      adminInviteToken && adminInviteToken.trim() === expectedAdminToken
+    );
+    const isInviteRegistration = Boolean(orgInviteToken);
+    const isAuthenticatedAdminRequest = Boolean(
+      req.user && req.user.role === "Admin"
+    );
+
     if (
-      adminInviteToken &&
-      adminInviteToken === process.env.ADMIN_INVITE_TOKEN
+      !isAdminRegistration &&
+      !isInviteRegistration &&
+      !isAuthenticatedAdminRequest
     ) {
-      role = "Admin";
+      res.status(403).json({
+        message:
+          "Registration is restricted to Administrators or invited team members. Please provide a valid Admin Key or Invitation Token.",
+      });
+      return;
     }
+
+    const role: "Admin" | "Member" =
+      isAdminRegistration || isAuthenticatedAdminRequest ? "Admin" : "Member";
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
