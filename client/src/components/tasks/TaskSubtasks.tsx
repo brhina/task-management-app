@@ -19,6 +19,7 @@ import { apiPaths } from '../../utils/apiPaths';
 import type { Task, TodoItem, User, TaskPriority, TaskStatus } from '../../types';
 import { TASK_STATUS, getPriorityColor, getStatusColor } from '../../constants/taskStatus';
 import SubtaskDetailModal from './SubtaskDetailModal';
+import ConfirmModal from '../common/ConfirmModal';
 import {
   ListTree,
   GripVertical,
@@ -688,37 +689,13 @@ export default function TaskSubtasks({
       />
 
       {/* Delete Confirmation Modal */}
-      {subtaskToDelete && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl border border-slate-100">
-            <div className="flex items-center gap-3 text-rose-600">
-              <div className="p-2.5 rounded-full bg-rose-100">
-                <AlertCircle className="w-6 h-6" />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900 text-sm">Delete Subtask?</h4>
-                <p className="text-xs text-slate-500">This action cannot be undone.</p>
-              </div>
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setSubtaskToDelete(null)}
-                className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={confirmDeleteSubtask}
-                className="px-4 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700 shadow-sm"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={Boolean(subtaskToDelete)}
+        onClose={() => setSubtaskToDelete(null)}
+        onConfirm={confirmDeleteSubtask}
+        title="Delete Subtask"
+        message="Are you sure you want to delete this subtask? This action cannot be undone."
+      />
     </div>
   );
 }

@@ -26,6 +26,7 @@ import NavTabs from '../../components/common/NavTabs';
 import FilterToolbar from '../../components/common/FilterToolbar';
 import AdvancedTable, { RowActions, type Column, type ActionItem } from '../../components/common/AdvancedTable';
 import Modal from '../../components/common/Modal';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import type { User, Task, Project } from '../../types';
 
 import ChangeRoleModal, { type CustomRoleOption } from '../../components/users/ChangeRoleModal';
@@ -217,20 +218,43 @@ function ManageUsers() {
     return { heavy, moderate, light, idle };
   }, [users]);
 
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void | Promise<void>;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    loading: false,
+  });
+
   // ----------------------------------------------------
   // Member Helpers & Handlers
   // ----------------------------------------------------
-  const handleDeleteUser = async (userId: string) => {
-    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.'))
-      return;
-    try {
-      await api.delete(apiPaths.USERS.DELETE_USER.replace(':id', userId));
-      setSuccessMsg('Member removed successfully');
-      setTimeout(() => setSuccessMsg(''), 3000);
-      fetchData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete user');
-    }
+  const handleDeleteUser = (userId: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Remove Member',
+      message: 'Are you sure you want to delete this member from the organization? This action cannot be undone.',
+      loading: false,
+      onConfirm: async () => {
+        setConfirmModal((prev) => ({ ...prev, loading: true }));
+        try {
+          await api.delete(apiPaths.USERS.DELETE_USER.replace(':id', userId));
+          setSuccessMsg('Member removed successfully');
+          setTimeout(() => setSuccessMsg(''), 3000);
+          fetchData();
+        } catch (err: any) {
+          setError(err.response?.data?.message || 'Failed to delete user');
+        } finally {
+          setConfirmModal((prev) => ({ ...prev, isOpen: false, loading: false }));
+        }
+      },
+    });
   };
 
   const getUserTeams = (userId: string) => {
@@ -506,16 +530,26 @@ function ManageUsers() {
     }
   };
 
-  const handleDeleteTeam = async (teamId: string, teamName: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${teamName}"?`)) return;
-    try {
-      await api.delete(apiPaths.TEAMS.DELETE.replace(':id', teamId));
-      setSuccessMsg('Team deleted successfully');
-      setTimeout(() => setSuccessMsg(''), 3000);
-      fetchData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete team');
-    }
+  const handleDeleteTeam = (teamId: string, teamName: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Team',
+      message: `Are you sure you want to delete "${teamName}"? This action cannot be undone.`,
+      loading: false,
+      onConfirm: async () => {
+        setConfirmModal((prev) => ({ ...prev, loading: true }));
+        try {
+          await api.delete(apiPaths.TEAMS.DELETE.replace(':id', teamId));
+          setSuccessMsg('Team deleted successfully');
+          setTimeout(() => setSuccessMsg(''), 3000);
+          fetchData();
+        } catch (err: any) {
+          setError(err.response?.data?.message || 'Failed to delete team');
+        } finally {
+          setConfirmModal((prev) => ({ ...prev, isOpen: false, loading: false }));
+        }
+      },
+    });
   };
 
   const handleOpenTeamDashboard = (team: Team) => {
@@ -827,6 +861,15 @@ function ManageUsers() {
           setTimeout(() => setSuccessMsg(''), 3000);
           fetchData();
         }}
+      />
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        loading={confirmModal.loading}
       />
     </PageShell>
   );

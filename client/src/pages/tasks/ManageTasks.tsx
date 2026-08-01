@@ -15,6 +15,7 @@ import { useSocket } from '../../context/SocketContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import FilterToolbar from '../../components/common/FilterToolbar';
 import AdvancedTable, { RowActions, type Column, type ActionItem } from '../../components/common/AdvancedTable';
 import TaskBoard from '../../components/tasks/TaskBoard';
@@ -200,13 +201,34 @@ function ManageTasks() {
     }
   };
 
-  const handleDeleteTask = async (taskId: string) => {
-    if (!window.confirm('Are you sure you want to delete this task?')) return;
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
+    isOpen: boolean;
+    taskId: string;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    taskId: '',
+    loading: false,
+  });
+
+  const handleDeleteTask = (taskId: string) => {
+    setDeleteConfirmModal({
+      isOpen: true,
+      taskId,
+      loading: false,
+    });
+  };
+
+  const confirmDeleteTask = async () => {
+    if (!deleteConfirmModal.taskId) return;
+    setDeleteConfirmModal((prev) => ({ ...prev, loading: true }));
     try {
-      await api.delete(apiPaths.TASKS.DELETE_TASK.replace(':id', taskId));
+      await api.delete(apiPaths.TASKS.DELETE_TASK.replace(':id', deleteConfirmModal.taskId));
       fetchTasks();
     } catch (err) {
       setError('Failed to delete task');
+    } finally {
+      setDeleteConfirmModal({ isOpen: false, taskId: '', loading: false });
     }
   };
 
@@ -595,6 +617,14 @@ function ManageTasks() {
         onClose={() => setShowCreateTask(false)}
         defaultProjectId={urlProjectId}
         onCreated={fetchTasks}
+      />
+      <ConfirmModal
+        isOpen={deleteConfirmModal.isOpen}
+        onClose={() => setDeleteConfirmModal({ isOpen: false, taskId: '', loading: false })}
+        onConfirm={confirmDeleteTask}
+        title="Delete Task"
+        message="Are you sure you want to delete this task? This action cannot be undone."
+        loading={deleteConfirmModal.loading}
       />
     </PageShell>
   );

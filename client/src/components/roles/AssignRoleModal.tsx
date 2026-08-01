@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Modal from '../common/Modal';
 import type { OrgMemberData } from './types';
 import api from '../../utils/axios';
@@ -24,6 +25,8 @@ export default function AssignRoleModal({
   onClose,
   onRefresh,
 }: AssignRoleModalProps) {
+  const [errorMsg, setErrorMsg] = useState<string>('');
+
   if (!target) return null;
 
   return (
@@ -35,13 +38,19 @@ export default function AssignRoleModal({
       footer={
         <button
           onClick={onClose}
-          className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-100"
+          className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-100 cursor-pointer"
         >
           Done
         </button>
       }
     >
       <div className="space-y-3 max-h-80 overflow-y-auto">
+        {errorMsg && (
+          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700 flex items-center justify-between">
+            <span>{errorMsg}</span>
+            <button onClick={() => setErrorMsg('')} className="text-[10px] text-rose-500 hover:underline">Dismiss</button>
+          </div>
+        )}
         {members.map((m) => {
           const u = typeof m.userId === 'object' ? m.userId : {};
           const isAssigned =
@@ -73,6 +82,7 @@ export default function AssignRoleModal({
               <button
                 type="button"
                 onClick={async () => {
+                  setErrorMsg('');
                   try {
                     const payload =
                       target.role === 'Custom'
@@ -87,7 +97,7 @@ export default function AssignRoleModal({
                     );
                     await onRefresh();
                   } catch (err: any) {
-                    alert(err.response?.data?.message || 'Failed to assign role');
+                    setErrorMsg(err.response?.data?.message || 'Failed to assign role');
                   }
                 }}
                 disabled={isAssigned}

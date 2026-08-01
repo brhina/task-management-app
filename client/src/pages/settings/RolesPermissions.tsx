@@ -10,6 +10,7 @@ import MemberDirectoryTab from '../../components/roles/MemberDirectoryTab';
 import CreateEditRoleModal from '../../components/roles/CreateEditRoleModal';
 import AssignRoleModal from '../../components/roles/AssignRoleModal';
 import type { SystemRoleRow, CustomRole, OrgMemberData } from '../../components/roles/types';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 
@@ -167,23 +168,57 @@ const RolesPermissions = () => {
     }
   };
 
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    variant?: 'danger' | 'warning' | 'info' | 'success';
+    type?: 'confirm' | 'alert';
+    onConfirm?: () => void | Promise<void>;
+    loading?: boolean;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    variant: 'danger',
+    type: 'confirm',
+  });
+
   // Delete Custom Role Handler
-  const handleDeleteRole = async (role: CustomRole) => {
+  const handleDeleteRole = (role: CustomRole) => {
     const assignedCount = membersByRole[`custom:${role._id}`]?.length || 0;
     if (assignedCount > 0) {
-      alert(`Cannot delete "${role.name}" because it is currently assigned to ${assignedCount} member(s). Reassign them first.`);
+      setConfirmModal({
+        isOpen: true,
+        type: 'alert',
+        variant: 'warning',
+        title: 'Role Currently Assigned',
+        message: `Cannot delete "${role.name}" because it is currently assigned to ${assignedCount} member(s). Please reassign those members first.`,
+      });
       return;
     }
-    if (!window.confirm(`Are you sure you want to delete custom role "${role.name}"?`)) return;
 
-    try {
-      await api.delete(apiPaths.ROLES.DELETE.replace(':id', role._id));
-      setSuccessMsg(`Deleted role "${role.name}"`);
-      setTimeout(() => setSuccessMsg(''), 3000);
-      await fetchData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete custom role');
-    }
+    setConfirmModal({
+      isOpen: true,
+      type: 'confirm',
+      variant: 'danger',
+      title: 'Delete Custom Role',
+      message: `Are you sure you want to delete custom role "${role.name}"? This action cannot be undone.`,
+      loading: false,
+      onConfirm: async () => {
+        setConfirmModal((prev) => ({ ...prev, loading: true }));
+        try {
+          await api.delete(apiPaths.ROLES.DELETE.replace(':id', role._id));
+          setSuccessMsg(`Deleted role "${role.name}"`);
+          setTimeout(() => setSuccessMsg(''), 3000);
+          await fetchData();
+        } catch (err: any) {
+          setError(err.response?.data?.message || 'Failed to delete custom role');
+        } finally {
+          setConfirmModal((prev) => ({ ...prev, isOpen: false, loading: false }));
+        }
+      },
+    });
   };
 
   return (
@@ -329,6 +364,17 @@ const RolesPermissions = () => {
           setTimeout(() => setSuccessMsg(''), 3000);
           fetchData();
         }}
+      />
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        variant={confirmModal.variant}
+        loading={confirmModal.loading}
       />
     </PageShell>
   );
