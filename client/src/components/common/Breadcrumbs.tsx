@@ -1,6 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import {
+  ChevronRight,
+  Home,
+  Folder,
+  ClipboardCheck,
+  Target,
+  Users,
+  Shield,
+  BarChart3,
+  Settings,
+  FileText,
+  ScrollText,
+  UsersRound,
+  LayoutDashboard,
+  type LucideIcon,
+} from 'lucide-react';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 
@@ -8,6 +23,23 @@ interface BreadcrumbItem {
   label: string;
   path: string;
 }
+
+const getBreadcrumbIcon = (label: string, index: number): LucideIcon | null => {
+  if (index === 0 || label === 'Home') return Home;
+  const lower = label.toLowerCase();
+  if (lower.includes('project')) return Folder;
+  if (lower.includes('task')) return ClipboardCheck;
+  if (lower.includes('goal')) return Target;
+  if (lower.includes('user') || lower.includes('team')) return Users;
+  if (lower.includes('role')) return Shield;
+  if (lower.includes('report')) return BarChart3;
+  if (lower.includes('workos') || lower.includes('setting')) return Settings;
+  if (lower.includes('template')) return FileText;
+  if (lower.includes('audit')) return ScrollText;
+  if (lower.includes('resource')) return UsersRound;
+  if (lower.includes('dashboard')) return LayoutDashboard;
+  return null;
+};
 
 function Breadcrumbs() {
   const location = useLocation();
@@ -189,19 +221,31 @@ function Breadcrumbs() {
   if (breadcrumbs.length <= 1) return null;
 
   return (
-    <nav className="flex items-center gap-1 text-xs text-slate-500 mb-2 overflow-x-auto">
-      {breadcrumbs.map((item, index) => (
-        <span key={`${item.path}-${index}`} className="flex items-center gap-1 shrink-0">
-          {index > 0 && <ChevronRight className="w-3 h-3 text-slate-400" />}
-          {index === breadcrumbs.length - 1 ? (
-            <span className="text-slate-700 font-medium">{item.label}</span>
-          ) : (
-            <Link to={item.path} className="hover:text-primary transition-colors">
-              {item.label}
-            </Link>
-          )}
-        </span>
-      ))}
+    <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-slate-500 overflow-x-auto py-0.5 no-scrollbar whitespace-nowrap">
+      {breadcrumbs.map((item, index) => {
+        const isLast = index === breadcrumbs.length - 1;
+        const IconComponent = getBreadcrumbIcon(item.label, index);
+
+        return (
+          <div key={`${item.path}-${index}`} className="flex items-center gap-1.5 shrink-0">
+            {index > 0 && <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />}
+            {isLast ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 font-semibold border border-slate-200/80 text-sm shadow-2xs">
+                {IconComponent && <IconComponent className="w-4 h-4 text-primary shrink-0" />}
+                <span className="truncate max-w-[200px] sm:max-w-[320px]">{item.label}</span>
+              </span>
+            ) : (
+              <Link
+                to={item.path}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-slate-600 hover:text-primary hover:bg-slate-100 transition-all text-sm font-medium"
+              >
+                {IconComponent && <IconComponent className="w-4 h-4 text-slate-400 hover:text-primary shrink-0" />}
+                <span className="truncate max-w-[150px] sm:max-w-[240px]">{item.label}</span>
+              </Link>
+            )}
+          </div>
+        );
+      })}
     </nav>
   );
 }

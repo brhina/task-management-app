@@ -31,9 +31,11 @@ function PageShell({ title, subtitle, actions, topSlot, children }: PageShellPro
     <div className="space-y-4">
       {topSlot}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <Breadcrumbs />
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2 min-w-0 w-full">
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <Breadcrumbs />
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
             {actions && (
               <div className="relative flex-shrink-0" ref={menuRef}>
                 <button
