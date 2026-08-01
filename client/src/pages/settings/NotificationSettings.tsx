@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import PageShell from '../../components/common/PageShell';
+import NavTabs from '../../components/common/NavTabs';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { useSocket, playNotificationChime, type AppNotification } from '../../context/SocketContext';
@@ -261,39 +262,15 @@ export default function NotificationSettings() {
     >
       <div className="space-y-6">
         {/* Tab Navigation & Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 gap-4">
-          <nav className="flex gap-6 -mb-px">
-            <button
-              type="button"
-              onClick={() => setActiveTab('inbox')}
-              className={`flex items-center gap-2 py-3 px-1 text-sm font-semibold border-b-2 transition-all ${
-                activeTab === 'inbox'
-                  ? 'border-cyan-500 text-cyan-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              <Inbox className="w-4 h-4" />
-              Notification Inbox
-              {unreadCount > 0 && (
-                <span className="ml-1 px-2 py-0.5 text-[11px] font-bold rounded-full bg-cyan-100 text-cyan-800">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-2 py-3 px-1 text-sm font-semibold border-b-2 transition-all ${
-                activeTab === 'settings'
-                  ? 'border-cyan-500 text-cyan-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              <Sliders className="w-4 h-4" />
-              Preferences & Delivery
-            </button>
-          </nav>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+          <NavTabs<'inbox' | 'settings'>
+            tabs={[
+              { id: 'inbox', label: 'Notification Inbox', icon: Inbox, badge: unreadCount || undefined },
+              { id: 'settings', label: 'Preferences & Delivery', icon: Sliders },
+            ]}
+            activeTab={activeTab}
+            onChange={setActiveTab}
+          />
 
           {/* Action buttons straight on the tabs bar */}
           <div className="flex items-center gap-2 pb-2 sm:pb-0">

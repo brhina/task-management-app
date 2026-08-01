@@ -22,12 +22,18 @@ import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
+import NavTabs from '../../components/common/NavTabs';
 import FilterToolbar from '../../components/common/FilterToolbar';
 import AdvancedTable, { RowActions, type Column, type ActionItem } from '../../components/common/AdvancedTable';
 import Modal from '../../components/common/Modal';
 import type { User, Task, Project } from '../../types';
 
 import ChangeRoleModal, { type CustomRoleOption } from '../../components/users/ChangeRoleModal';
+import MembersTab from '../../components/users/MembersTab';
+import TeamsTab from '../../components/users/TeamsTab';
+import UserTeamsModal from '../../components/users/UserTeamsModal';
+import TeamFormModal from '../../components/users/TeamFormModal';
+import InviteMemberModal from '../../components/users/InviteMemberModal';
 
 interface UserWithTaskCounts extends User {
   pendingTasks?: number;
@@ -193,6 +199,23 @@ function ManageUsers() {
   const handleTabChange = (tab: 'members' | 'teams') => {
     setSearchParams({ tab });
   };
+
+  const workloadStats = useMemo(() => {
+    let heavy = 0;
+    let moderate = 0;
+    let light = 0;
+    let idle = 0;
+
+    users.forEach((u) => {
+      const active = (u.pendingTasks || 0) + (u.inProgressTasks || 0);
+      if (active === 0) idle++;
+      else if (active <= 3) light++;
+      else if (active <= 7) moderate++;
+      else heavy++;
+    });
+
+    return { heavy, moderate, light, idle };
+  }, [users]);
 
   // ----------------------------------------------------
   // Member Helpers & Handlers
@@ -658,61 +681,75 @@ function ManageUsers() {
           </div>
         )}
 
-        {/* Tab Navigation */}
-        <div className="flex items-center justify-between border-b border-gray-200 pb-3">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => handleTabChange('members')}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
-                activeTab === 'members'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'bg-gray-100 text-slate-600 hover:bg-gray-200'
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              <span>Members</span>
-              <span
-                className={`ml-1 px-1.5 py-0.5 text-xs rounded-full font-bold ${
-                  activeTab === 'members'
-                    ? 'bg-white/20 text-white'
-                    : 'bg-gray-200 text-slate-700'
-                }`}
-              >
-                {users.length}
-              </span>
-            </button>
-
-            {hasPermission('team:view') && (
-              <button
-                type="button"
-                onClick={() => handleTabChange('teams')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
-                  activeTab === 'teams'
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'bg-gray-100 text-slate-600 hover:bg-gray-200'
-                }`}
-              >
-                <UsersRound className="w-4 h-4" />
-                <span>Teams</span>
-                <span
-                  className={`ml-1 px-1.5 py-0.5 text-xs rounded-full font-bold ${
-                    activeTab === 'teams'
-                      ? 'bg-white/20 text-white'
-                      : 'bg-gray-200 text-slate-700'
-                  }`}
-                >
-                  {teams.length}
-                </span>
-              </button>
-            )}
+        {/* Executive KPI Overview Banner */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="card p-4 flex flex-col justify-between hover:shadow-md transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Members</span>
+              <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600">
+                <Users className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl font-extrabold text-slate-900 mt-2 tabular-nums">{users.length}</div>
+            <div className="text-[11px] text-slate-500 mt-1">Across all organization roles</div>
           </div>
+
+          <div className="card p-4 flex flex-col justify-between hover:shadow-md transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Active Teams</span>
+              <div className="p-2 rounded-xl bg-sky-500/10 text-sky-600">
+                <UsersRound className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl font-extrabold text-slate-900 mt-2 tabular-nums">{teams.length}</div>
+            <div className="text-[11px] text-slate-500 mt-1">Department & project units</div>
+          </div>
+
+          <div className="card p-4 flex flex-col justify-between hover:shadow-md transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Workload Capacity</span>
+              <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600">
+                <BarChart2 className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl font-extrabold text-slate-900 mt-2 tabular-nums">
+              {workloadStats.moderate + workloadStats.light} Balanced
+            </div>
+            <div className="text-[11px] text-emerald-600 font-medium mt-1">
+              {workloadStats.heavy} Heavy • {workloadStats.idle} Idle
+            </div>
+          </div>
+
+          <div className="card p-4 flex flex-col justify-between hover:shadow-md transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Active Projects</span>
+              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+                <Folder className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl font-extrabold text-slate-900 mt-2 tabular-nums">{projects.length}</div>
+            <div className="text-[11px] text-slate-500 mt-1">Linked project workspaces</div>
+          </div>
+        </div>
+
+        {/* Unified Tab Navigation & Action Toolbar */}
+        <div className="flex items-center justify-between pb-1">
+          <NavTabs<'members' | 'teams'>
+            tabs={[
+              { id: 'members', label: 'Members', icon: Users, badge: users.length },
+              ...(hasPermission('team:view')
+                ? [{ id: 'teams' as const, label: 'Teams', icon: UsersRound, badge: teams.length }]
+                : []),
+            ]}
+            activeTab={activeTab}
+            onChange={handleTabChange}
+          />
 
           <div className="flex items-center gap-2">
             {activeTab === 'members' && hasPermission('member:invite') && (
               <button
                 onClick={handleOpenInviteModal}
-                className="btn-primary text-sm font-semibold flex items-center gap-1.5 px-4 py-2 rounded-lg"
+                className="btn-primary text-xs font-bold flex items-center gap-1.5 px-4 py-2 rounded-xl shadow-xs"
               >
                 <UserPlus className="w-4 h-4" />
                 <span className="hidden sm:inline">Invite Member</span>
@@ -721,7 +758,7 @@ function ManageUsers() {
             {activeTab === 'teams' && hasPermission('team:manage') && (
               <button
                 onClick={handleOpenCreateTeam}
-                className="btn-primary text-sm font-semibold flex items-center gap-1.5 px-4 py-2 rounded-lg"
+                className="btn-primary text-xs font-bold flex items-center gap-1.5 px-4 py-2 rounded-xl shadow-xs"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">Create Team</span>
@@ -732,1210 +769,102 @@ function ManageUsers() {
 
         {/* TAB 1: MEMBERS */}
         {activeTab === 'members' && (
-          <div className="space-y-4">
-            <FilterToolbar
-              searchValue={searchTerm}
-              onSearchChange={setSearchTerm}
-              searchPlaceholder="Search by member name or email..."
-              filters={[
-                {
-                  id: 'roleFilter',
-                  label: 'Role',
-                  value: roleFilter,
-                  onChange: setRoleFilter,
-                  options: [
-                    { value: '', label: 'All Roles' },
-                    { value: 'OrgAdmin', label: 'Owner' },
-                    { value: 'OrgMember', label: 'Member' },
-                  ],
-                },
-                {
-                  id: 'teamFilter',
-                  label: 'Team',
-                  value: teamFilter,
-                  onChange: setTeamFilter,
-                  options: [
-                    { value: '', label: 'All Teams' },
-                    ...teams.map((t) => ({
-                      value: t._id,
-                      label: `${t.name} (${t.memberIds?.length || 0})`,
-                    })),
-                  ],
-                },
-                {
-                  id: 'projectFilter',
-                  label: 'Project',
-                  value: projectFilter,
-                  onChange: setProjectFilter,
-                  options: [
-                    { value: '', label: 'All Projects' },
-                    ...projects
-                      .filter((p) => projectsWithMembers[p._id]?.size > 0)
-                      .map((p) => ({
-                        value: p._id,
-                        label: `${p.name} (${projectsWithMembers[p._id]?.size || 0})`,
-                      })),
-                  ],
-                },
-                {
-                  id: 'workloadFilter',
-                  label: 'Workload',
-                  value: workloadFilter,
-                  onChange: setWorkloadFilter,
-                  options: [
-                    { value: '', label: 'All Workloads' },
-                    { value: 'idle', label: 'Idle' },
-                    { value: 'light', label: 'Light' },
-                    { value: 'moderate', label: 'Moderate' },
-                    { value: 'heavy', label: 'Heavy' },
-                    { value: 'overloaded', label: 'Overloaded' },
-                  ],
-                },
-              ]}
-              actions={
-                <div className="flex items-center bg-white border border-gray-200 rounded-lg p-1">
-                  <button
-                    type="button"
-                    onClick={() => setViewMode('grid')}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'grid' ? 'bg-gray-200 text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    Grid
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode('list')}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'list' ? 'bg-gray-200 text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    List
-                  </button>
-                </div>
-              }
-            />
-
-            {loading ? (
-              <div className="flex justify-center py-16">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-              </div>
-            ) : filteredUsers.length === 0 ? (
-              <div className="card text-center py-12">
-                <Users className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                <div className="text-slate-500 text-sm">
-                  {users.length === 0 ? 'No team members yet.' : 'No members match your filters.'}
-                </div>
-              </div>
-            ) : viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {filteredUsers.map((u) => {
-                  const wl = getWorkloadStatus(u);
-                  const completion = getCompletionRate(u);
-                  const active = (u.pendingTasks || 0) + (u.inProgressTasks || 0);
-                  const userProjects = getUserProjects(u._id);
-                  const uTeams = getUserTeams(u._id);
-                  const uLeadTeams = getUserLeadTeams(u._id);
-
-                  return (
-                    <div key={u._id} className="card group hover:border-primary/40 transition-all flex flex-col justify-between">
-                      <div>
-                        {/* Header */}
-                        <div className="flex items-start gap-3 mb-3">
-                          {u.profileImageUrl ? (
-                            <img
-                              className="h-12 w-12 rounded-full ring-2 ring-gray-200 object-cover"
-                              src={u.profileImageUrl}
-                              alt={u.name}
-                            />
-                          ) : (
-                            <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center ring-2 ring-gray-200">
-                              <span className="text-lg font-bold text-slate-500">
-                                {u.name?.charAt(0).toUpperCase() || '?'}
-                              </span>
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-semibold text-slate-700 truncate">{u.name}</div>
-                            <div className="text-xs text-slate-500 truncate">{u.email}</div>
-                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                              <span
-                                className={`inline-flex px-1.5 py-0.5 text-[10px] font-semibold rounded-full border ${
-                                  (u.role as string) === 'OrgAdmin' || (u.role as string) === 'Owner'
-                                    ? 'bg-violet-500/15 text-violet-400 border-violet-500/30'
-                                    : 'bg-sky-500/15 text-sky-400 border-sky-500/30'
-                                }`}
-                              >
-                                {(u.role as string) === 'OrgAdmin' || (u.role as string) === 'Owner'
-                                  ? 'Owner'
-                                  : (u.role as string) === 'OrgMember'
-                                    ? 'Member'
-                                    : u.role}
-                              </span>
-                              <span
-                                className={`inline-flex px-1.5 py-0.5 text-[10px] font-semibold rounded-full ${wl.bg} ${wl.color}`}
-                              >
-                                {wl.label}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Teams Badges */}
-                        <div className="mb-3">
-                          <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-semibold flex items-center justify-between">
-                            <span>Teams</span>
-                            {hasPermission('team:manage') && (
-                              <button
-                                onClick={() => handleOpenUserTeamsModal(u)}
-                                className="text-primary hover:underline text-[10px] lowercase font-normal"
-                              >
-                                edit
-                              </button>
-                            )}
-                          </div>
-                          {uTeams.length === 0 && uLeadTeams.length === 0 ? (
-                            <div className="text-[11px] text-slate-400 italic">No assigned teams</div>
-                          ) : (
-                            <div className="flex flex-wrap gap-1.5">
-                              {uLeadTeams.map((t) => (
-                                <span
-                                  key={`lead-${t._id}`}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded bg-amber-500/10 text-amber-500 border border-amber-500/30"
-                                  title={`Team Lead of ${t.name}`}
-                                >
-                                  <Crown className="w-3 h-3 text-amber-500" />
-                                  {t.name} (Lead)
-                                </span>
-                              ))}
-                              {uTeams
-                                .filter((t) => !uLeadTeams.some((lt) => lt._id === t._id))
-                                .map((t) => (
-                                  <span
-                                    key={t._id}
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded bg-slate-100 text-slate-700 border border-slate-200"
-                                  >
-                                    <UsersRound className="w-3 h-3 text-slate-500" />
-                                    {t.name}
-                                  </span>
-                                ))}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Projects */}
-                        {userProjects.length > 0 && (
-                          <div className="mb-3">
-                            <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-semibold">
-                              Projects
-                            </div>
-                            <div className="flex flex-wrap gap-1.5">
-                              {userProjects.slice(0, 3).map((p) => (
-                                <Link
-                                  key={p._id}
-                                  to={`/tasks?projectId=${p._id}`}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
-                                >
-                                  <Folder className="w-3 h-3" />
-                                  {p.name}
-                                </Link>
-                              ))}
-                              {userProjects.length > 3 && (
-                                <span className="text-[10px] text-slate-500">
-                                  +{userProjects.length - 3} more
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Workload Bar */}
-                        <div className="mb-3">
-                          <div className="flex items-center justify-between text-[10px] mb-1">
-                            <span className="text-slate-500">Workload</span>
-                            <span className={`font-bold tabular-nums ${wl.color}`}>{active} active</span>
-                          </div>
-                          <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${wl.bar} transition-all`}
-                              style={{ width: `${Math.min(100, (active / 15) * 100)}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Completion Rate */}
-                        <div className="flex items-center justify-between text-[10px] mb-1">
-                          <span className="text-slate-500">Completion rate</span>
-                          <span className="font-bold text-slate-600 tabular-nums">{completion}%</span>
-                        </div>
-                        <div className="h-1 rounded-full bg-gray-200 overflow-hidden mb-3">
-                          <div
-                            className="h-full rounded-full bg-emerald-500 transition-all"
-                            style={{ width: `${completion}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Footer */}
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-200/50">
-                        <span className="text-[10px] text-slate-500">
-                          Joined{' '}
-                          {new Date(u.createdAt || '').toLocaleDateString('en-US', {
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => navigate(`/users/${u._id}/performance`)}
-                            className="text-[11px] text-primary hover:underline font-semibold"
-                          >
-                            Performance
-                          </button>
-                          {hasPermission('team:manage') && (
-                            <button
-                              onClick={() => handleOpenUserTeamsModal(u)}
-                              className="text-[11px] text-slate-600 hover:underline font-medium"
-                            >
-                              Manage Teams
-                            </button>
-                          )}
-                          {hasPermission('member:manage') &&
-                            (u.role as string) !== 'OrgAdmin' &&
-                            (u.role as string) !== 'Owner' && (
-                              <button
-                                onClick={() => handleDeleteUser(u._id)}
-                                className="text-[11px] text-rose-500 hover:text-rose-600 font-medium"
-                              >
-                                Remove
-                              </button>
-                            )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              (() => {
-                const userColumns: Column<UserWithTaskCounts>[] = [
-                  {
-                    key: 'name',
-                    header: 'Member',
-                    sortable: true,
-                    render: (u) => (
-                      <div className="flex items-center gap-3">
-                        {u.profileImageUrl ? (
-                          <img
-                            className="h-8 w-8 rounded-full ring-2 ring-gray-200 object-cover"
-                            src={u.profileImageUrl}
-                            alt={u.name}
-                          />
-                        ) : (
-                          <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center ring-2 ring-gray-200">
-                            <span className="text-xs font-bold text-slate-500">
-                              {u.name?.charAt(0).toUpperCase() || '?'}
-                            </span>
-                          </div>
-                        )}
-                        <div>
-                          <div className="text-sm font-medium text-slate-700">{u.name}</div>
-                          <div className="text-xs text-slate-500">{u.email}</div>
-                        </div>
-                      </div>
-                    ),
-                  },
-                  {
-                    key: 'teams',
-                    header: 'Teams',
-                    render: (u) => {
-                      const uTeams = getUserTeams(u._id);
-                      if (uTeams.length === 0)
-                        return <span className="text-xs text-slate-400 italic">—</span>;
-                      return (
-                        <div className="flex flex-wrap gap-1">
-                          {uTeams.slice(0, 2).map((t) => (
-                            <span
-                              key={t._id}
-                              className="inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded bg-slate-100 text-slate-700 border border-slate-200"
-                            >
-                              {t.name}
-                            </span>
-                          ))}
-                          {uTeams.length > 2 && (
-                            <span className="text-[10px] text-slate-500">
-                              +{uTeams.length - 2}
-                            </span>
-                          )}
-                        </div>
-                      );
-                    },
-                  },
-                  {
-                    key: 'projects',
-                    header: 'Projects',
-                    render: (u) => {
-                      const userProjects = getUserProjects(u._id);
-                      return (
-                        <div className="flex flex-wrap gap-1">
-                          {userProjects.slice(0, 2).map((p) => (
-                            <Link
-                              key={p._id}
-                              to={`/tasks?projectId=${p._id}`}
-                              className="inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
-                            >
-                              {p.name}
-                            </Link>
-                          ))}
-                          {userProjects.length > 2 && (
-                            <span className="text-[10px] text-slate-500">
-                              +{userProjects.length - 2}
-                            </span>
-                          )}
-                        </div>
-                      );
-                    },
-                  },
-                  {
-                    key: 'workload',
-                    header: 'Workload',
-                    sortable: true,
-                    render: (u) => {
-                      const wl = getWorkloadStatus(u);
-                      const active = (u.pendingTasks || 0) + (u.inProgressTasks || 0);
-                      return (
-                        <div className="flex items-center gap-2">
-                          <div className="w-16 h-1.5 rounded-full bg-gray-200 overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${wl.bar}`}
-                              style={{ width: `${Math.min(100, (active / 15) * 100)}%` }}
-                            />
-                          </div>
-                          <span className={`text-[10px] font-semibold ${wl.color}`}>
-                            {wl.label}
-                          </span>
-                        </div>
-                      );
-                    },
-                  },
-                  {
-                    key: 'tasks',
-                    header: 'Tasks',
-                    render: (u) => {
-                      const total = getTotalTasks(u);
-                      return (
-                        <div className="flex items-center gap-3 text-xs">
-                          <span className="text-yellow-400">{u.pendingTasks || 0}</span>
-                          <span className="text-blue-400">{u.inProgressTasks || 0}</span>
-                          <span className="text-emerald-400">{u.completedTasks || 0}</span>
-                          <span className="text-slate-500">/ {total}</span>
-                        </div>
-                      );
-                    },
-                  },
-                  {
-                    key: 'actions',
-                    header: 'Actions',
-                    className: 'w-[50px]',
-                    render: (u) => {
-                      const items: ActionItem[] = [
-                        {
-                          label: 'View Performance',
-                          onClick: () => navigate(`/users/${u._id}/performance`),
-                        },
-                      ];
-                      if (hasPermission('team:manage')) {
-                        items.push({
-                          label: 'Manage Teams',
-                          onClick: () => handleOpenUserTeamsModal(u),
-                        });
-                      }
-                      if (
-                        hasPermission('member:manage') &&
-                        (u.role as string) !== 'OrgAdmin' &&
-                        (u.role as string) !== 'Owner'
-                      ) {
-                        items.push({
-                          label: 'Remove',
-                          onClick: () => handleDeleteUser(u._id),
-                          className: 'text-rose-500',
-                        });
-                      }
-                      if (items.length === 0) return null;
-                      return <RowActions items={items} />;
-                    },
-                  },
-                ];
-                return (
-                  <AdvancedTable
-                    data={filteredUsers}
-                    columns={userColumns}
-                    emptyMessage={
-                      users.length === 0
-                        ? 'No team members yet.'
-                        : 'No members match your filters.'
-                    }
-                    emptyIcon={<Users className="w-12 h-12 text-slate-600 mx-auto mb-3" />}
-                  />
-                );
-              })()
-            )}
-          </div>
+          <MembersTab
+            users={users as any}
+            teams={teams}
+            tasks={tasks}
+            projects={projects}
+            loading={loading}
+            hasPermission={hasPermission}
+            customRoles={customRoles}
+            onOpenUserTeamsModal={(u) => handleOpenUserTeamsModal(u as any)}
+            onOpenChangeRoleModal={(member) => setChangeRoleModal({ isOpen: true, member: member as any })}
+            onDeleteUser={handleDeleteUser}
+          />
         )}
 
         {/* TAB 2: TEAMS */}
         {activeTab === 'teams' && (
-          <div className="space-y-4">
-            <FilterToolbar
-              searchValue={teamSearchTerm}
-              onSearchChange={setTeamSearchTerm}
-              searchPlaceholder="Search teams by name, description, or lead..."
-              filters={[]}
-              actions={
-                <div className="flex items-center bg-white border border-gray-200 rounded-lg p-1">
-                  <button
-                    type="button"
-                    onClick={() => setTeamViewMode('grid')}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${teamViewMode === 'grid' ? 'bg-gray-200 text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    Grid
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTeamViewMode('list')}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${teamViewMode === 'list' ? 'bg-gray-200 text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    List
-                  </button>
-                </div>
-              }
-            />
-
-            {loading ? (
-              <div className="flex justify-center py-16">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-              </div>
-            ) : filteredTeams.length === 0 ? (
-              <div className="card text-center py-12">
-                <UsersRound className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                <div className="text-slate-500 text-sm">
-                  {teams.length === 0 ? 'No teams created yet.' : 'No teams match your search.'}
-                </div>
-                {hasPermission('team:manage') && teams.length === 0 && (
-                  <button
-                    onClick={handleOpenCreateTeam}
-                    className="btn-primary text-xs mt-4 inline-flex items-center gap-1.5"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Create First Team</span>
-                  </button>
-                )}
-              </div>
-            ) : teamViewMode === 'grid' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {filteredTeams.map((t) => {
-                  const leadName = typeof t.leadId === 'object' ? t.leadId?.name : 'Unassigned';
-                  const leadAvatar = typeof t.leadId === 'object' ? t.leadId?.profileImageUrl : undefined;
-                  const parentName = typeof t.parentTeamId === 'object' ? t.parentTeamId?.name : undefined;
-                  const memberCount = t.memberIds?.length || 0;
-
-                  return (
-                    <div
-                      key={t._id}
-                      className="card group hover:border-primary/40 transition-all flex flex-col justify-between"
-                    >
-                      <div>
-                        {/* Title & Parent Badge */}
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div className="flex items-center gap-2">
-                            <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                              <UsersRound className="w-5 h-5" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-slate-800 text-base">{t.name}</h3>
-                              {parentName && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                                  Parent: {parentName}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Description */}
-                        {t.description ? (
-                          <p className="text-xs text-slate-500 mb-4 line-clamp-2">{t.description}</p>
-                        ) : (
-                          <p className="text-xs text-slate-400 italic mb-4">No description provided</p>
-                        )}
-
-                        {/* Lead Info */}
-                        <div className="mb-3 p-2.5 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between">
-                          <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1">
-                            <Crown className="w-3.5 h-3.5 text-amber-500" />
-                            <span>Team Lead:</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {leadAvatar ? (
-                              <img className="w-5 h-5 rounded-full object-cover" src={leadAvatar} alt="" />
-                            ) : (
-                              <div className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-600 flex items-center justify-center font-bold text-[10px]">
-                                {leadName?.charAt(0) || '?'}
-                              </div>
-                            )}
-                            <span className="text-xs font-semibold text-slate-700">{leadName}</span>
-                          </div>
-                        </div>
-
-                        {/* Members Stack */}
-                        <div className="mb-4">
-                          <div className="text-[10px] uppercase text-slate-500 font-semibold mb-1.5 flex items-center justify-between">
-                            <span>Members</span>
-                            <span className="text-xs font-bold text-slate-700">{memberCount}</span>
-                          </div>
-                          <div className="flex items-center -space-x-1.5 overflow-hidden py-1">
-                            {(t.memberIds || []).slice(0, 5).map((m, idx) => {
-                              const mName = typeof m === 'object' ? m.name : 'Member';
-                              const mAvatar = typeof m === 'object' ? m.profileImageUrl : undefined;
-                              return mAvatar ? (
-                                <img
-                                  key={idx}
-                                  className="inline-block h-7 w-7 rounded-full ring-2 ring-white object-cover"
-                                  src={mAvatar}
-                                  title={mName}
-                                  alt={mName}
-                                />
-                              ) : (
-                                <div
-                                  key={idx}
-                                  className="inline-block h-7 w-7 rounded-full bg-slate-200 ring-2 ring-white flex items-center justify-center text-[10px] font-bold text-slate-600"
-                                  title={mName}
-                                >
-                                  {mName.charAt(0)}
-                                </div>
-                              );
-                            })}
-                            {memberCount > 5 && (
-                              <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 ring-2 ring-white text-[10px] font-bold text-slate-500">
-                                +{memberCount - 5}
-                              </div>
-                            )}
-                            {memberCount === 0 && (
-                              <span className="text-xs text-slate-400 italic">No members assigned</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Card Footer Actions */}
-                      <div className="pt-3 border-t border-gray-200/60 flex items-center justify-between">
-                        <button
-                          onClick={() => handleOpenTeamDashboard(t)}
-                          className="btn-ghost text-xs py-1 px-2 flex items-center gap-1.5 text-primary hover:bg-primary/10"
-                        >
-                          <BarChart2 className="w-3.5 h-3.5" />
-                          <span>Dashboard</span>
-                        </button>
-                        <div className="flex items-center gap-1">
-                          {hasPermission('team:manage') && (
-                            <>
-                              <button
-                                onClick={() => handleOpenEditTeam(t)}
-                                className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-gray-100 rounded-md transition-colors"
-                                title="Edit Team"
-                              >
-                                <Pencil className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteTeam(t._id, t.name)}
-                                className="p-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
-                                title="Delete Team"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              (() => {
-                const teamColumns: Column<Team>[] = [
-                  {
-                    key: 'name',
-                    header: 'Team Name',
-                    sortable: true,
-                    render: (t) => (
-                      <div>
-                        <div className="flex items-center gap-2 text-slate-800 font-semibold">
-                          <UsersRound className="w-4 h-4 text-primary" />
-                          {t.name}
-                        </div>
-                        {t.description && (
-                          <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{t.description}</p>
-                        )}
-                      </div>
-                    ),
-                  },
-                  {
-                    key: 'parent',
-                    header: 'Parent Team',
-                    render: (t) => {
-                      const pName = typeof t.parentTeamId === 'object' ? t.parentTeamId?.name : null;
-                      return pName ? (
-                        <span className="text-xs font-medium text-slate-600">{pName}</span>
-                      ) : (
-                        <span className="text-xs text-slate-400 italic">—</span>
-                      );
-                    },
-                  },
-                  {
-                    key: 'lead',
-                    header: 'Team Lead',
-                    render: (t) => {
-                      const lName = typeof t.leadId === 'object' ? t.leadId?.name : null;
-                      return lName ? (
-                        <span className="text-xs font-medium text-slate-700 flex items-center gap-1">
-                          <Crown className="w-3 h-3 text-amber-500" />
-                          {lName}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-slate-400 italic">Unassigned</span>
-                      );
-                    },
-                  },
-                  {
-                    key: 'members',
-                    header: 'Members',
-                    render: (t) => (
-                      <span className="text-sm font-semibold text-slate-700">
-                        {t.memberIds?.length || 0}
-                      </span>
-                    ),
-                  },
-                  {
-                    key: 'actions',
-                    header: 'Actions',
-                    className: 'w-[80px]',
-                    render: (t) => {
-                      const items: ActionItem[] = [
-                        { label: 'Dashboard', onClick: () => handleOpenTeamDashboard(t) },
-                      ];
-                      if (hasPermission('team:manage')) {
-                        items.push({ label: 'Edit Team', onClick: () => handleOpenEditTeam(t) });
-                        items.push({
-                          label: 'Delete Team',
-                          onClick: () => handleDeleteTeam(t._id, t.name),
-                          className: 'text-rose-500',
-                        });
-                      }
-                      return <RowActions items={items} />;
-                    },
-                  },
-                ];
-                return (
-                  <AdvancedTable
-                    data={filteredTeams}
-                    columns={teamColumns}
-                    emptyMessage="No teams match your search."
-                    emptyIcon={<UsersRound className="w-12 h-12 text-slate-600 mx-auto mb-3" />}
-                  />
-                );
-              })()
-            )}
-          </div>
+          <TeamsTab
+            teams={teams}
+            loading={loading}
+            hasPermission={hasPermission}
+            onOpenCreateTeam={handleOpenCreateTeam}
+            onOpenEditTeam={handleOpenEditTeam}
+            onDeleteTeam={handleDeleteTeam}
+            onOpenTeamDashboard={handleOpenTeamDashboard}
+          />
         )}
       </div>
 
-      {/* ---------------------------------------------------- */}
-      {/* MODAL 1: Manage User Teams Modal                      */}
-      {/* ---------------------------------------------------- */}
-      <Modal
+      {/* User Teams Modal */}
+      <UserTeamsModal
         isOpen={userTeamsModal.isOpen}
-        onClose={() => setUserTeamsModal((prev) => ({ ...prev, isOpen: false }))}
-        title={`Manage Teams for ${userTeamsModal.targetUser?.name || 'Member'}`}
-        subtitle="Assign or remove this member from organization teams"
-        maxWidth="sm:max-w-md"
-        footer={
-          <>
-            <button
-              onClick={() => setUserTeamsModal((prev) => ({ ...prev, isOpen: false }))}
-              className="btn-secondary text-xs"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSaveUserTeams}
-              disabled={userTeamsModal.saving}
-              className="btn-primary text-xs disabled:opacity-50"
-            >
-              {userTeamsModal.saving ? 'Saving...' : 'Save Teams'}
-            </button>
-          </>
+        onClose={() =>
+          setUserTeamsModal({
+            isOpen: false,
+            targetUser: null,
+            selectedTeamIds: [],
+            saving: false,
+            error: '',
+          })
         }
-      >
-        <div className="space-y-3">
-          {userTeamsModal.error && (
-            <div className="alert-error text-xs">{userTeamsModal.error}</div>
-          )}
-          <p className="text-xs text-slate-500">
-            Select the teams this member should belong to:
-          </p>
-          {teams.length === 0 ? (
-            <div className="p-4 text-center text-xs text-slate-500 italic bg-gray-50 rounded-lg">
-              No teams created yet. Create a team first under the Teams tab.
-            </div>
-          ) : (
-            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-              {teams.map((t) => {
-                const isSelected = userTeamsModal.selectedTeamIds.includes(t._id);
-                const isLead =
-                  (typeof t.leadId === 'object' ? t.leadId?._id : t.leadId) ===
-                  userTeamsModal.targetUser?._id;
+        targetUser={userTeamsModal.targetUser}
+        selectedTeamIds={userTeamsModal.selectedTeamIds}
+        onToggleTeam={(teamId, checked) =>
+          setUserTeamsModal((prev) => ({
+            ...prev,
+            selectedTeamIds: checked
+              ? [...prev.selectedTeamIds, teamId]
+              : prev.selectedTeamIds.filter((id) => id !== teamId),
+          }))
+        }
+        onSave={handleSaveUserTeams}
+        saving={userTeamsModal.saving}
+        error={userTeamsModal.error}
+        teams={teams}
+      />
 
-                return (
-                  <label
-                    key={t._id}
-                    className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-                      isSelected
-                        ? 'border-primary/40 bg-primary/5'
-                        : 'border-gray-200 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setUserTeamsModal((prev) => ({
-                            ...prev,
-                            selectedTeamIds: checked
-                              ? [...prev.selectedTeamIds, t._id]
-                              : prev.selectedTeamIds.filter((id) => id !== t._id),
-                          }));
-                        }}
-                        className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4"
-                      />
-                      <div>
-                        <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                          {t.name}
-                          {isLead && (
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 font-bold border border-amber-500/20">
-                              Lead
-                            </span>
-                          )}
-                        </div>
-                        {t.description && (
-                          <div className="text-[10px] text-slate-500 line-clamp-1">
-                            {t.description}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <span className="text-[10px] text-slate-400">
-                      {t.memberIds?.length || 0} members
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </Modal>
-
-      {/* ---------------------------------------------------- */}
-      {/* MODAL 2: Create / Edit Team Modal                    */}
-      {/* ---------------------------------------------------- */}
-      <Modal
+      {/* Team Form Modal */}
+      <TeamFormModal
         isOpen={teamFormModal.isOpen}
         onClose={() => setTeamFormModal((prev) => ({ ...prev, isOpen: false }))}
-        title={teamFormModal.mode === 'create' ? 'Create Team' : 'Edit Team'}
-        subtitle={
-          teamFormModal.mode === 'create'
-            ? 'Set up a new team with members, lead, and parent structure'
-            : 'Update team details, lead, and member assignments'
-        }
-        footer={
-          <>
-            <button
-              onClick={() => setTeamFormModal((prev) => ({ ...prev, isOpen: false }))}
-              className="btn-secondary text-xs"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSaveTeam}
-              disabled={teamFormModal.saving}
-              className="btn-primary text-xs disabled:opacity-50"
-            >
-              {teamFormModal.saving
-                ? 'Saving...'
-                : teamFormModal.mode === 'create'
-                  ? 'Create Team'
-                  : 'Update Team'}
-            </button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          {teamFormModal.error && (
-            <div className="alert-error text-xs">{teamFormModal.error}</div>
-          )}
-          <div className="grid md:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
-                Team Name *
-              </label>
-              <input
-                type="text"
-                value={teamFormModal.name}
-                onChange={(e) =>
-                  setTeamFormModal((prev) => ({ ...prev, name: e.target.value }))
-                }
-                placeholder="e.g. Frontend Engineering"
-                className="input-field w-full text-xs"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
-                Parent Team (Optional)
-              </label>
-              <select
-                value={teamFormModal.parentTeamId}
-                onChange={(e) =>
-                  setTeamFormModal((prev) => ({ ...prev, parentTeamId: e.target.value }))
-                }
-                className="input-field w-full text-xs"
-              >
-                <option value="">No Parent Team</option>
-                {teams
-                  .filter((t) => t._id !== teamFormModal.teamId)
-                  .map((t) => (
-                    <option key={t._id} value={t._id}>
-                      {t.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
-                Description
-              </label>
-              <input
-                type="text"
-                value={teamFormModal.description}
-                onChange={(e) =>
-                  setTeamFormModal((prev) => ({ ...prev, description: e.target.value }))
-                }
-                placeholder="Brief summary of team responsibility"
-                className="input-field w-full text-xs"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
-                Team Lead
-              </label>
-              <select
-                value={teamFormModal.leadId}
-                onChange={(e) =>
-                  setTeamFormModal((prev) => ({ ...prev, leadId: e.target.value }))
-                }
-                className="input-field w-full text-xs"
-              >
-                <option value="">Select Team Lead (Optional)</option>
-                {users.map((u) => (
-                  <option key={u._id} value={u._id}>
-                    {u.name} ({u.email})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5 flex items-center justify-between">
-              <span>Select Team Members ({teamFormModal.memberIds.length} selected)</span>
-              <button
-                type="button"
-                onClick={() => {
-                  const allIds = users.map((u) => u._id);
-                  const isAllSelected = teamFormModal.memberIds.length === users.length;
-                  setTeamFormModal((prev) => ({
-                    ...prev,
-                    memberIds: isAllSelected ? [] : allIds,
-                  }));
-                }}
-                className="text-primary hover:underline text-[10px] font-normal lowercase"
-              >
-                {teamFormModal.memberIds.length === users.length
-                  ? 'deselect all'
-                  : 'select all'}
-              </button>
-            </label>
-            <div className="border border-gray-200 rounded-lg p-2 max-h-48 overflow-y-auto space-y-1 bg-gray-50/50">
-              {users.map((u) => {
-                const isSelected = teamFormModal.memberIds.includes(u._id);
-                return (
-                  <label
-                    key={u._id}
-                    className="flex items-center justify-between p-2 rounded hover:bg-white transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setTeamFormModal((prev) => ({
-                            ...prev,
-                            memberIds: checked
-                              ? [...prev.memberIds, u._id]
-                              : prev.memberIds.filter((id) => id !== u._id),
-                          }));
-                        }}
-                        className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4"
-                      />
-                      <div className="text-xs font-medium text-slate-700">{u.name}</div>
-                    </div>
-                    <span className="text-[10px] text-slate-400">{u.email}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </Modal>
+        mode={teamFormModal.mode}
+        name={teamFormModal.name}
+        description={teamFormModal.description}
+        leadId={teamFormModal.leadId}
+        memberIds={teamFormModal.memberIds}
+        parentTeamId={teamFormModal.parentTeamId}
+        onChangeField={(field: string, value: any) => setTeamFormModal((prev) => ({ ...prev, [field]: value }))}
+        onSave={handleSaveTeam}
+        saving={teamFormModal.saving}
+        error={teamFormModal.error}
+        users={users as any}
+        teams={teams}
+        editingTeamId={teamFormModal.teamId}
+      />
 
 
 
       {/* Invite Member Modal */}
-      {inviteModal.isOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <div
-              className="fixed inset-0 bg-gray-100/80 transition-opacity"
-              onClick={handleCloseInviteModal}
-            />
-            <div className="relative transform overflow-hidden rounded-xl bg-white border border-gray-200 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-              <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 sm:mx-0 sm:h-10 sm:w-10">
-                    <UserPlus className="h-6 w-6 text-primary" />
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 className="text-lg font-semibold leading-6 text-slate-800">
-                      Invite Team Member
-                    </h3>
-                    <div className="mt-2">
-                      <p className="text-sm text-slate-500">
-                        Generate an invite link to add a new member to your organization.
-                      </p>
-                    </div>
-
-                    {inviteModal.inviteToken ? (
-                      <div className="mt-4 p-4 bg-gray-100 rounded-lg border border-gray-200">
-                        <div className="text-sm font-medium text-slate-600 mb-2">
-                          Invite Link Generated!
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            readOnly
-                            value={`${window.location.origin}/signup?invite=${inviteModal.inviteToken}`}
-                            className="input-field flex-1 text-xs"
-                          />
-                          <button
-                            type="button"
-                            onClick={copyInviteLink}
-                            className={`px-3 py-2 transition-colors ${inviteModal.copied ? 'bg-emerald-500 text-white' : 'btn-primary'}`}
-                          >
-                            {inviteModal.copied ? (
-                              <Check className="w-4 h-4" />
-                            ) : (
-                              <ClipboardCopy className="w-4 h-4" />
-                            )}
-                          </button>
-                        </div>
-                        <div className="mt-3 text-xs text-slate-500">
-                          Share this link with the person you want to invite. The link expires in 7
-                          days.
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="mt-4 space-y-4">
-                        <div>
-                          <label
-                            htmlFor="inviteEmail"
-                            className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
-                          >
-                            Email Address
-                          </label>
-                          <div className="relative">
-                            <input
-                              type="email"
-                              id="inviteEmail"
-                              value={inviteModal.email}
-                              onChange={(e) => {
-                                const email = e.target.value;
-                                setInviteModal((prev) => ({ ...prev, email }));
-                                if (email.includes('@')) {
-                                  lookupUser(email);
-                                }
-                              }}
-                              className="input-field block w-full px-3 py-2 text-sm"
-                              placeholder="member@example.com"
-                            />
-                            {inviteModal.userLookup.loading && (
-                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                              </div>
-                            )}
-                          </div>
-                          {inviteModal.userLookup.found === true && inviteModal.userLookup.user && (
-                            <div className="mt-2 p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center gap-3">
-                              {inviteModal.userLookup.user.profileImageUrl ? (
-                                <img
-                                  className="h-8 w-8 rounded-full"
-                                  src={inviteModal.userLookup.user.profileImageUrl}
-                                  alt=""
-                                />
-                              ) : (
-                                <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                                  <span className="text-xs font-bold text-slate-500">
-                                    {inviteModal.userLookup.user.name?.charAt(0)?.toUpperCase() ||
-                                      '?'}
-                                  </span>
-                                </div>
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium text-emerald-400">
-                                  {inviteModal.userLookup.user.name}
-                                </div>
-                                <div className="text-xs text-slate-500">
-                                  User found - can be added directly
-                                </div>
-                              </div>
-                              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                            </div>
-                          )}
-                          {inviteModal.userLookup.found === false && (
-                            <div className="mt-2 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex items-center gap-2">
-                              <AlertTriangle className="w-4 h-4 text-yellow-400 shrink-0" />
-                              <span className="text-xs text-yellow-400">
-                                User not found - invite link will be generated
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="inviteRole"
-                            className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
-                          >
-                            Role
-                          </label>
-                          <select
-                            id="inviteRole"
-                            value={
-                              inviteModal.role === 'Custom' && inviteModal.customRoleId
-                                ? `custom:${inviteModal.customRoleId}`
-                                : inviteModal.role || 'OrgMember'
-                            }
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val.startsWith('custom:')) {
-                                const cId = val.split(':')[1];
-                                setInviteModal((prev) => ({
-                                  ...prev,
-                                  role: 'Custom',
-                                  customRoleId: cId,
-                                }));
-                              } else {
-                                setInviteModal((prev) => ({
-                                  ...prev,
-                                  role: val,
-                                  customRoleId: undefined,
-                                }));
-                              }
-                            }}
-                            className="input-field block w-full px-3 py-2 text-sm"
-                          >
-                            <optgroup label="System Roles">
-                              <option value="OrgMember">Member</option>
-                              <option value="Manager">Manager</option>
-                              <option value="Viewer">Viewer</option>
-                              <option value="OrgAdmin">Owner / Admin</option>
-                            </optgroup>
-                            {customRoles.length > 0 && (
-                              <optgroup label="Custom Roles">
-                                {customRoles.map((c) => (
-                                  <option key={c._id} value={`custom:${c._id}`}>
-                                    {c.name} (Custom)
-                                  </option>
-                                ))}
-                              </optgroup>
-                            )}
-                          </select>
-                        </div>
-                      </div>
-                    )}
-
-                    {inviteModal.error && (
-                      <div className="mt-3 text-sm text-rose-400">{inviteModal.error}</div>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white/50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
-                {inviteModal.inviteToken ? (
-                  <button
-                    type="button"
-                    onClick={handleCloseInviteModal}
-                    className="btn-primary w-full sm:w-auto"
-                  >
-                    Done
-                  </button>
-                ) : (
-                  <>
-                    {inviteModal.mode === 'add' && inviteModal.userLookup.user ? (
-                      <button
-                        type="button"
-                        onClick={handleAddMember}
-                        disabled={inviteModal.loading || !hasPermission('member:invite')}
-                        className="btn-primary w-full sm:w-auto disabled:opacity-50"
-                      >
-                        {inviteModal.loading
-                          ? 'Adding...'
-                          : `Add ${inviteModal.userLookup.user.name}`}
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleInviteMember}
-                        disabled={
-                          inviteModal.loading || !inviteModal.email || !hasPermission('member:invite')
-                        }
-                        className="btn-primary w-full sm:w-auto disabled:opacity-50"
-                      >
-                        {inviteModal.loading ? 'Generating...' : 'Generate Invite Link'}
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={handleCloseInviteModal}
-                      className="btn-ghost w-full sm:w-auto mt-3 sm:mt-0"
-                    >
-                      Cancel
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <InviteMemberModal
+        state={inviteModal}
+        customRoles={customRoles}
+        onClose={handleCloseInviteModal}
+        onChangeEmail={(email) => {
+          setInviteModal((prev) => ({ ...prev, email }));
+          if (email.includes('@')) {
+            lookupUser(email);
+          }
+        }}
+        onChangeRole={(role, customRoleId) =>
+          setInviteModal((prev) => ({ ...prev, role, customRoleId }))
+        }
+        onInvite={handleInviteMember}
+        onAdd={handleAddMember}
+        onCopyLink={copyInviteLink}
+        hasInvitePermission={hasPermission('member:invite')}
+      />
 
       <ChangeRoleModal
         isOpen={changeRoleModal.isOpen}

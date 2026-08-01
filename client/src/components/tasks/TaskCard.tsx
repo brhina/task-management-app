@@ -48,7 +48,7 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
       )}
 
       {/* Progress Bar */}
-      {task.progress != null && task.progress > 0 && (
+      {task.status !== 'Pending' && task.progress != null && task.progress > 0 && (
         <div className="space-y-0.5">
           <div className="flex justify-between text-[9px] font-bold text-slate-400">
             <span>Progress</span>

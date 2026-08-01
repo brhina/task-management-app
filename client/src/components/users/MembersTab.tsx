@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, UsersRound, Crown, Folder, CheckCircle2, Shield, MoreVertical, LayoutGrid, List } from 'lucide-react';
 import FilterToolbar from '../common/FilterToolbar';
+import NavTabs from '../common/NavTabs';
 import AdvancedTable, { RowActions, type Column, type ActionItem } from '../common/AdvancedTable';
 import type { UserWithTaskCounts, Team } from './UserTeamsModal';
 import type { Task, Project } from '../../types';
@@ -216,32 +217,15 @@ export default function MembersTab({
           },
         ]}
         actions={
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
-            <button
-              type="button"
-              onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                viewMode === 'grid'
-                  ? 'bg-white text-slate-800 shadow-sm border border-slate-200/60'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              <span>Grid</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('list')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                viewMode === 'list'
-                  ? 'bg-white text-slate-800 shadow-sm border border-slate-200/60'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <List className="w-3.5 h-3.5" />
-              <span>List</span>
-            </button>
-          </div>
+          <NavTabs<'grid' | 'list'>
+            size="sm"
+            tabs={[
+              { id: 'grid', label: 'Grid', icon: LayoutGrid },
+              { id: 'list', label: 'List', icon: List },
+            ]}
+            activeTab={viewMode}
+            onChange={setViewMode}
+          />
         }
       />
 
@@ -258,7 +242,7 @@ export default function MembersTab({
           </p>
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {filteredUsers.map((u) => {
             const wl = getWorkloadStatus(u);
             const completion = getCompletionRate(u);
@@ -270,7 +254,7 @@ export default function MembersTab({
             return (
               <div
                 key={u._id}
-                className="group relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-primary/40 transition-all p-5 flex flex-col justify-between"
+                className="card group relative hover:shadow-md hover:border-primary/40 transition-all p-5 flex flex-col justify-between"
               >
                 <div>
                   {/* Top Member Header */}

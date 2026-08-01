@@ -2,6 +2,7 @@ import { useContext, useEffect, useState, useMemo } from 'react';
 import { Plus, Search, Grid, Layers, Users, CheckCircle2, AlertCircle } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import PageShell from '../../components/common/PageShell';
+import NavTabs from '../../components/common/NavTabs';
 import ChangeRoleModal from '../../components/users/ChangeRoleModal';
 import RolesOverviewTab from '../../components/roles/RolesOverviewTab';
 import PermissionMatrixTab from '../../components/roles/PermissionMatrixTab';
@@ -239,41 +240,15 @@ const RolesPermissions = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200/80">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all ${
-                activeTab === 'overview'
-                  ? 'bg-white text-slate-800 shadow-sm border border-slate-200/60'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <Grid className="w-4 h-4" />
-              <span>Roles Overview</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('matrix')}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all ${
-                activeTab === 'matrix'
-                  ? 'bg-white text-slate-800 shadow-sm border border-slate-200/60'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <Layers className="w-4 h-4" />
-              <span>Permission Matrix</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('members')}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all ${
-                activeTab === 'members'
-                  ? 'bg-white text-slate-800 shadow-sm border border-slate-200/60'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              <span>Member Directory</span>
-            </button>
-          </div>
+          <NavTabs<'overview' | 'matrix' | 'members'>
+            tabs={[
+              { id: 'overview', label: 'Roles Overview', icon: Grid },
+              { id: 'matrix', label: 'Permission Matrix', icon: Layers },
+              { id: 'members', label: 'Member Directory', icon: Users, badge: members.length },
+            ]}
+            activeTab={activeTab}
+            onChange={setActiveTab}
+          />
         </div>
 
         {/* Loading Spinner */}

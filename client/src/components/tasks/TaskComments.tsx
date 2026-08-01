@@ -126,20 +126,35 @@ export default function TaskComments({ taskId, members, canDelete = false, canPo
       )}
       {canPost && (
         <form onSubmit={handleSubmit} className="relative">
-          <textarea
-            value={content}
-            onChange={(e) => onChange(e.target.value)}
-            rows={2}
-            placeholder="Write a comment… use @ to mention"
-            className="w-full rounded-xl bg-gray-50 border border-gray-200 px-3 py-2 text-sm text-slate-700"
-          />
+          <div className="flex items-stretch rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all">
+            <textarea
+              value={content}
+              onChange={(e) => onChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+              rows={2}
+              placeholder="Write a comment… use @ to mention (Ctrl+Enter to post)"
+              className="flex-1 border-0 bg-transparent px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none resize-none"
+            />
+            <button
+              type="submit"
+              disabled={submitting || !content.trim()}
+              className="self-end my-2 mr-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs inline-flex items-center gap-1.5 shadow-sm disabled:opacity-50 transition-colors shrink-0"
+            >
+              <Send className="w-3.5 h-3.5" /> Post
+            </button>
+          </div>
           {suggestions.length > 0 && (
-            <ul className="absolute left-0 right-0 bottom-full mb-1 rounded-lg border border-gray-200 bg-gray-100 shadow-lg z-10 max-h-32 overflow-y-auto">
+            <ul className="absolute left-0 right-0 bottom-full mb-1 rounded-xl border border-slate-200 bg-white shadow-xl z-20 max-h-36 overflow-y-auto">
               {suggestions.slice(0, 6).map((m) => (
                 <li key={m._id}>
                   <button
                     type="button"
-                    className="w-full text-left px-3 py-1.5 text-sm text-slate-600 hover:bg-white"
+                    className="w-full text-left px-3 py-1.5 text-xs text-slate-700 font-medium hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
                     onClick={() => insertMention(m.name)}
                   >
                     @{m.name}
@@ -148,13 +163,6 @@ export default function TaskComments({ taskId, members, canDelete = false, canPo
               ))}
             </ul>
           )}
-          <button
-            type="submit"
-            disabled={submitting || !content.trim()}
-            className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-cyan-600/80 hover:bg-cyan-600 px-3 py-1.5 text-sm text-slate-800 disabled:opacity-50"
-          >
-            <Send className="w-3.5 h-3.5" /> Post
-          </button>
         </form>
       )}
       {/* keep BASE_URL referenced for attachment URLs elsewhere */}

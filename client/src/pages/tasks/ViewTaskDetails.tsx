@@ -7,65 +7,121 @@ import { getStatusColor, getPriorityColor, TASK_STATUS } from '../../constants/t
 import { formatDate, getRelativeTime, isOverdue, getDaysUntilDue } from '../../utils/dateUtils';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageShell from '../../components/common/PageShell';
+import NavTabs, { type TabItem } from '../../components/common/NavTabs';
 import TaskComments from '../../components/tasks/TaskComments';
 import TaskActivityFeed from '../../components/tasks/TaskActivityFeed';
 import TaskAttachments from '../../components/tasks/TaskAttachments';
 import TaskTimeTracking from '../../components/tasks/TaskTimeTracking';
 import TaskSubtasks from '../../components/tasks/TaskSubtasks';
+import TaskDependencies from '../../components/tasks/TaskDependencies';
 import MentionText from '../../components/common/MentionText';
 import { useSocket } from '../../context/SocketContext';
-import { X, Check } from 'lucide-react';
-import type { Task, TodoItem, User } from '../../types';
+import {
+  X,
+  Check,
+  Edit2,
+  Share2,
+  Copy,
+  Trash2,
+  Calendar,
+  User as UserIcon,
+  Clock,
+  Tag,
+  Flame,
+  Layers,
+  AlertTriangle,
+  CheckCircle2,
+  FileText,
+  MessageSquare,
+  Paperclip,
+  Activity,
+  GitCommit,
+  Plus,
+  Bookmark,
+  ChevronRight,
+  ShieldAlert,
+} from 'lucide-react';
+import type { Task, TodoItem, User, TaskPriority, TaskStatus } from '../../types';
 
 const STATUS_FLOW = [
   {
     value: TASK_STATUS.PENDING,
     label: 'Pending',
-    color: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30 hover:bg-yellow-500/25',
+    color: 'bg-amber-500/15 text-amber-600 border-amber-500/30 hover:bg-amber-500/25',
   },
   {
     value: TASK_STATUS.IN_PROGRESS,
     label: 'In Progress',
-    color: 'bg-blue-500/15 text-blue-400 border-blue-500/30 hover:bg-blue-500/25',
+    color: 'bg-blue-500/15 text-blue-600 border-blue-500/30 hover:bg-blue-500/25',
   },
   {
     value: TASK_STATUS.IN_REVIEW,
     label: 'In Review',
-    color: 'bg-purple-500/15 text-purple-400 border-purple-500/30 hover:bg-purple-500/25',
+    color: 'bg-purple-500/15 text-purple-600 border-purple-500/30 hover:bg-purple-500/25',
   },
   {
     value: TASK_STATUS.COMPLETED,
     label: 'Completed',
-    color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25',
+    color: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/25',
   },
 ];
 
-function ViewTaskDetails() {
+type ActiveTab = 'overview' | 'activity' | 'attachments' | 'comments' | 'dependencies';
+
+export default function ViewTaskDetails() {
   const { user, hasPermission } = useContext(UserContext);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updating, setUpdating] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  // Tabs
+  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
+
+  // Inline Edits
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleValue, setTitleValue] = useState('');
+
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [descValue, setDescValue] = useState('');
+
+  const [newTagInput, setNewTagInput] = useState('');
+  const [newBlockerInput, setNewBlockerInput] = useState('');
   const [newChecklistItem, setNewChecklistItem] = useState('');
+
+  // Dependencies & Org Members
   const [dependencies, setDependencies] = useState<any[]>([]);
   const [tasksForDeps, setTasksForDeps] = useState<Task[]>([]);
-  const [prereqToAdd, setPrereqToAdd] = useState('');
-  const [addingDep, setAddingDep] = useState(false);
   const [members, setMembers] = useState<User[]>([]);
+
+  // Modals & Actions
   const [savingTemplate, setSavingTemplate] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Presence
   const [viewers, setViewers] = useState<Array<{ userId: string; name?: string }>>([]);
   const { socket } = useSocket();
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 3000);
+  };
 
   const fetchTaskDetails = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
       const response = await api.get(apiPaths.TASKS.GET_TASK_BY_ID.replace(':id', id || ''));
-      setTask(response.data.data);
+      const fetchedTask: Task = response.data.data;
+      setTask(fetchedTask);
+      setTitleValue(fetchedTask.title || '');
+      setDescValue(fetchedTask.description || '');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load task details');
     } finally {
@@ -96,13 +152,11 @@ function ViewTaskDetails() {
     try {
       const orgId = localStorage.getItem('activeOrgId');
       if (!orgId) return;
-      const res = await api.get(
-        apiPaths.ORG_MEMBERSHIP.GET_MEMBERS.replace(':orgId', orgId),
-      );
+      const res = await api.get(apiPaths.ORG_MEMBERSHIP.GET_MEMBERS.replace(':orgId', orgId));
       const list = (res.data.data || res.data.members || []).map((m: any) =>
         m.userId && typeof m.userId === 'object'
           ? m.userId
-          : { _id: m.userId || m._id, name: m.name, email: m.email },
+          : { _id: m.userId || m._id, name: m.name, email: m.email }
       );
       setMembers(list);
     } catch (err) {
@@ -123,16 +177,12 @@ function ViewTaskDetails() {
     hasPermission,
   ]);
 
-  // Presence: announce viewing this task
+  // Socket Presence
   useEffect(() => {
     if (!socket || !id || !user) return;
     socket.emit('viewing_task', { taskId: id, name: user.name });
 
-    const onPresence = (p: {
-      userId: string;
-      name?: string;
-      viewingTaskId: string | null;
-    }) => {
+    const onPresence = (p: { userId: string; name?: string; viewingTaskId: string | null }) => {
       setViewers((prev) => {
         if (p.viewingTaskId === id) {
           if (prev.some((v) => v.userId === p.userId)) return prev;
@@ -147,7 +197,7 @@ function ViewTaskDetails() {
       .get(apiPaths.NOTIFICATIONS.PRESENCE, { params: { taskId: id } })
       .then((r) => {
         const list = (r.data.data || []).filter(
-          (v: any) => String(v.userId) !== String(user._id),
+          (v: any) => String(v.userId) !== String(user._id)
         );
         setViewers(list);
       })
@@ -159,16 +209,48 @@ function ViewTaskDetails() {
     };
   }, [socket, id, user]);
 
+  // Actions
   const handleSaveAsTemplate = async () => {
     if (!id) return;
     try {
       setSavingTemplate(true);
       await api.post(apiPaths.TASKS.SAVE_AS_TEMPLATE.replace(':id', id), {});
-      alert('Saved as template');
+      showToast('Task saved as template');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to save template');
     } finally {
       setSavingTemplate(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    showToast('Task link copied to clipboard');
+  };
+
+  const handleDeleteTask = async () => {
+    if (!id) return;
+    try {
+      await api.delete(apiPaths.TASKS.DELETE_TASK.replace(':id', id));
+      navigate('/tasks');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to delete task');
+    }
+  };
+
+  // Field Updates
+  const handleUpdateTaskField = async (updateData: Partial<Task>) => {
+    if (!id) return;
+    try {
+      setUpdating(true);
+      setError('');
+      await api.put(apiPaths.TASKS.UPDATE_TASK.replace(':id', id), updateData);
+      await fetchTaskDetails();
+      showToast('Updated successfully');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to update task');
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -180,6 +262,7 @@ function ViewTaskDetails() {
         status: newStatus,
       });
       await fetchTaskDetails();
+      showToast(`Status set to ${newStatus}`);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to update status');
     } finally {
@@ -187,15 +270,58 @@ function ViewTaskDetails() {
     }
   };
 
-  const handleProgressUpdate = async (progress: number) => {
-    try {
-      await api.put(apiPaths.TASKS.UPDATE_TASK.replace(':id', id || ''), { progress });
-      setTask((prev) => (prev ? { ...prev, progress } : prev));
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update progress');
+  // Title Save
+  const handleSaveTitle = async () => {
+    if (!titleValue.trim() || titleValue === task?.title) {
+      setEditingTitle(false);
+      return;
     }
+    await handleUpdateTaskField({ title: titleValue.trim() });
+    setEditingTitle(false);
   };
 
+  // Description Save
+  const handleSaveDescription = async () => {
+    if (descValue === task?.description) {
+      setEditingDescription(false);
+      return;
+    }
+    await handleUpdateTaskField({ description: descValue });
+    setEditingDescription(false);
+  };
+
+  // Tag Manager
+  const handleAddTag = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!newTagInput.trim() || !task) return;
+    const currentTags = task.tags || [];
+    if (currentTags.includes(newTagInput.trim())) return;
+    await handleUpdateTaskField({ tags: [...currentTags, newTagInput.trim()] });
+    setNewTagInput('');
+  };
+
+  const handleRemoveTag = async (tagToRemove: string) => {
+    if (!task) return;
+    const updated = (task.tags || []).filter((t) => t !== tagToRemove);
+    await handleUpdateTaskField({ tags: updated });
+  };
+
+  // Blocker Manager
+  const handleAddBlocker = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!newBlockerInput.trim() || !task) return;
+    const currentBlockers = task.blockersText || [];
+    await handleUpdateTaskField({ blockersText: [...currentBlockers, newBlockerInput.trim()] });
+    setNewBlockerInput('');
+  };
+
+  const handleRemoveBlocker = async (index: number) => {
+    if (!task?.blockersText) return;
+    const updated = task.blockersText.filter((_, i) => i !== index);
+    await handleUpdateTaskField({ blockersText: updated });
+  };
+
+  // Subtask Checklist (if current task is a subtask)
   const handleChecklistUpdate = async (todoCheckList: TodoItem[]) => {
     try {
       setUpdating(true);
@@ -231,41 +357,16 @@ function ViewTaskDetails() {
     await handleChecklistUpdate(task.todoCheckList.filter((_, i) => i !== index));
   };
 
-  const handleAddPrereq = async () => {
-    if (!task || !prereqToAdd) return;
-    try {
-      setAddingDep(true);
-      await api.post(apiPaths.DEPENDENCIES.CREATE, {
-        fromTaskId: prereqToAdd,
-        toTaskId: task._id,
-        type: 'FS',
-      });
-      setPrereqToAdd('');
-      await fetchDependencies();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to add dependency');
-    } finally {
-      setAddingDep(false);
-    }
-  };
-
-  const handleRemoveDependency = async (depId: string) => {
-    try {
-      await api.delete(apiPaths.DEPENDENCIES.DELETE.replace(':id', depId));
-      await fetchDependencies();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to remove dependency');
-    }
-  };
-
   const daysUntilDue = task ? getDaysUntilDue(task.dueDate) : null;
+  const currentStatusIdx = task ? STATUS_FLOW.findIndex((s) => s.value === task.status) : -1;
+  const canEdit = hasPermission('task:update');
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-slate-700 mb-4">Please Log In</h2>
-          <p className="text-slate-500">You need to be logged in to view task details.</p>
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
+        <div className="text-center p-8 bg-slate-800 rounded-2xl shadow-xl border border-slate-700">
+          <h2 className="text-2xl font-bold mb-2">Please Log In</h2>
+          <p className="text-slate-400">You need to be logged in to view task details.</p>
         </div>
       </div>
     );
@@ -273,9 +374,9 @@ function ViewTaskDetails() {
 
   if (loading) {
     return (
-      <PageShell title="Task Details" subtitle="Loading...">
-        <div className="flex justify-center py-16">
-          <LoadingSpinner size="lg" text="Loading task details..." />
+      <PageShell title="Task Details" subtitle="Loading task workspace...">
+        <div className="flex justify-center py-20">
+          <LoadingSpinner size="lg" text="Preparing task details workspace..." />
         </div>
       </PageShell>
     );
@@ -283,450 +384,709 @@ function ViewTaskDetails() {
 
   if (!task) {
     return (
-      <PageShell title="Not Found" subtitle={error || 'Task not found.'}>
-        <Link to={isAdminRoute ? '/tasks' : '/tasks'} className="btn-primary">
-          Back to Tasks
-        </Link>
+      <PageShell title="Task Not Found" subtitle={error || 'The requested task could not be loaded.'}>
+        <div className="p-8 text-center bg-white rounded-2xl border border-slate-200 shadow-sm max-w-md mx-auto">
+          <p className="text-slate-600 mb-4">{error || 'Task may have been deleted or moved.'}</p>
+          <Link to="/tasks" className="btn-primary">
+            Back to Tasks List
+          </Link>
+        </div>
       </PageShell>
     );
   }
 
-  const blockedBy = dependencies.filter(
-    (d) => String((d.toTaskId as any)?._id || d.toTaskId) === task._id
-  );
-  const blocking = dependencies.filter(
-    (d) => String((d.fromTaskId as any)?._id || d.fromTaskId) === task._id
-  );
-  const currentStatusIdx = STATUS_FLOW.findIndex((s) => s.value === task.status);
-
   return (
     <PageShell
-      title={task.title}
-      subtitle={
-        <>
-          {task.description && (
-            <p className="text-slate-600 text-sm mb-2">
-              <MentionText text={task.description} />
-            </p>
-          )}
-          {/* <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${getPriorityColor(task.priority)}`}>
-                            {task.priority}
-                        </span>
-                        <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${getStatusColor(task.status)}`}>
-                            {task.status}
-                        </span>
-                        {isOverdue(task.dueDate) && task.status !== TASK_STATUS.COMPLETED && (
-                            <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/30">
-                                Overdue
-                            </span>
-                        )}
-                        {daysUntilDue !== null && daysUntilDue > 0 && daysUntilDue <= 3 && task.status !== TASK_STATUS.COMPLETED && (
-                            <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                                Due {daysUntilDue === 1 ? 'tomorrow' : `in ${daysUntilDue}d`}
-                            </span>
-                        )}
-                    </div> */}
-        </>
-      }
+      title=""
+      subtitle=""
       actions={
-        <>
-          {hasPermission('task:update') && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm transition-colors"
+          >
+            <Copy className="w-3.5 h-3.5 text-slate-500" /> Share Link
+          </button>
+
+          {canEdit && (
             <>
               <button
                 type="button"
                 onClick={handleSaveAsTemplate}
                 disabled={savingTemplate}
-                className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+                className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm transition-colors disabled:opacity-50"
               >
-                {savingTemplate ? 'Saving…' : 'Save as template'}
+                <Bookmark className="w-3.5 h-3.5 text-slate-500" /> Save Template
               </button>
-              <Link to={`/tasks/${id}/edit`} className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors">
-                Edit
+
+              <Link
+                to={`/tasks/${id}/edit`}
+                className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm transition-colors"
+              >
+                <Edit2 className="w-3.5 h-3.5" /> Full Edit
               </Link>
             </>
           )}
+
+          {hasPermission('task:delete') && (
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(true)}
+              className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </button>
+          )}
+
           <Link
             to="/tasks"
-            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+            className="px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold transition-colors"
           >
-            Back to Tasks
+            Back
           </Link>
-        </>
+        </div>
       }
     >
-      {error && <div className="alert-error mb-4">{error}</div>}
-
-      {viewers.length > 0 && (
-        <div className="mb-3 text-xs text-slate-500 flex items-center gap-2">
-          <span className="inline-flex w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          Also viewing:{' '}
-          {viewers
-            .filter((v) => String(v.userId) !== String(user?._id))
-            .map((v) => v.name || 'Someone')
-            .join(', ') || 'others'}
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl border border-slate-700 text-xs font-semibold flex items-center gap-2 animate-bounce">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          {toastMessage}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Left Column - Main Content */}
-        <div className="lg:col-span-2 space-y-4">
-          {!task.parentTaskId ? (
-            <TaskSubtasks
-              parentId={task._id}
-              isAdmin={hasPermission('task:update')}
-              detailBasePath="/tasks"
-              onProgressChange={fetchTaskDetails}
-            />
-          ) : (
-            <div className="card">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                  Checklist
-                </div>
-                {task.todoCheckList && task.todoCheckList.length > 0 && (
-                  <span className="text-xs text-slate-500 tabular-nums">
-                    {task.todoCheckList.filter((t) => t.isCompleted).length}/{task.todoCheckList.length}
-                  </span>
-                )}
-              </div>
+      {error && (
+        <div className="mb-4 p-4 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError('')} className="text-rose-500 hover:text-rose-700">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
-              {task.todoCheckList && task.todoCheckList.length > 0 && (
-                <div className="mb-3">
-                  <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-emerald-500 transition-all duration-300"
-                      style={{ width: `${Math.round((task.todoCheckList.filter((t) => t.isCompleted).length / task.todoCheckList.length) * 100)}%` }}
-                    />
-                  </div>
-                </div>
-              )}
+      {/* Active Presence Viewers Banner */}
+      {viewers.length > 0 && (
+        <div className="mb-4 px-4 py-2 rounded-xl bg-emerald-50/80 border border-emerald-200/60 text-xs text-emerald-800 flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span className="font-semibold">Active Collaborators:</span>
+          <span>
+            {viewers.map((v) => v.name || 'User').join(', ')} currently viewing this task
+          </span>
+        </div>
+      )}
 
-              <div className="space-y-1.5">
-                {task.todoCheckList?.map((todo, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-2.5 group px-2 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={todo.isCompleted}
-                      onChange={(e) => handleTodoToggle(index, e.target.checked)}
-                      disabled={updating}
-                      className="h-4 w-4 shrink-0 text-primary focus:ring-primary border-gray-300 rounded cursor-pointer disabled:opacity-50"
-                    />
-                    <span
-                      className={`flex-1 text-sm ${todo.isCompleted ? 'line-through text-slate-400' : 'text-slate-600'}`}
-                    >
-                      {todo.text}
-                    </span>
-                    <button
-                      onClick={() => handleDeleteChecklistItem(index)}
-                      disabled={updating || !hasPermission('task:update')}
-                      className="opacity-0 group-hover:opacity-100 p-0.5 text-rose-400 hover:text-rose-500 transition-opacity disabled:opacity-50"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <form onSubmit={handleAddChecklistItem} className="mt-3 flex gap-2">
+      {/* HEADER RIBBON & TITLE AREA */}
+      <div className="card space-y-4 bg-gradient-to-br from-white via-slate-50/40 to-indigo-50/20 border border-slate-200/80 shadow-sm mb-6">
+        
+        {/* Editable Title */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            {editingTitle ? (
+              <div className="flex items-center gap-2">
                 <input
                   type="text"
-                  value={newChecklistItem}
-                  onChange={(e) => setNewChecklistItem(e.target.value)}
-                  placeholder="New item..."
-                  className="input-field flex-1 text-sm"
+                  value={titleValue}
+                  onChange={(e) => setTitleValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveTitle();
+                    if (e.key === 'Escape') setEditingTitle(false);
+                  }}
+                  className="flex-1 text-xl sm:text-2xl font-bold text-slate-900 border-2 border-indigo-500 rounded-xl px-3 py-1 focus:outline-none bg-white shadow-sm"
                   autoFocus
                 />
                 <button
-                  type="submit"
-                  disabled={!newChecklistItem.trim() || updating || !hasPermission('task:update')}
-                  className="btn-primary px-3 py-1.5 text-sm disabled:opacity-50"
+                  onClick={handleSaveTitle}
+                  className="p-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
                 >
-                  Add
+                  <Check className="w-4 h-4" />
                 </button>
-              </form>
-            </div>
-          )}
-
-          <TaskAttachments
-            task={task}
-            onUpdated={fetchTaskDetails}
-            canDelete={hasPermission('task:update')}
-            canUpload={hasPermission('task:update')}
-          />
-
-          <TaskComments
-            taskId={task._id}
-            members={members}
-            canDelete={hasPermission('task:update')}
-            canPost={hasPermission('task:update')}
-          />
-
-          <TaskTimeTracking taskId={task._id} canEdit={hasPermission('task:update')} />
-
-          {/* Dependencies */}
-          <div className="card">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
-              Dependencies
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-1.5">
-                  Blocked By
-                </div>
-                {blockedBy.length === 0 ? (
-                  <div className="text-xs text-slate-500 italic">None</div>
-                ) : (
-                  <div className="space-y-1.5">
-                    {blockedBy.map((d: any) => (
-                      <div
-                        key={d._id}
-                        className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white/50"
-                      >
-                        <div className="min-w-0">
-                          <div className="text-xs text-slate-600 truncate">
-                            {d.fromTaskId?.title || 'Unknown'}
-                          </div>
-                          <div className="text-[10px] text-slate-500">
-                            {d.fromTaskId?.status} • {d.type}
-                          </div>
-                        </div>
-                        {hasPermission('task:update') && (
-                          <button
-                            onClick={() => handleRemoveDependency(d._id)}
-                            className="text-rose-400 hover:text-rose-300 text-xs shrink-0"
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                <button
+                  onClick={() => {
+                    setTitleValue(task.title);
+                    setEditingTitle(false);
+                  }}
+                  className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <h1
+                onClick={() => canEdit && setEditingTitle(true)}
+                className={`text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2 group ${
+                  canEdit ? 'cursor-pointer hover:text-indigo-600 transition-colors' : ''
+                }`}
+              >
+                <span>{task.title}</span>
+                {canEdit && (
+                  <Edit2 className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 )}
-              </div>
-              <div>
-                <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-1.5">
-                  Blocking
-                </div>
-                {blocking.length === 0 ? (
-                  <div className="text-xs text-slate-500 italic">None</div>
-                ) : (
-                  <div className="space-y-1.5">
-                    {blocking.map((d: any) => (
-                      <div
-                        key={d._id}
-                        className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white/50"
-                      >
-                        <div className="min-w-0">
-                          <div className="text-xs text-slate-600 truncate">
-                            {d.toTaskId?.title || 'Unknown'}
-                          </div>
-                          <div className="text-[10px] text-slate-500">
-                            {d.toTaskId?.status} • {d.type}
-                          </div>
-                        </div>
-                        {hasPermission('task:update') && (
-                          <button
-                            onClick={() => handleRemoveDependency(d._id)}
-                            className="text-rose-400 hover:text-rose-300 text-xs shrink-0"
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {hasPermission('task:update') && (
-              <div className="mt-3 pt-3 border-t border-gray-200/50">
-                <div className="flex gap-2">
-                  <select
-                    className="input-field flex-1 text-sm"
-                    value={prereqToAdd}
-                    onChange={(e) => setPrereqToAdd(e.target.value)}
-                  >
-                    <option value="">Add prerequisite...</option>
-                    {tasksForDeps
-                      .filter((t) => t._id !== task._id)
-                      .slice(0, 200)
-                      .map((t) => (
-                        <option key={t._id} value={t._id}>
-                          {t.title}
-                        </option>
-                      ))}
-                  </select>
-                  <button
-                    className="btn-primary px-3 py-1.5 text-sm disabled:opacity-50"
-                    disabled={!prereqToAdd || addingDep}
-                    onClick={handleAddPrereq}
-                  >
-                    {addingDep ? '...' : 'Add'}
-                  </button>
-                </div>
-              </div>
+              </h1>
             )}
           </div>
         </div>
 
-        {/* Right Column - Sidebar */}
-        <div className="space-y-4">
-          <TaskActivityFeed taskId={task._id} />
+        {/* Quick Ribbon Metadata Badges */}
+        <div className="flex items-center gap-2 flex-wrap pt-1">
+          {/* Status Badge */}
+          <span
+            className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full ${getStatusColor(
+              task.status
+            )}`}
+          >
+            <div className="w-2 h-2 rounded-full bg-current" />
+            {task.status}
+          </span>
 
-          {/* Status Flow */}
-          <div className="card">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
-              Status
+          {/* Priority Pill */}
+          <span
+            className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full ${getPriorityColor(
+              task.priority
+            )}`}
+          >
+            <Flame className="w-3.5 h-3.5" />
+            {task.priority} Priority
+          </span>
+
+          {/* Category */}
+          {task.category && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+              <Layers className="w-3 h-3 text-slate-400" />
+              {task.category}
+            </span>
+          )}
+
+          {/* Due Status */}
+          {isOverdue(task.dueDate) && task.status !== TASK_STATUS.COMPLETED && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full bg-rose-100 text-rose-700 border border-rose-200 animate-pulse">
+              <AlertTriangle className="w-3.5 h-3.5" />
+              Overdue
+            </span>
+          )}
+
+          {daysUntilDue !== null && daysUntilDue > 0 && daysUntilDue <= 3 && task.status !== TASK_STATUS.COMPLETED && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+              <Clock className="w-3.5 h-3.5" />
+              Due {daysUntilDue === 1 ? 'tomorrow' : `in ${daysUntilDue} days`}
+            </span>
+          )}
+
+          {/* Due Date Badge */}
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-600">
+            <Calendar className="w-3 h-3 text-slate-400" />
+            Due: {formatDate(task.dueDate)}
+          </span>
+        </div>
+      </div>
+
+      {/* TAB NAVIGATION BAR */}
+      <NavTabs<ActiveTab>
+        tabs={[
+          { id: 'overview', label: 'Overview & Subtasks', icon: FileText },
+          { id: 'activity', label: 'Activity & Time', icon: Activity },
+          {
+            id: 'attachments',
+            label: 'Attachments',
+            icon: Paperclip,
+            badge: task.attachments?.length || undefined,
+          },
+          { id: 'comments', label: 'Discussion', icon: MessageSquare },
+          {
+            id: 'dependencies',
+            label: 'Dependencies',
+            icon: GitCommit,
+            badge: dependencies.length || undefined,
+          },
+        ]}
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        className="mt-6 mb-6"
+      />
+
+      {/* MAIN TAB CONTENT GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Main Tab Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* TAB 1: OVERVIEW & SUBTASKS */}
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              {/* Description Card */}
+              <div className="card space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Task Description
+                  </h3>
+                  {canEdit && !editingDescription && (
+                    <button
+                      onClick={() => setEditingDescription(true)}
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" /> Edit Description
+                    </button>
+                  )}
+                </div>
+
+                {editingDescription ? (
+                  <div className="space-y-2">
+                    <textarea
+                      value={descValue}
+                      onChange={(e) => setDescValue(e.target.value)}
+                      rows={5}
+                      className="w-full rounded-xl border-2 border-indigo-500 p-3 text-sm text-slate-800 focus:outline-none bg-white shadow-sm resize-none"
+                    />
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => {
+                          setDescValue(task.description);
+                          setEditingDescription(false);
+                        }}
+                        className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSaveDescription}
+                        className="btn-primary px-4 py-1.5 text-xs font-semibold"
+                      >
+                        Save Description
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => canEdit && setEditingDescription(true)}
+                    className={`p-3.5 rounded-xl bg-slate-50/70 border border-slate-100 text-sm text-slate-700 leading-relaxed ${
+                      canEdit ? 'hover:bg-slate-100/70 cursor-pointer transition-colors' : ''
+                    }`}
+                  >
+                    {task.description ? (
+                      <MentionText text={task.description} />
+                    ) : (
+                      <span className="text-slate-400 italic">No description provided. Click to add details.</span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Tags & Categories Manager */}
+              <div className="card space-y-3">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <Tag className="w-4 h-4 text-slate-400" /> Tags & Categorization
+                </h3>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {(task.tags || []).map((t) => (
+                    <span
+                      key={t}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold border border-indigo-200/50 group"
+                    >
+                      #{t}
+                      {canEdit && (
+                        <button
+                          onClick={() => handleRemoveTag(t)}
+                          className="text-indigo-400 hover:text-rose-600 transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </span>
+                  ))}
+                  {task.tags?.length === 0 && (
+                    <span className="text-xs text-slate-400 italic">No tags added yet.</span>
+                  )}
+                </div>
+
+                {canEdit && (
+                  <form onSubmit={handleAddTag} className="flex gap-2 pt-1">
+                    <input
+                      type="text"
+                      placeholder="Add new tag (press Enter)..."
+                      value={newTagInput}
+                      onChange={(e) => setNewTagInput(e.target.value)}
+                      className="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!newTagInput.trim()}
+                      className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold disabled:opacity-50 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Tag
+                    </button>
+                  </form>
+                )}
+              </div>
+
+              {/* Blockers Section */}
+              <div className="card space-y-3">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 text-rose-600">
+                  <ShieldAlert className="w-4 h-4 text-rose-500" /> Reported Blockers
+                </h3>
+
+                <div className="space-y-2">
+                  {(task.blockersText || []).map((b, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-rose-50/70 border border-rose-200/60 text-xs text-rose-800"
+                    >
+                      <span>{b}</span>
+                      {canEdit && (
+                        <button
+                          onClick={() => handleRemoveBlocker(idx)}
+                          className="text-rose-400 hover:text-rose-700 p-1"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {(!task.blockersText || task.blockersText.length === 0) && (
+                    <span className="text-xs text-slate-400 italic block">No blockers reported for this task.</span>
+                  )}
+                </div>
+
+                {canEdit && (
+                  <form onSubmit={handleAddBlocker} className="flex gap-2 pt-1">
+                    <input
+                      type="text"
+                      placeholder="Report a blocker..."
+                      value={newBlockerInput}
+                      onChange={(e) => setNewBlockerInput(e.target.value)}
+                      className="flex-1 rounded-xl border border-rose-200 px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-rose-500"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!newBlockerInput.trim()}
+                      className="px-3 py-1.5 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-semibold disabled:opacity-50 transition-colors"
+                    >
+                      Add Blocker
+                    </button>
+                  </form>
+                )}
+              </div>
+
+              {/* Subtasks or Subtask Checklist Card */}
+              {!task.parentTaskId ? (
+                <TaskSubtasks
+                  parentId={task._id}
+                  isAdmin={canEdit}
+                  detailBasePath="/tasks"
+                  onProgressChange={fetchTaskDetails}
+                  members={members}
+                />
+              ) : (
+                <div className="card space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      Subtask Checklist
+                    </h3>
+                    {task.todoCheckList && task.todoCheckList.length > 0 && (
+                      <span className="text-xs font-bold text-slate-600 tabular-nums">
+                        {task.todoCheckList.filter((t) => t.isCompleted).length}/{task.todoCheckList.length} Completed
+                      </span>
+                    )}
+                  </div>
+
+                  {task.todoCheckList && task.todoCheckList.length > 0 && (
+                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                      <div
+                        className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                        style={{
+                          width: `${Math.round(
+                            (task.todoCheckList.filter((t) => t.isCompleted).length / task.todoCheckList.length) * 100
+                          )}%`,
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-1.5 pt-1">
+                    {task.todoCheckList?.map((todo, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2.5 p-2 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white transition-colors group"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={todo.isCompleted}
+                          onChange={(e) => handleTodoToggle(index, e.target.checked)}
+                          disabled={updating}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded cursor-pointer disabled:opacity-50"
+                        />
+                        <span
+                          className={`flex-1 text-sm ${
+                            todo.isCompleted ? 'line-through text-slate-400' : 'text-slate-700 font-medium'
+                          }`}
+                        >
+                          {todo.text}
+                        </span>
+                        {canEdit && (
+                          <button
+                            onClick={() => handleDeleteChecklistItem(index)}
+                            disabled={updating}
+                            className="opacity-0 group-hover:opacity-100 p-1 text-rose-400 hover:text-rose-600 transition-opacity"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {canEdit && (
+                    <form onSubmit={handleAddChecklistItem} className="flex gap-2 pt-2">
+                      <input
+                        type="text"
+                        value={newChecklistItem}
+                        onChange={(e) => setNewChecklistItem(e.target.value)}
+                        placeholder="Add item to checklist..."
+                        className="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!newChecklistItem.trim() || updating}
+                        className="btn-primary px-4 py-1.5 text-xs font-semibold disabled:opacity-50"
+                      >
+                        Add Item
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )}
             </div>
-            <div className="space-y-1.5">
+          )}
+
+          {/* TAB 2: ACTIVITY & TIME */}
+          {activeTab === 'activity' && (
+            <div className="space-y-6">
+              <TaskTimeTracking taskId={task._id} canEdit={canEdit} />
+              <TaskActivityFeed taskId={task._id} />
+            </div>
+          )}
+
+          {/* TAB 3: ATTACHMENTS */}
+          {activeTab === 'attachments' && (
+            <TaskAttachments
+              task={task}
+              onUpdated={fetchTaskDetails}
+              canDelete={canEdit}
+              canUpload={canEdit}
+            />
+          )}
+
+          {/* TAB 4: COMMENTS */}
+          {activeTab === 'comments' && (
+            <TaskComments
+              taskId={task._id}
+              members={members}
+              canDelete={canEdit}
+              canPost={canEdit}
+            />
+          )}
+
+          {/* TAB 5: DEPENDENCIES */}
+          {activeTab === 'dependencies' && (
+            <TaskDependencies
+              taskId={task._id}
+              dependencies={dependencies}
+              tasksForDeps={tasksForDeps}
+              canEdit={canEdit}
+              onUpdated={() => {
+                fetchTaskDetails();
+                fetchDependencies();
+              }}
+            />
+          )}
+        </div>
+
+        {/* Right Column - Sidebar Widgets & Controls */}
+        <div className="space-y-6">
+          {/* Status Flow Switcher */}
+          <div className="card space-y-3">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Status Progression
+            </h3>
+            <div className="space-y-2">
               {STATUS_FLOW.map((s, idx) => (
                 <button
                   key={s.value}
                   type="button"
                   onClick={() => handleStatusUpdate(s.value)}
-                  disabled={updating || task.status === s.value || !hasPermission('task:update')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all ${
+                  disabled={updating || task.status === s.value || !canEdit}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold border transition-all ${
                     task.status === s.value
-                      ? s.color + ' ring-1 ring-white/10'
-                      : 'border-transparent text-slate-500 hover:bg-gray-200/50 hover:text-slate-700'
+                      ? s.color + ' shadow-sm ring-1 ring-black/5'
+                      : 'border-slate-200/80 text-slate-600 hover:bg-slate-100/60 hover:text-slate-800'
                   } disabled:cursor-not-allowed`}
                 >
                   <div
-                    className={`w-2 h-2 rounded-full ${
+                    className={`w-2.5 h-2.5 rounded-full ${
                       idx < currentStatusIdx
                         ? 'bg-emerald-500'
                         : idx === currentStatusIdx
-                          ? 'bg-primary'
-                          : 'bg-slate-600'
+                        ? 'bg-indigo-600'
+                        : 'bg-slate-300'
                     }`}
                   />
-                  {s.label}
-                  {task.status === s.value && (
-                    <Check className="w-4 h-4 ml-auto text-primary" />
-                  )}
+                  <span>{s.label}</span>
+                  {task.status === s.value && <Check className="w-4 h-4 ml-auto text-indigo-600" />}
                 </button>
               ))}
             </div>
-            {updating && (
-              <div className="flex items-center gap-2 mt-2 text-xs text-slate-500">
-                <LoadingSpinner size="sm" text="" />
-                Updating...
-              </div>
-            )}
           </div>
 
-          {/* Progress */}
-          <div className="card">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
-              Progress
-            </div>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={task.progress || 0}
-                onChange={(e) => handleProgressUpdate(Number(e.target.value))}
-                className="flex-1 h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-primary"
-                disabled={!hasPermission('task:update')}
-              />
-              <span className="text-sm font-bold text-slate-700 tabular-nums w-10 text-right">
+          {/* Progress Slider Widget */}
+          <div className="card space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Overall Progress
+              </h3>
+              <span className="text-sm font-extrabold text-indigo-600 tabular-nums">
                 {task.progress || 0}%
               </span>
             </div>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={task.progress || 0}
+              onChange={(e) => handleUpdateTaskField({ progress: Number(e.target.value) })}
+              disabled={!canEdit}
+              className="w-full h-2 bg-slate-200 rounded-full appearance-none cursor-pointer accent-indigo-600"
+            />
+            <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div
+                className="h-full bg-indigo-600 rounded-full transition-all duration-300"
+                style={{ width: `${task.progress || 0}%` }}
+              />
+            </div>
           </div>
 
-          {/* Assignee */}
-          {task.assignedTo && (
-            <div className="card">
-              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
-                Assignee
-              </div>
-              {typeof task.assignedTo === 'object' ? (
-                <div className="flex items-center gap-3">
-                  {task.assignedTo.profileImageUrl ? (
-                    <img
-                      className="h-10 w-10 rounded-full ring-2 ring-gray-200"
-                      src={task.assignedTo.profileImageUrl}
-                      alt={task.assignedTo.name}
-                    />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center ring-2 ring-gray-200">
-                      <span className="text-slate-500 font-semibold text-sm">
-                        {task.assignedTo.name?.charAt(0).toUpperCase() || '?'}
-                      </span>
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium text-slate-700 truncate">
-                      {task.assignedTo.name || 'Unknown'}
-                    </div>
-                    <div className="text-xs text-slate-500 truncate">{task.assignedTo.email}</div>
+          {/* Assignee Card */}
+          <div className="card space-y-3">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+              <span>Assignee</span>
+              <UserIcon className="w-4 h-4 text-slate-400" />
+            </h3>
+
+            {canEdit ? (
+              <select
+                value={typeof task.assignedTo === 'object' ? task.assignedTo._id : task.assignedTo || ''}
+                onChange={(e) => handleUpdateTaskField({ assignedTo: e.target.value as any })}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+              >
+                {members.map((m) => (
+                  <option key={m._id} value={m._id}>
+                    {m.name} ({m.email})
+                  </option>
+                ))}
+              </select>
+            ) : task.assignedTo && typeof task.assignedTo === 'object' ? (
+              <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                {task.assignedTo.profileImageUrl ? (
+                  <img
+                    className="h-9 w-9 rounded-full ring-2 ring-indigo-200 object-cover"
+                    src={task.assignedTo.profileImageUrl}
+                    alt={task.assignedTo.name}
+                  />
+                ) : (
+                  <div className="h-9 w-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
+                    {task.assignedTo.name?.charAt(0).toUpperCase()}
                   </div>
+                )}
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-slate-800 truncate">{task.assignedTo.name}</div>
+                  <div className="text-[11px] text-slate-500 truncate">{task.assignedTo.email}</div>
                 </div>
-              ) : (
-                <div className="text-sm text-slate-500">User ID: {task.assignedTo}</div>
-              )}
-            </div>
-          )}
+              </div>
+            ) : (
+              <span className="text-xs text-slate-400 italic">Unassigned</span>
+            )}
+          </div>
 
-          {/* Dates */}
-          <div className="card">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
-              Dates
-            </div>
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-500">Due</span>
-                <span
-                  className={`text-xs font-medium ${isOverdue(task.dueDate) && task.status !== TASK_STATUS.COMPLETED ? 'text-rose-400' : 'text-slate-600'}`}
-                >
-                  {formatDate(task.dueDate)}
-                </span>
-              </div>
-              {daysUntilDue !== null && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">Time left</span>
-                  <span
-                    className={`text-xs font-medium ${
-                      isOverdue(task.dueDate)
-                        ? 'text-rose-400'
-                        : daysUntilDue <= 3
-                          ? 'text-amber-400'
-                          : 'text-slate-600'
-                    }`}
-                  >
-                    {isOverdue(task.dueDate)
-                      ? `${Math.abs(daysUntilDue)}d overdue`
-                      : daysUntilDue === 0
-                        ? 'Due today'
-                        : `${daysUntilDue}d`}
-                  </span>
-                </div>
-              )}
-              <div className="border-t border-gray-200/50 pt-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">Created</span>
-                  <span className="text-xs text-slate-500">{getRelativeTime(task.createdAt)}</span>
+          {/* Effort & Impact Card */}
+          <div className="card space-y-3">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Effort & Impact Scores
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="text-[11px] font-semibold text-slate-500">Estimated Effort</div>
+                <div className="text-base font-extrabold text-slate-800 mt-1 flex items-center gap-1">
+                  <Clock className="w-4 h-4 text-indigo-500" />
+                  {task.effortHours || 1} hrs
                 </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-500">Updated</span>
-                <span className="text-xs text-slate-500">{getRelativeTime(task.updatedAt)}</span>
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="text-[11px] font-semibold text-slate-500">Impact Score</div>
+                <div className="text-base font-extrabold text-slate-800 mt-1 flex items-center gap-1">
+                  <Flame className="w-4 h-4 text-amber-500" />
+                  {task.impactScore || 5} / 10
+                </div>
               </div>
             </div>
           </div>
 
+          {/* Dates & Timeline Info */}
+          <div className="card space-y-3">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Timeline Details
+            </h3>
+            <div className="space-y-2.5 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Due Date</span>
+                <span className="font-semibold text-slate-800">{formatDate(task.dueDate)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Created</span>
+                <span className="font-semibold text-slate-600">{getRelativeTime(task.createdAt)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Last Updated</span>
+                <span className="font-semibold text-slate-600">{getRelativeTime(task.updatedAt)}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl border border-slate-100">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="p-3 rounded-full bg-rose-100">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 text-sm">Delete Task?</h4>
+                <p className="text-xs text-slate-500">
+                  This will permanently delete "{task.title}" and its subtasks.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteTask}
+                className="px-4 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700 shadow-sm"
+              >
+                Permanently Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PageShell>
   );
 }
-
-export default ViewTaskDetails;

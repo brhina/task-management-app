@@ -78,6 +78,7 @@ export interface Task {
   impactScore?: number;
   effortHours?: number;
   collaborators?: string[];
+  blockersText?: string[];
   attachments: (string | TaskAttachment)[];
   todoCheckList: TodoItem[];
   progress: number;

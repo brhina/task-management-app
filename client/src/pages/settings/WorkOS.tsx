@@ -6,6 +6,7 @@ import {
   Calendar, ArrowUpRight, Play, ShieldAlert, Sparkles, Check, FileText
 } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
+import NavTabs from '../../components/common/NavTabs';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
@@ -375,32 +376,17 @@ export default function WorkOS() {
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex border-b border-gray-200 space-x-2 bg-white/60 p-1 rounded-xl overflow-x-auto no-scrollbar sm:scroll-auto whitespace-nowrap">
-              {[
+            <NavTabs<'overview' | 'workload' | 'matrix' | 'schedule' | 'automations'>
+              tabs={[
                 { id: 'overview', label: 'Executive Overview', icon: Sparkles },
                 { id: 'workload', label: 'Team Workload & Capacity', icon: Users },
                 { id: 'matrix', label: 'Priorities & Risk Matrix', icon: Zap },
                 { id: 'schedule', label: 'Schedule & Critical Path', icon: Calendar },
                 { id: 'automations', label: 'Automations & Rules', icon: RefreshCw },
-              ].map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-lg transition-all shrink-0 ${
-                      activeTab === tab.id
-                        ? 'bg-primary text-white shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-white'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+              ]}
+              activeTab={activeTab}
+              onChange={setActiveTab}
+            />
 
             {/* TAB CONTENT 1: OVERVIEW */}
             {activeTab === 'overview' && (

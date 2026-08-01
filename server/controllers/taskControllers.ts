@@ -89,8 +89,18 @@ const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
           (todo) => todo.isCompleted === true,
         ).length;
         const totalCount = task.todoCheckList.length;
-        const progress =
-          totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+        let progress = task.progress ?? 0;
+        if (totalCount > 0) {
+          progress = Math.round((completedCount / totalCount) * 100);
+        }
+        if (task.status === "Pending") {
+          if (progress === 100 || (totalCount > 0 && completedCount === totalCount)) {
+            progress = 0;
+          }
+        } else if (task.status === "Completed") {
+          progress = 100;
+        }
+
         return {
           ...task.toObject(),
           completedCount,
@@ -171,7 +181,31 @@ const getTaskById = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
-    res.status(200).json({ message: "Task fetched successfully", data: task });
+    const completedCount = task.todoCheckList.filter(
+      (todo) => todo.isCompleted === true,
+    ).length;
+    const totalCount = task.todoCheckList.length;
+    let progress = task.progress ?? 0;
+    if (totalCount > 0) {
+      progress = Math.round((completedCount / totalCount) * 100);
+    }
+    if (task.status === "Pending") {
+      if (progress === 100 || (totalCount > 0 && completedCount === totalCount)) {
+        progress = 0;
+      }
+    } else if (task.status === "Completed") {
+      progress = 100;
+    }
+
+    res.status(200).json({
+      message: "Task fetched successfully",
+      data: {
+        ...task.toObject(),
+        completedCount,
+        totalCount,
+        progress,
+      },
+    });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -485,6 +519,9 @@ const updateTaskStatus = async (
     if (task.status === "Completed") {
       task.todoCheckList.forEach((todo) => (todo.isCompleted = true));
       task.progress = 100;
+    } else if (task.status === "Pending") {
+      task.todoCheckList.forEach((todo) => (todo.isCompleted = false));
+      task.progress = 0;
     }
 
     const updatedTask = await task.save();

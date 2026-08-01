@@ -360,6 +360,8 @@ function ManageTasks() {
                 >
                   All Projects →
                 </Link>
+              </div>
+            </div>
           </div>
         )}
         {/* Filters Row */}

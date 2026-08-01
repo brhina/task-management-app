@@ -11,6 +11,7 @@ import { UserContext } from '../../context/UserContext';
 import { apiPaths } from '../../utils/apiPaths';
 import axios from '../../utils/axios';
 import PageShell from '../../components/common/PageShell';
+import NavTabs from '../../components/common/NavTabs';
 
 import ReportsHeaderKpis from '../../components/reports/ReportsHeaderKpis';
 import TrendsAnalytics from '../../components/reports/TrendsAnalytics';
@@ -256,26 +257,11 @@ const Reports = () => {
         />
 
         {/* Navigation Tabs Bar */}
-        <div className="flex items-center gap-1.5 overflow-x-auto p-1.5 bg-gray-100/80 rounded-xl border border-gray-200/80">
-          {navTabs.map((tab) => {
-            const IconComp = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
-                  isActive
-                    ? 'bg-white text-primary shadow-sm border border-gray-200/80'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
-                }`}
-              >
-                <IconComp className={`w-4 h-4 ${isActive ? 'text-primary' : 'opacity-70'}`} />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
+        <NavTabs<TabType>
+          tabs={navTabs}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+        />
 
         {/* Tab Content Rendering */}
         {(activeTab === 'all' || activeTab === 'trends') && (
