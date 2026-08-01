@@ -51,6 +51,7 @@ import { startNotificationJobs } from "./jobs/notificationJobs.js";
 import { startReportJobs } from "./jobs/reportJobs.js";
 import { ensureUploadsDir } from "./services/fileStorage.js";
 import { initSocketServer } from "./services/socketService.js";
+import { getAvailablePort } from "./utils/port.js";
 
 // Validate environment variables on startup
 validateEnv();
@@ -161,7 +162,7 @@ if (process.env.NODE_ENV === "production") {
 // Register Global Error Handler
 app.use(errorHandler as any);
 
-const PORT = process.env.PORT || 3001;
+const PORT = Number(process.env.PORT) || 3001;
 
 const startServer = async () => {
   try {
@@ -187,9 +188,11 @@ const startServer = async () => {
     initSocketServer(httpServer);
 
     if (process.env.NODE_ENV !== "test") {
-      httpServer.listen(PORT, () => {
+      const resolvedPort = await getAvailablePort(PORT, [PORT + 1, PORT + 2, PORT + 3]);
+
+      httpServer.listen(resolvedPort, () => {
         console.log(
-          `🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || "development"} mode`,
+          `🚀 Server running on port ${resolvedPort} in ${process.env.NODE_ENV || "development"} mode`,
         );
       });
     }
