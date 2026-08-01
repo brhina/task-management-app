@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent, useCallback, useMemo } from 'react
 import { Link } from 'react-router-dom';
 import PageShell from '../../components/common/PageShell';
 import NavTabs from '../../components/common/NavTabs';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { useSocket, playNotificationChime, type AppNotification } from '../../context/SocketContext';
@@ -228,12 +229,20 @@ export default function NotificationSettings() {
     }
   };
 
-  const handleClearRead = async () => {
+  const [confirmClearModal, setConfirmClearModal] = useState(false);
+
+  const handleClearRead = () => {
+    setConfirmClearModal(true);
+  };
+
+  const confirmClearReadNotifications = async () => {
     try {
       await clearNotifications(true);
       fetchList();
     } catch (err) {
       console.error('Failed to clear read notifications:', err);
+    } finally {
+      setConfirmClearModal(false);
     }
   };
 
@@ -702,6 +711,14 @@ export default function NotificationSettings() {
           </form>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={confirmClearModal}
+        onClose={() => setConfirmClearModal(false)}
+        onConfirm={confirmClearReadNotifications}
+        title="Clear Read Notifications"
+        message="Are you sure you want to remove all read notifications from your inbox?"
+      />
     </PageShell>
   );
 }

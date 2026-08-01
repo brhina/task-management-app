@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, useContext, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, Target, GanttChart, Folder } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
 import Modal from '../../components/common/Modal';
 import api from '../../utils/axios';
@@ -104,36 +104,40 @@ export default function ProjectSprints() {
       title="Sprints & Milestones"
       subtitle="Plan iterations and track milestones"
       actions={
-        <>
+        <div className="flex flex-col gap-1 p-1">
           <button
             type="button"
-            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-primary hover:bg-primary/10 flex items-center gap-2 rounded-lg transition-colors disabled:opacity-50"
             onClick={() => setShowCreateSprint(true)}
             disabled={!hasPermission('project:update')}
           >
+            <Plus className="w-4 h-4 text-primary" />
             New Sprint
           </button>
           <button
             type="button"
-            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors disabled:opacity-50"
             onClick={() => setShowCreateMilestone(true)}
             disabled={!hasPermission('project:update')}
           >
+            <Target className="w-4 h-4 text-slate-500" />
             New Milestone
           </button>
           <Link
             to={`/projects/${id}/gantt`}
-            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
           >
-            Gantt
+            <GanttChart className="w-4 h-4 text-slate-500" />
+            Gantt Chart
           </Link>
           <Link
             to="/projects"
-            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
           >
-            Back to Projects
+            <Folder className="w-4 h-4 text-slate-500" />
+            All Projects
           </Link>
-        </>
+        </div>
       }
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

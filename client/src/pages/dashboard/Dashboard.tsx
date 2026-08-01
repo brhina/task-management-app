@@ -183,37 +183,23 @@ function Dashboard() {
           : 'Track your assigned work, upcoming deadlines, and task execution.'
       }
       actions={
-        <>
+        <div className="flex flex-col gap-1 p-1">
           <button
             type="button"
             onClick={() => setShowCreateTask(true)}
-            className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-primary hover:bg-primary/10 flex items-center gap-2 rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4 text-primary" />
             Create Task
           </button>
           <Link
-            to="/tasks"
-            className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
-          >
-            <Kanban className="w-4 h-4 text-slate-500" />
-            Kanban Board
-          </Link>
-          <Link
             to="/reports"
-            className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
           >
             <BarChart3 className="w-4 h-4 text-slate-500" />
             Reports & Analytics
           </Link>
-          <Link
-            to="/settings/workos"
-            className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
-          >
-            <Briefcase className="w-4 h-4 text-slate-500" />
-            WorkOS Control Center
-          </Link>
-        </>
+        </div>
       }
     >
       <div className="space-y-6">

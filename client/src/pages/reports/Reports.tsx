@@ -6,6 +6,8 @@ import {
   FileSpreadsheet,
   Layers,
   Info,
+  RefreshCw,
+  Download,
 } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { apiPaths } from '../../utils/apiPaths';
@@ -220,6 +222,26 @@ const Reports = () => {
     <PageShell
       title="Reports & Analytics"
       subtitle="Interactive trends, sprint velocity charts, workload heatmaps, and Excel export reports."
+      actions={
+        <div className="flex flex-col gap-1 p-1">
+          <button
+            type="button"
+            onClick={fetchAll}
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 text-slate-500 ${summaryLoading ? 'animate-spin' : ''}`} />
+            Refresh Analytics
+          </button>
+          <button
+            type="button"
+            onClick={() => downloadReport('tasks')}
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
+          >
+            <Download className="w-4 h-4 text-slate-500" />
+            Export Tasks (Excel)
+          </button>
+        </div>
+      }
     >
       <div className="space-y-6">
         {/* Status Alerts */}

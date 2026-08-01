@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState, useMemo } from 'react';
-import { Plus, Search, Grid, Layers, Users, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Plus, Search, Grid, Layers, Users, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import PageShell from '../../components/common/PageShell';
 import NavTabs from '../../components/common/NavTabs';
@@ -56,6 +56,23 @@ const RolesPermissions = () => {
     customRoleId?: string;
   } | null>(null);
 
+  // Confirm / Alert Modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    variant?: 'danger' | 'warning' | 'info' | 'success';
+    type?: 'confirm' | 'alert';
+    onConfirm?: () => void | Promise<void>;
+    loading?: boolean;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    variant: 'danger',
+    type: 'confirm',
+  });
+
   const canManage = hasPermission('role:manage');
 
   const fetchData = async () => {
@@ -87,12 +104,6 @@ const RolesPermissions = () => {
     }
   }, [canManage, user?.activeOrgId]);
 
-  if (!canManage) {
-    return (
-      <PageShell title="Access Denied" subtitle="You need role:manage permission to access this page." />
-    );
-  }
-
   // Helper mapping members to roles
   const membersByRole = useMemo(() => {
     const map: Record<string, OrgMemberData[]> = {};
@@ -113,6 +124,12 @@ const RolesPermissions = () => {
     });
     return map;
   }, [members]);
+
+  if (!canManage) {
+    return (
+      <PageShell title="Access Denied" subtitle="You need role:manage permission to access this page." />
+    );
+  }
 
   // Create Custom Role Handler
   const handleCreateRole = async () => {
@@ -168,21 +185,7 @@ const RolesPermissions = () => {
     }
   };
 
-  const [confirmModal, setConfirmModal] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    variant?: 'danger' | 'warning' | 'info' | 'success';
-    type?: 'confirm' | 'alert';
-    onConfirm?: () => void | Promise<void>;
-    loading?: boolean;
-  }>({
-    isOpen: false,
-    title: '',
-    message: '',
-    variant: 'danger',
-    type: 'confirm',
-  });
+
 
   // Delete Custom Role Handler
   const handleDeleteRole = (role: CustomRole) => {
@@ -226,16 +229,27 @@ const RolesPermissions = () => {
       title="Roles & Permissions Management"
       subtitle="Configure system and custom security roles, assign fine-grained permissions, and manage member authorization"
       actions={
-        <button
-          onClick={() => {
-            setRoleForm({ name: '', description: '', permissions: [] });
-            setShowCreateModal(true);
-          }}
-          className="btn-primary text-sm font-semibold flex items-center gap-1.5 px-4 py-2 rounded-lg"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Create Custom Role</span>
-        </button>
+        <div className="flex flex-col gap-1 p-1">
+          <button
+            type="button"
+            onClick={fetchData}
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 text-slate-500 ${loading ? 'animate-spin' : ''}`} />
+            Refresh Roles
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setRoleForm({ name: '', description: '', permissions: [] });
+              setShowCreateModal(true);
+            }}
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-primary hover:bg-primary/10 flex items-center gap-2 rounded-lg transition-colors"
+          >
+            <Plus className="w-4 h-4 text-primary" />
+            Create Custom Role
+          </button>
+        </div>
       }
     >
       <div className="space-y-6">

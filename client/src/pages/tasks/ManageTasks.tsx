@@ -9,7 +9,7 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from '@dnd-kit/core';
-import { LayoutGrid, List, Users, ClipboardList, GanttChart, Timer, RefreshCw, Plus } from 'lucide-react';
+import { LayoutGrid, List, Users, ClipboardList, GanttChart, Timer, RefreshCw, Plus, Pencil } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../utils/axios';
@@ -22,6 +22,7 @@ import TaskBoard from '../../components/tasks/TaskBoard';
 import TaskCard from '../../components/tasks/TaskCard';
 import UserDropZone from '../../components/tasks/UserDropZone';
 import CreateTask from './CreateTask';
+import { EditProjectModal } from '../projects/EditProject';
 import { getStatusColor, getPriorityColor } from '../../constants/taskStatus';
 import { isOverdue, getDaysUntilDue } from '../../utils/dateUtils';
 import type { Task, User, TaskStatus, Project } from '../../types';
@@ -89,6 +90,7 @@ function ManageTasks() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'status' | 'assignee'>('dueDate');
   const [showCreateTask, setShowCreateTask] = useState(false);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [statusSummary, setStatusSummary] = useState<StatusSummary>({
     all: 0,
     pending: 0,
@@ -322,21 +324,54 @@ function ManageTasks() {
         isProjectScoped ? 'Tasks for this project' : 'View and manage all tasks in the system'
       }
       actions={
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-1 p-1">
           <button
             type="button"
-            onClick={fetchTasks}
-            className="p-2 text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-xl shadow-sm hover:bg-slate-50 transition-colors"
-            title="Refresh Tasks"
+            onClick={() => {
+              fetchTasks();
+              fetchProjects();
+            }}
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 text-slate-500 ${loading ? 'animate-spin' : ''}`} />
+            Refresh Tasks
           </button>
+
+          {isProjectScoped && scopedProject && (
+            <>
+              <button
+                type="button"
+                onClick={() => setEditingProjectId(scopedProject._id)}
+                className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
+              >
+                <Pencil className="w-4 h-4 text-slate-500" />
+                Edit Project
+              </button>
+
+              <Link
+                to={`/projects/${scopedProject._id}/gantt`}
+                className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
+              >
+                <GanttChart className="w-4 h-4 text-primary" />
+                Gantt Timeline
+              </Link>
+
+              <Link
+                to={`/projects/${scopedProject._id}/sprints`}
+                className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
+              >
+                <Timer className="w-4 h-4 text-purple-600" />
+                Agile Sprints
+              </Link>
+            </>
+          )}
+
           <button
             type="button"
             onClick={() => setShowCreateTask(true)}
-            className="btn btn-primary text-xs px-3.5 py-2 font-bold flex items-center gap-1.5 shadow-sm"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-primary hover:bg-primary/10 flex items-center gap-2 rounded-lg transition-colors"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-primary" />
             Create Task
           </button>
         </div>
@@ -625,6 +660,15 @@ function ManageTasks() {
         title="Delete Task"
         message="Are you sure you want to delete this task? This action cannot be undone."
         loading={deleteConfirmModal.loading}
+      />
+      <EditProjectModal
+        isOpen={!!editingProjectId}
+        projectId={editingProjectId}
+        onClose={() => setEditingProjectId(null)}
+        onUpdated={() => {
+          fetchProjects();
+          fetchTasks();
+        }}
       />
     </PageShell>
   );

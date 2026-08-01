@@ -4,6 +4,7 @@ import { apiPaths, BASE_URL } from '../../utils/apiPaths';
 import type { TaskComment, User } from '../../types';
 import { MessageSquare, Send, Trash2 } from 'lucide-react';
 import MentionText from '../common/MentionText';
+import ConfirmModal from '../common/ConfirmModal';
 
 interface Props {
   taskId: string;
@@ -69,17 +70,35 @@ export default function TaskComments({ taskId, members, canDelete = false, canPo
     }
   };
 
-  const handleDelete = async (commentId: string) => {
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    commentId: string;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    commentId: '',
+    loading: false,
+  });
+
+  const handleDelete = (commentId: string) => {
+    setDeleteModal({ isOpen: true, commentId, loading: false });
+  };
+
+  const confirmDeleteComment = async () => {
+    if (!deleteModal.commentId) return;
+    setDeleteModal((prev) => ({ ...prev, loading: true }));
     try {
       await api.delete(
         apiPaths.TASKS.DELETE_COMMENT.replace(':id', taskId).replace(
           ':commentId',
-          commentId,
+          deleteModal.commentId,
         ),
       );
       await fetchComments();
     } catch (err) {
       console.error(err);
+    } finally {
+      setDeleteModal({ isOpen: false, commentId: '', loading: false });
     }
   };
 
@@ -167,6 +186,15 @@ export default function TaskComments({ taskId, members, canDelete = false, canPo
       )}
       {/* keep BASE_URL referenced for attachment URLs elsewhere */}
       <span className="hidden">{BASE_URL}</span>
+
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, commentId: '', loading: false })}
+        onConfirm={confirmDeleteComment}
+        title="Delete Comment"
+        message="Are you sure you want to delete this comment?"
+        loading={deleteModal.loading}
+      />
     </div>
   );
 }

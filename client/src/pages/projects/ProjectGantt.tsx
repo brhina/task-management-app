@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useContext } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { ClipboardList, Timer, Folder } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
@@ -141,20 +142,29 @@ export default function ProjectGantt() {
       title={`Gantt — ${projectName}`}
       subtitle="Drag bar ends to adjust start/due dates"
       actions={
-        <>
+        <div className="flex flex-col gap-1 p-1">
+          <Link
+            to={`/tasks?projectId=${id}`}
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
+          >
+            <ClipboardList className="w-4 h-4 text-slate-500" />
+            Project Tasks
+          </Link>
           <Link
             to={`/projects/${id}/sprints`}
-            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
           >
-            Sprints
+            <Timer className="w-4 h-4 text-purple-600" />
+            Agile Sprints
           </Link>
           <Link
             to="/projects"
-            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
           >
-            Back to Projects
+            <Folder className="w-4 h-4 text-slate-500" />
+            All Projects
           </Link>
-        </>
+        </div>
       }
     >
       <div className="card overflow-x-auto">

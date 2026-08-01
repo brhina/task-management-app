@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, useContext } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import {
   DndContext,
   DragOverlay,
@@ -90,12 +91,15 @@ export default function SprintBoard() {
       }
       actions={
         sprint ? (
-          <Link
-            to={`/projects/${sprint.projectId}/sprints`}
-            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
-          >
-            Back to Sprints
-          </Link>
+          <div className="flex flex-col gap-1 p-1">
+            <Link
+              to={`/projects/${sprint.projectId}/sprints`}
+              className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 text-slate-500" />
+              Back to Sprints
+            </Link>
+          </div>
         ) : null
       }
     >

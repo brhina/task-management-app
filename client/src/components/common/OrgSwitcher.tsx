@@ -280,7 +280,7 @@ function OrgSwitcher() {
         </>
       )}
 
-      {showLeaveConfirm && (
+      {showLeaveConfirm && createPortal(
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <div
@@ -324,7 +324,8 @@ function OrgSwitcher() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {createModal.isOpen && createPortal(

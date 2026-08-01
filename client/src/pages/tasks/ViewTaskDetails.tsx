@@ -7,6 +7,7 @@ import { getStatusColor, getPriorityColor, TASK_STATUS } from '../../constants/t
 import { formatDate, getRelativeTime, isOverdue, getDaysUntilDue } from '../../utils/dateUtils';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageShell from '../../components/common/PageShell';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import NavTabs, { type TabItem } from '../../components/common/NavTabs';
 import TaskComments from '../../components/tasks/TaskComments';
 import TaskActivityFeed from '../../components/tasks/TaskActivityFeed';
@@ -411,13 +412,13 @@ export default function ViewTaskDetails() {
       title=""
       subtitle=""
       actions={
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-col gap-1 p-1">
           <button
             type="button"
             onClick={handleCopyLink}
-            className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm transition-colors"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
           >
-            <Copy className="w-3.5 h-3.5 text-slate-500" /> Share Link
+            <Copy className="w-4 h-4 text-slate-500" /> Share Task Link
           </button>
 
           {canEdit && (
@@ -426,16 +427,16 @@ export default function ViewTaskDetails() {
                 type="button"
                 onClick={handleSaveAsTemplate}
                 disabled={savingTemplate}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm transition-colors disabled:opacity-50"
+                className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors disabled:opacity-50"
               >
-                <Bookmark className="w-3.5 h-3.5 text-slate-500" /> Save Template
+                <Bookmark className="w-4 h-4 text-slate-500" /> Save as Template
               </button>
 
               <Link
                 to={`/tasks/${id}/edit`}
-                className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm transition-colors"
+                className="w-full text-left px-3.5 py-2 text-xs font-semibold text-primary hover:bg-primary/10 flex items-center gap-2 rounded-lg transition-colors"
               >
-                <Edit2 className="w-3.5 h-3.5" /> Full Edit
+                <Edit2 className="w-4 h-4 text-primary" /> Edit Task
               </Link>
             </>
           )}
@@ -444,18 +445,11 @@ export default function ViewTaskDetails() {
             <button
               type="button"
               onClick={() => setShowDeleteModal(true)}
-              className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
+              className="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 rounded-lg transition-colors"
             >
-              <Trash2 className="w-3.5 h-3.5" /> Delete
+              <Trash2 className="w-4 h-4 text-rose-500" /> Delete Task
             </button>
           )}
-
-          <Link
-            to="/tasks"
-            className="px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold transition-colors"
-          >
-            Back
-          </Link>
         </div>
       }
     >
@@ -1090,39 +1084,14 @@ export default function ViewTaskDetails() {
       </div>
 
       {/* DELETE CONFIRMATION MODAL */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl border border-slate-100">
-            <div className="flex items-center gap-3 text-rose-600">
-              <div className="p-3 rounded-full bg-rose-100">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900 text-sm">Delete Task?</h4>
-                <p className="text-xs text-slate-500">
-                  This will permanently delete "{task.title}" and its subtasks.
-                </p>
-              </div>
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowDeleteModal(false)}
-                className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteTask}
-                className="px-4 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700 shadow-sm"
-              >
-                Permanently Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteTask}
+        title="Delete Task"
+        message={`Are you sure you want to permanently delete "${task.title}" and its subtasks? This action cannot be undone.`}
+        confirmText="Permanently Delete"
+      />
     </PageShell>
   );
 }

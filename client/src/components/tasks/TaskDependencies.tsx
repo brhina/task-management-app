@@ -5,6 +5,7 @@ import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import type { Task } from '../../types';
 import { getStatusColor } from '../../constants/taskStatus';
+import ConfirmModal from '../common/ConfirmModal';
 
 interface Props {
   taskId: string;
@@ -51,13 +52,31 @@ export default function TaskDependencies({
     }
   };
 
-  const handleRemoveDependency = async (depId: string) => {
+  const [deleteDepModal, setDeleteDepModal] = useState<{
+    isOpen: boolean;
+    depId: string;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    depId: '',
+    loading: false,
+  });
+
+  const handleRemoveDependency = (depId: string) => {
+    setDeleteDepModal({ isOpen: true, depId, loading: false });
+  };
+
+  const confirmRemoveDependency = async () => {
+    if (!deleteDepModal.depId) return;
+    setDeleteDepModal((prev) => ({ ...prev, loading: true }));
     try {
       setError('');
-      await api.delete(apiPaths.DEPENDENCIES.DELETE.replace(':id', depId));
+      await api.delete(apiPaths.DEPENDENCIES.DELETE.replace(':id', deleteDepModal.depId));
       onUpdated();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to remove dependency');
+    } finally {
+      setDeleteDepModal({ isOpen: false, depId: '', loading: false });
     }
   };
 
@@ -228,6 +247,16 @@ export default function TaskDependencies({
           </div>
         </div>
       )}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={deleteDepModal.isOpen}
+        onClose={() => setDeleteDepModal({ isOpen: false, depId: '', loading: false })}
+        onConfirm={confirmRemoveDependency}
+        title="Remove Dependency"
+        message="Are you sure you want to remove this task dependency link?"
+        loading={deleteDepModal.loading}
+      />
     </div>
   );
 }

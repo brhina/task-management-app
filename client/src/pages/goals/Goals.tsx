@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Folder,
   Layers,
+  RefreshCw,
 } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
 import FilterToolbar from '../../components/common/FilterToolbar';
@@ -147,14 +148,22 @@ function Goals() {
       title="Goals & OKRs"
       subtitle="Strategic objectives, key results, and outcome alignment map"
       actions={
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-1 p-1">
+          <button
+            type="button"
+            onClick={fetchGoals}
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 text-slate-500 ${loading ? 'animate-spin' : ''}`} />
+            Refresh Goals
+          </button>
           {hasPermission('goal:manage') && (
             <button
               type="button"
               onClick={() => setShowCreateGoal(true)}
-              className="btn-primary text-sm flex items-center gap-1.5 px-3 py-1.5"
+              className="w-full text-left px-3.5 py-2 text-xs font-semibold text-primary hover:bg-primary/10 flex items-center gap-2 rounded-lg transition-colors"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 text-primary" />
               Create Goal
             </button>
           )}

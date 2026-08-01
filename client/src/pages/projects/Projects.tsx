@@ -11,6 +11,7 @@ import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
 import CreateProject from './CreateProject';
+import { EditProjectModal } from './EditProject';
 import type { Project, ProjectStatus } from '../../types';
 
 const STATUS_OPTIONS: ProjectStatus[] = ['Planned', 'Active', 'Paused', 'Completed', 'Archived'];
@@ -23,7 +24,12 @@ const STATUS_COLORS: Record<string, string> = {
   Archived: 'bg-slate-100 text-slate-500 border-slate-200',
 };
 
-function Projects() {
+interface ProjectsProps {
+  initialEditingProjectId?: string | null;
+  onModalClose?: () => void;
+}
+
+function Projects({ initialEditingProjectId, onModalClose }: ProjectsProps = {}) {
   const { user, canAccessAdminSuite } = useContext(UserContext);
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -32,6 +38,7 @@ function Projects() {
   const [statusFilter, setStatusFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateProject, setShowCreateProject] = useState(false);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(initialEditingProjectId || null);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
   const fetchProjects = async () => {
@@ -96,21 +103,21 @@ function Projects() {
       title="Projects & Outcomes"
       subtitle="Organize work into clear strategic outcomes, milestones, and timeline deliverables"
       actions={
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-1 p-1">
           <button
             type="button"
             onClick={fetchProjects}
-            className="p-2 text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-xl shadow-sm hover:bg-slate-50 transition-colors"
-            title="Refresh Projects"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 text-slate-500 ${loading ? 'animate-spin' : ''}`} />
+            Refresh Projects
           </button>
           <button
             type="button"
             onClick={() => setShowCreateProject(true)}
-            className="btn btn-primary text-xs px-3.5 py-2 font-bold flex items-center gap-1.5 shadow-sm"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-primary hover:bg-primary/10 flex items-center gap-2 rounded-lg transition-colors"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-primary" />
             New Project
           </button>
         </div>
@@ -175,7 +182,7 @@ function Projects() {
         </div>
 
         {/* Toolbar & View Mode Switcher */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-2 rounded-xl border border-gray-200">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between rounded-xl">
           <div className="flex-1">
             <FilterToolbar
               searchValue={searchTerm}
@@ -282,7 +289,7 @@ function Projects() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => navigate(`/projects/${p._id}/edit`)}
+                          onClick={() => setEditingProjectId(p._id)}
                           className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
                           title="Edit Project"
                         >
@@ -430,7 +437,7 @@ function Projects() {
                   <RowActions items={[
                     { label: 'Gantt Chart', onClick: () => navigate(`/projects/${p._id}/gantt`) },
                     { label: 'Sprints & Milestones', onClick: () => navigate(`/projects/${p._id}/sprints`) },
-                    { label: 'Edit Project', onClick: () => navigate(`/projects/${p._id}/edit`) },
+                    { label: 'Edit Project', onClick: () => setEditingProjectId(p._id) },
                   ]} />
                 ),
               },
@@ -452,6 +459,15 @@ function Projects() {
         isOpen={showCreateProject}
         onClose={() => setShowCreateProject(false)}
         onCreated={fetchProjects}
+      />
+      <EditProjectModal
+        isOpen={!!editingProjectId}
+        projectId={editingProjectId}
+        onClose={() => {
+          setEditingProjectId(null);
+          onModalClose?.();
+        }}
+        onUpdated={fetchProjects}
       />
     </PageShell>
   );

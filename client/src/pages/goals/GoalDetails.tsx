@@ -1,7 +1,8 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Folder, ChevronRight, ClipboardList, Target, User as UserIcon, Plus, CheckCircle2 } from 'lucide-react';
+import { Folder, ChevronRight, ClipboardList, Target, User as UserIcon, Plus, CheckCircle2, Pencil, ArrowLeft } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
@@ -91,13 +92,28 @@ function GoalDetails() {
     }
   };
 
-  const deleteKeyResult = async (krId: string) => {
+  const [deleteKrModal, setDeleteKrModal] = useState<{
+    isOpen: boolean;
+    krId: string;
+  }>({
+    isOpen: false,
+    krId: '',
+  });
+
+  const deleteKeyResult = (krId: string) => {
+    setDeleteKrModal({ isOpen: true, krId });
+  };
+
+  const confirmDeleteKeyResult = async () => {
+    if (!deleteKrModal.krId) return;
     try {
-      await api.delete(apiPaths.KEY_RESULTS.DELETE.replace(':id', krId));
-      setKeyResults((prev) => prev.filter((k) => k._id !== krId));
+      await api.delete(apiPaths.KEY_RESULTS.DELETE.replace(':id', deleteKrModal.krId));
+      setKeyResults((prev) => prev.filter((k) => k._id !== deleteKrModal.krId));
       fetchDetails();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to delete Key Result');
+    } finally {
+      setDeleteKrModal({ isOpen: false, krId: '' });
     }
   };
 
@@ -164,20 +180,22 @@ function GoalDetails() {
         </div>
       }
       actions={
-        <>
+        <div className="flex flex-col gap-1 p-1">
           <Link
             to={`/goals/${id}/edit`}
-            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
           >
+            <Pencil className="w-4 h-4 text-slate-500" />
             Edit Goal
           </Link>
           <Link
             to="/goals"
-            className="block px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
           >
+            <ArrowLeft className="w-4 h-4 text-slate-500" />
             Back to Goals
           </Link>
-        </>
+        </div>
       }
     >
       {error && <div className="alert-error mb-4">{error}</div>}
@@ -505,6 +523,14 @@ function GoalDetails() {
         onClose={() => setSelectedKRForCheckIn(null)}
         keyResult={selectedKRForCheckIn}
         onUpdated={fetchDetails}
+      />
+
+      <ConfirmModal
+        isOpen={deleteKrModal.isOpen}
+        onClose={() => setDeleteKrModal({ isOpen: false, krId: '' })}
+        onConfirm={confirmDeleteKeyResult}
+        title="Delete Key Result"
+        message="Are you sure you want to delete this Key Result? This action cannot be undone."
       />
     </PageShell>
   );

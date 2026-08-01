@@ -33,18 +33,22 @@ function PageShell({ title, subtitle, actions, topSlot, children }: PageShellPro
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <Breadcrumbs />
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             {actions && (
               <div className="relative flex-shrink-0" ref={menuRef}>
                 <button
                   type="button"
                   onClick={() => setMenuOpen(!menuOpen)}
-                  className="p-2 rounded-lg hover:bg-gray-100 text-slate-500 hover:text-slate-700 transition-colors"
+                  className="p-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-slate-600 hover:text-slate-900 shadow-sm transition-colors flex items-center justify-center"
+                  title="Actions menu"
                 >
                   {menuOpen ? <X className="w-5 h-5" /> : <MoreVertical className="w-5 h-5" />}
                 </button>
                 {menuOpen && (
-                  <div className="absolute right-0 top-full mt-1 z-50 min-w-[180px] bg-white border border-gray-200 rounded-xl shadow-lg py-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div
+                    onClick={() => setMenuOpen(false)}
+                    className="absolute right-0 top-full mt-1.5 z-50 min-w-[200px] bg-white border border-gray-200 rounded-xl shadow-lg py-1 animate-in fade-in slide-in-from-top-2 duration-150"
+                  >
                     {actions}
                   </div>
                 )}

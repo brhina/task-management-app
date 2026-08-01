@@ -158,135 +158,42 @@ export default function WorkOS() {
       title="WorkOS Control Center"
       subtitle="Executive intelligence dashboard for priorities, risk mitigation, workload safety, and critical path analysis"
       actions={
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Scope Selector */}
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
-            <button
-              type="button"
-              onClick={() => {
-                setScopeType('org');
-                setSelectedScopeId('');
-              }}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                scopeType === 'org'
-                  ? 'bg-white text-slate-800 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              Organization
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setScopeType('project');
-                if (scopes.projects[0]) setSelectedScopeId(scopes.projects[0]._id);
-              }}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                scopeType === 'project'
-                  ? 'bg-white text-slate-800 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              Project
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setScopeType('user');
-                if (scopes.members[0]) setSelectedScopeId(scopes.members[0].userId);
-              }}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                scopeType === 'user'
-                  ? 'bg-white text-slate-800 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              Member
-            </button>
-          </div>
-
-          {/* Sub-scope dropdown */}
-          {scopeType === 'project' && scopes.projects.length > 0 && (
-            <select
-              value={selectedScopeId}
-              onChange={(e) => setSelectedScopeId(e.target.value)}
-              className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-            >
-              {scopes.projects.map((p) => (
-                <option key={p._id} value={p._id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          )}
-
-          {scopeType === 'user' && scopes.members.length > 0 && (
-            <select
-              value={selectedScopeId}
-              onChange={(e) => setSelectedScopeId(e.target.value)}
-              className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-            >
-              {scopes.members.map((m) => (
-                <option key={m.userId} value={m.userId}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
-          )}
-
-          {/* Action Buttons */}
+        <div className="flex flex-col gap-1 p-1 min-w-[180px]">
           <button
             type="button"
             onClick={fetchData}
-            className="p-2 text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-xl shadow-sm hover:bg-slate-50 transition-colors"
-            title="Refresh Data"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 text-slate-500 ${loading ? 'animate-spin' : ''}`} />
+            Refresh Data
           </button>
-
           {isAdmin && (
             <button
               type="button"
               onClick={handleRunDaily}
               disabled={runningDaily || !hasPermission('automation:manage')}
-              className="btn btn-outline text-xs px-3 py-2 flex items-center gap-1.5 font-semibold"
+              className="w-full text-left px-3.5 py-2 text-xs font-semibold text-primary hover:bg-primary/10 flex items-center gap-2 rounded-lg transition-colors disabled:opacity-50"
             >
-              <Play className="w-3.5 h-3.5 text-primary" />
-              {runningDaily ? 'Running…' : 'Run Daily Sync'}
+              <Play className="w-4 h-4 text-primary" />
+              {runningDaily ? 'Running Sync…' : 'Run Daily Sync'}
             </button>
           )}
-
-          <div className="dropdown dropdown-end">
-            <button
-              type="button"
-              className="btn btn-primary text-xs px-3 py-2 flex items-center gap-1.5 font-bold shadow-md"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Export
-            </button>
-            <ul className="dropdown-content z-20 menu p-1.5 shadow-xl bg-white rounded-xl border border-slate-200 w-44 mt-1 text-xs">
-              <li>
-                <button
-                  type="button"
-                  onClick={() => downloadJson('workos-executive-summary.json', data)}
-                  className="flex items-center gap-2 text-slate-700 py-2"
-                >
-                  <FileText className="w-3.5 h-3.5 text-primary" />
-                  JSON Summary
-                </button>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  onClick={() => downloadCsv('workos-tasks-matrix.csv', data?.tasks || [])}
-                  className="flex items-center gap-2 text-slate-700 py-2"
-                >
-                  <Download className="w-3.5 h-3.5 text-emerald-500" />
-                  CSV Tasks Matrix
-                </button>
-              </li>
-            </ul>
-          </div>
+          <button
+            type="button"
+            onClick={() => downloadJson('workos-executive-summary.json', data)}
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
+          >
+            <FileText className="w-4 h-4 text-slate-500" />
+            Export JSON
+          </button>
+          <button
+            type="button"
+            onClick={() => downloadCsv('workos-tasks-matrix.csv', data?.tasks || [])}
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
+          >
+            <Download className="w-4 h-4 text-slate-500" />
+            Export CSV
+          </button>
         </div>
       }
     >

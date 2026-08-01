@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import PageShell from '../../components/common/PageShell';
 import AdvancedTable, { RowActions, type Column } from '../../components/common/AdvancedTable';
 import Modal from '../../components/common/Modal';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
@@ -21,6 +22,7 @@ import {
   Edit2,
   CheckSquare,
   X,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function TaskTemplates() {
@@ -142,12 +144,30 @@ export default function TaskTemplates() {
     }
   };
 
-  const removeTemplate = async (id: string) => {
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    templateId: string;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    templateId: '',
+    loading: false,
+  });
+
+  const removeTemplate = (id: string) => {
+    setDeleteModal({ isOpen: true, templateId: id, loading: false });
+  };
+
+  const confirmRemoveTemplate = async () => {
+    if (!deleteModal.templateId) return;
+    setDeleteModal((prev) => ({ ...prev, loading: true }));
     try {
-      await api.delete(apiPaths.TASK_TEMPLATES.DELETE.replace(':id', id));
+      await api.delete(apiPaths.TASK_TEMPLATES.DELETE.replace(':id', deleteModal.templateId));
       await loadTemplates();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to delete template');
+    } finally {
+      setDeleteModal({ isOpen: false, templateId: '', loading: false });
     }
   };
 
@@ -168,14 +188,22 @@ export default function TaskTemplates() {
       title="Task Templates"
       subtitle="Standardized blueprints to accelerate workflow execution"
       actions={
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-1 p-1">
+          <button
+            type="button"
+            onClick={loadTemplates}
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 text-slate-500 ${loading ? 'animate-spin' : ''}`} />
+            Refresh Templates
+          </button>
           {hasPermission('template:manage') && (
             <button
               type="button"
               onClick={openCreateModal}
-              className="btn-primary text-sm flex items-center gap-1.5 px-3 py-1.5"
+              className="w-full text-left px-3.5 py-2 text-xs font-semibold text-primary hover:bg-primary/10 flex items-center gap-2 rounded-lg transition-colors"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 text-primary" />
               Create Template
             </button>
           )}
@@ -543,6 +571,15 @@ export default function TaskTemplates() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, templateId: '', loading: false })}
+        onConfirm={confirmRemoveTemplate}
+        title="Delete Task Template"
+        message="Are you sure you want to delete this template? This action cannot be undone."
+        loading={deleteModal.loading}
+      />
     </PageShell>
   );
 }

@@ -3,6 +3,7 @@ import api from '../../utils/axios';
 import { apiPaths, BASE_URL } from '../../utils/apiPaths';
 import type { Task, TaskAttachment } from '../../types';
 import { Paperclip, Trash2, Eye, X } from 'lucide-react';
+import ConfirmModal from '../common/ConfirmModal';
 
 interface Props {
   task: Task;
@@ -60,17 +61,35 @@ export default function TaskAttachments({ task, onUpdated, canDelete = false, ca
     }
   };
 
-  const handleDelete = async (attachmentId: string) => {
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    attachmentId: string;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    attachmentId: '',
+    loading: false,
+  });
+
+  const handleDelete = (attachmentId: string) => {
+    setDeleteModal({ isOpen: true, attachmentId, loading: false });
+  };
+
+  const confirmDeleteAttachment = async () => {
+    if (!deleteModal.attachmentId) return;
+    setDeleteModal((prev) => ({ ...prev, loading: true }));
     try {
       await api.delete(
         apiPaths.TASKS.DELETE_ATTACHMENT.replace(':id', task._id).replace(
           ':attachmentId',
-          attachmentId,
+          deleteModal.attachmentId,
         ),
       );
       onUpdated();
     } catch (err) {
       console.error(err);
+    } finally {
+      setDeleteModal({ isOpen: false, attachmentId: '', loading: false });
     }
   };
 
@@ -159,6 +178,15 @@ export default function TaskAttachments({ task, onUpdated, canDelete = false, ca
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, attachmentId: '', loading: false })}
+        onConfirm={confirmDeleteAttachment}
+        title="Delete Attachment"
+        message="Are you sure you want to remove this file attachment?"
+        loading={deleteModal.loading}
+      />
     </div>
   );
 }

@@ -138,14 +138,24 @@ const AuditLogPage = () => {
       title="Audit Log"
       subtitle="Comprehensive security activity and organizational audit history"
       actions={
-        <button
-          type="button"
-          onClick={fetchLogs}
-          className="btn-secondary text-sm flex items-center gap-1.5 px-3 py-1.5"
-        >
-          <RefreshCw className="w-4 h-4 text-slate-500" />
-          Refresh Log
-        </button>
+        <div className="flex flex-col gap-1 p-1">
+          <button
+            type="button"
+            onClick={fetchLogs}
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 text-slate-500 ${loading ? 'animate-spin' : ''}`} />
+            Refresh Log
+          </button>
+          <button
+            type="button"
+            onClick={() => exportLogs('csv')}
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
+          >
+            <Download className="w-4 h-4 text-slate-500" />
+            Export Log (CSV)
+          </button>
+        </div>
       }
     >
       <div className="space-y-5">

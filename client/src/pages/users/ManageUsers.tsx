@@ -17,6 +17,7 @@ import {
   Search,
   Shield,
   UserCheck,
+  RefreshCw,
 } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
@@ -678,20 +679,22 @@ function ManageUsers() {
       title="Users & Teams"
       subtitle="Manage organization members, team structures, workloads, and department reporting"
       actions={
-        <>
+        <div className="flex flex-col gap-1 p-1">
           <button
             type="button"
             onClick={fetchData}
-            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-lg transition-colors"
           >
+            <RefreshCw className={`w-4 h-4 text-slate-500 ${loading ? 'animate-spin' : ''}`} />
             Refresh Data
           </button>
           {activeTab === 'members' && hasPermission('member:invite') && (
             <button
               type="button"
               onClick={handleOpenInviteModal}
-              className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+              className="w-full text-left px-3.5 py-2 text-xs font-semibold text-primary hover:bg-primary/10 flex items-center gap-2 rounded-lg transition-colors"
             >
+              <UserPlus className="w-4 h-4 text-primary" />
               Invite Member
             </button>
           )}
@@ -699,12 +702,13 @@ function ManageUsers() {
             <button
               type="button"
               onClick={handleOpenCreateTeam}
-              className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-gray-100 transition-colors"
+              className="w-full text-left px-3.5 py-2 text-xs font-semibold text-primary hover:bg-primary/10 flex items-center gap-2 rounded-lg transition-colors"
             >
+              <Plus className="w-4 h-4 text-primary" />
               Create Team
             </button>
           )}
-        </>
+        </div>
       }
     >
       <div className="space-y-5">
