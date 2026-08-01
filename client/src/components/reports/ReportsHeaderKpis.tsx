@@ -35,11 +35,11 @@ export const ReportsHeaderKpis: React.FC<ReportsHeaderKpisProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
-            className="h-24 bg-gray-100/60 dark:bg-slate-800/40 rounded-xl animate-pulse border border-gray-200/50 dark:border-slate-700/40"
+            className="h-18 bg-gray-100/60 dark:bg-slate-800/40 rounded-xl animate-pulse border border-gray-200/50 dark:border-slate-700/40"
           />
         ))}
       </div>
@@ -104,32 +104,32 @@ export const ReportsHeaderKpis: React.FC<ReportsHeaderKpisProps> = ({
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
       {kpis.map((kpi, idx) => {
         const IconComponent = kpi.icon;
         return (
           <div
             key={idx}
-            className="card p-3.5 flex flex-col justify-between"
+            className="card p-2.5 sm:p-3 flex flex-col justify-between"
           >
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider truncate">
                   {kpi.label}
                 </span>
-                <div className={`p-1.5 rounded-lg ${kpi.bgIcon}`}>
-                  <IconComponent className="w-4 h-4" />
+                <div className={`p-1 rounded-lg ${kpi.bgIcon}`}>
+                  <IconComponent className="w-3.5 h-3.5" />
                 </div>
               </div>
 
-              <div className={`text-2xl font-bold ${kpi.color} tabular-nums tracking-tight mb-1`}>
+              <div className={`text-xl font-bold ${kpi.color} tabular-nums tracking-tight mb-0.5`}>
                 {kpi.value}
               </div>
             </div>
 
             <div>
               {kpi.progress !== undefined && (
-                <div className="w-full bg-gray-100 rounded-full h-1.5 my-1.5 overflow-hidden">
+                <div className="w-full bg-gray-100 rounded-full h-1 my-1 overflow-hidden">
                   <div
                     className={`h-full ${kpi.barColor} rounded-full transition-all duration-500 ease-out`}
                     style={{ width: `${Math.min(100, Math.max(0, kpi.progress))}%` }}

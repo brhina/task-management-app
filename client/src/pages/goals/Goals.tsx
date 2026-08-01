@@ -17,6 +17,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
+import StatCard from '../../components/common/StatCard';
 import FilterToolbar from '../../components/common/FilterToolbar';
 import AdvancedTable, { RowActions, type Column } from '../../components/common/AdvancedTable';
 import api from '../../utils/axios';
@@ -174,56 +175,44 @@ function Goals() {
         {error && <div className="alert-error">{error}</div>}
 
         {/* Top KPI Statistics Overview Header */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <div className="card p-4">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>Total OKRs</span>
-              <Target className="w-4 h-4 text-primary" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{stats.total}</div>
-            <div className="text-[11px] text-slate-500 mt-1">Across all departments</div>
-          </div>
-
-          <div className="card p-4">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>Completed</span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{stats.completed}</div>
-            <div className="text-[11px] text-emerald-600 font-medium mt-1">Achieved Objectives</div>
-          </div>
-
-          <div className="card p-4">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>On Track</span>
-              <TrendingUp className="w-4 h-4 text-blue-500" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{stats.onTrackPct}%</div>
-            <div className="text-[11px] text-blue-600 font-medium mt-1">{stats.onTrack} goals performing well</div>
-          </div>
-
-          <div className="card p-4">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>At Risk / Behind</span>
-              <AlertTriangle className="w-4 h-4 text-rose-500" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{stats.atRiskOrBehind}</div>
-            <div className="text-[11px] text-rose-500 font-medium mt-1">Require check-in</div>
-          </div>
-
-          <div className="card p-4 col-span-2 sm:col-span-1">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>Avg Org Progress</span>
-              <Zap className="w-4 h-4 text-amber-500" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{stats.avgProgress}%</div>
-            <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden mt-2">
-              <div
-                className="h-full bg-gradient-to-r from-primary to-emerald-500 rounded-full transition-all"
-                style={{ width: `${stats.avgProgress}%` }}
-              />
-            </div>
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+          <StatCard
+            title="Total OKRs"
+            value={stats.total}
+            icon={Target}
+            colorTheme="slate"
+            subtext="Across all departments"
+          />
+          <StatCard
+            title="Completed"
+            value={stats.completed}
+            icon={CheckCircle2}
+            colorTheme="emerald"
+            subtext="Achieved Objectives"
+          />
+          <StatCard
+            title="On Track"
+            value={`${stats.onTrackPct}%`}
+            icon={TrendingUp}
+            colorTheme="blue"
+            subtext={`${stats.onTrack} goals performing well`}
+          />
+          <StatCard
+            title="At Risk / Behind"
+            value={stats.atRiskOrBehind}
+            icon={AlertTriangle}
+            colorTheme="rose"
+            subtext="Require check-in"
+          />
+          <StatCard
+            title="Avg Org Progress"
+            value={`${stats.avgProgress}%`}
+            icon={Zap}
+            colorTheme="amber"
+            progressBarValue={stats.avgProgress}
+            progressBarColor="bg-gradient-to-r from-primary to-emerald-500"
+            className="col-span-2 sm:col-span-1"
+          />
         </div>
 
         {/* Controls & Filter Toolbar with View Switcher */}

@@ -43,12 +43,12 @@ export default function TeamDashboardModal({
       ) : dashboardData ? (
         <div className="space-y-6">
           {/* Executive Stat Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-gradient-to-br from-slate-50 to-slate-100/80 border border-slate-200/80 rounded-2xl p-4 text-center shadow-2xs">
-              <div className="p-2 rounded-xl bg-slate-200/60 text-slate-700 w-fit mx-auto mb-2">
-                <BarChart3 className="w-4 h-4" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/80 border border-slate-200/80 rounded-xl p-2.5 sm:p-3 text-center shadow-2xs">
+              <div className="p-1 rounded-lg bg-slate-200/60 text-slate-700 w-fit mx-auto mb-1">
+                <BarChart3 className="w-3.5 h-3.5" />
               </div>
-              <div className="text-2xl font-extrabold text-slate-800 tabular-nums">
+              <div className="text-xl font-extrabold text-slate-800 tabular-nums">
                 {dashboardData.statistics?.totalTasks || 0}
               </div>
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-0.5">
@@ -56,11 +56,11 @@ export default function TeamDashboardModal({
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-rose-50 to-rose-100/80 border border-rose-200/80 rounded-2xl p-4 text-center shadow-2xs">
-              <div className="p-2 rounded-xl bg-rose-200/60 text-rose-700 w-fit mx-auto mb-2">
-                <AlertCircle className="w-4 h-4" />
+            <div className="bg-gradient-to-br from-rose-50 to-rose-100/80 border border-rose-200/80 rounded-xl p-2.5 sm:p-3 text-center shadow-2xs">
+              <div className="p-1 rounded-lg bg-rose-200/60 text-rose-700 w-fit mx-auto mb-1">
+                <AlertCircle className="w-3.5 h-3.5" />
               </div>
-              <div className="text-2xl font-extrabold text-rose-600 tabular-nums">
+              <div className="text-xl font-extrabold text-rose-600 tabular-nums">
                 {dashboardData.statistics?.overdueTasks || 0}
               </div>
               <div className="text-[10px] font-bold uppercase tracking-wider text-rose-500 mt-0.5">
@@ -68,11 +68,11 @@ export default function TeamDashboardModal({
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/80 border border-emerald-200/80 rounded-2xl p-4 text-center shadow-2xs">
-              <div className="p-2 rounded-xl bg-emerald-200/60 text-emerald-700 w-fit mx-auto mb-2">
-                <CheckCircle2 className="w-4 h-4" />
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/80 border border-emerald-200/80 rounded-xl p-2.5 sm:p-3 text-center shadow-2xs">
+              <div className="p-1 rounded-lg bg-emerald-200/60 text-emerald-700 w-fit mx-auto mb-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
               </div>
-              <div className="text-2xl font-extrabold text-emerald-600 tabular-nums">
+              <div className="text-xl font-extrabold text-emerald-600 tabular-nums">
                 {dashboardData.statistics?.completedLast30Days || 0}
               </div>
               <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-500 mt-0.5">
@@ -80,11 +80,11 @@ export default function TeamDashboardModal({
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-sky-50 to-sky-100/80 border border-sky-200/80 rounded-2xl p-4 text-center shadow-2xs">
-              <div className="p-2 rounded-xl bg-sky-200/60 text-sky-700 w-fit mx-auto mb-2">
-                <Users className="w-4 h-4" />
+            <div className="bg-gradient-to-br from-sky-50 to-sky-100/80 border border-sky-200/80 rounded-xl p-2.5 sm:p-3 text-center shadow-2xs">
+              <div className="p-1 rounded-lg bg-sky-200/60 text-sky-700 w-fit mx-auto mb-1">
+                <Users className="w-3.5 h-3.5" />
               </div>
-              <div className="text-2xl font-extrabold text-sky-600 tabular-nums">
+              <div className="text-xl font-extrabold text-sky-600 tabular-nums">
                 {dashboardData.team?.memberCount || 0}
               </div>
               <div className="text-[10px] font-bold uppercase tracking-wider text-sky-500 mt-0.5">

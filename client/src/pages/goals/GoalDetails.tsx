@@ -204,27 +204,27 @@ function GoalDetails() {
         {/* Left Column - Main Content */}
         <div className="lg:col-span-2 space-y-5">
           {/* Goal Progress Banner */}
-          <div className="card p-5">
-            <div className="flex items-center justify-between mb-3">
+          <div className="card p-3.5 sm:p-4">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-primary" />
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                <Target className="w-4 h-4 text-primary" />
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
                   Overall OKR Completion
                 </span>
               </div>
-              <span className="text-2xl font-black tabular-nums text-slate-800">
+              <span className="text-xl font-extrabold tabular-nums text-slate-800">
                 {goalProgress !== null ? `${goalProgress}%` : 'N/A'}
               </span>
             </div>
 
-            <div className="h-3 rounded-full bg-slate-100 overflow-hidden mb-3">
+            <div className="h-2 rounded-full bg-slate-100 overflow-hidden mb-2">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-primary to-emerald-500 transition-all duration-500"
                 style={{ width: `${goalProgress || 0}%` }}
               />
             </div>
 
-            <div className="flex justify-between items-center text-xs text-slate-500">
+            <div className="flex justify-between items-center text-[11px] text-slate-500">
               <span>{keyResults.length} Active Key Results</span>
               <span>
                 {goal.targetValue ? `Metric Target: ${goal.currentValue || 0} / ${goal.targetValue}` : 'KR Weighted Average'}

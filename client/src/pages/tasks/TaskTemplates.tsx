@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext, useCallback, type FormEvent, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageShell from '../../components/common/PageShell';
+import StatCard from '../../components/common/StatCard';
 import AdvancedTable, { RowActions, type Column } from '../../components/common/AdvancedTable';
 import Modal from '../../components/common/Modal';
 import ConfirmModal from '../../components/common/ConfirmModal';
@@ -214,33 +215,28 @@ export default function TaskTemplates() {
         {error && <div className="alert-error mb-4">{error}</div>}
 
         {/* Top Overview KPI Banner */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="card p-4">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>Total Blueprints</span>
-              <FileText className="w-4 h-4 text-primary" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{stats.total}</div>
-            <div className="text-[11px] text-slate-500 mt-1">Ready for deployment</div>
-          </div>
-
-          <div className="card p-4">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>High Priority Blueprints</span>
-              <Sparkles className="w-4 h-4 text-amber-500" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{stats.highPriority}</div>
-            <div className="text-[11px] text-amber-600 font-medium mt-1">Critical workflows</div>
-          </div>
-
-          <div className="card p-4">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>Preset Subtasks</span>
-              <ListChecks className="w-4 h-4 text-emerald-500" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{stats.totalSubtasks}</div>
-            <div className="text-[11px] text-emerald-600 font-medium mt-1">Pre-configured checklist items</div>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <StatCard
+            title="Total Blueprints"
+            value={stats.total}
+            icon={FileText}
+            colorTheme="slate"
+            subtext="Ready for deployment"
+          />
+          <StatCard
+            title="High Priority Blueprints"
+            value={stats.highPriority}
+            icon={Sparkles}
+            colorTheme="amber"
+            subtext="Critical workflows"
+          />
+          <StatCard
+            title="Preset Subtasks"
+            value={stats.totalSubtasks}
+            icon={ListChecks}
+            colorTheme="emerald"
+            subtext="Pre-configured checklist items"
+          />
         </div>
 
         {/* View Switcher Header */}

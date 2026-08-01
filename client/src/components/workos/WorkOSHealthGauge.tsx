@@ -61,25 +61,25 @@ export default function WorkOSHealthGauge({ health }: WorkOSHealthGaugeProps) {
   }, [status]);
 
   return (
-    <div className="card bg-gradient-to-r from-primary/10 via-white to-sky-50/50 border border-primary/20 text-slate-800 p-5 shadow-card relative overflow-hidden">
+    <div className="card bg-gradient-to-r from-primary/10 via-white to-sky-50/50 border border-primary/20 text-slate-800 p-3.5 sm:p-4 shadow-card relative overflow-hidden">
       {/* Background glow overlay */}
       <div
         className="absolute -right-12 -top-12 w-48 h-48 rounded-full blur-3xl opacity-15 pointer-events-none"
         style={{ backgroundColor: color }}
       />
 
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
         {/* Left: Score Gauge */}
-        <div className="flex items-center gap-5">
-          <div className="relative w-28 h-28 shrink-0 flex items-center justify-center">
+        <div className="flex items-center gap-3.5">
+          <div className="relative w-20 h-20 shrink-0 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={chartData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={34}
-                  outerRadius={44}
+                  innerRadius={26}
+                  outerRadius={34}
                   startAngle={225}
                   endAngle={-45}
                   dataKey="value"
@@ -91,77 +91,77 @@ export default function WorkOSHealthGauge({ health }: WorkOSHealthGaugeProps) {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute flex flex-col items-center justify-center text-center">
-              <span className="text-2xl font-black tracking-tight text-slate-800">{score}%</span>
-              <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Health</span>
+              <span className="text-lg font-extrabold tracking-tight text-slate-800">{score}%</span>
+              <span className="text-[8px] uppercase tracking-wider text-slate-500 font-bold">Health</span>
             </div>
           </div>
 
           <div>
             <div className="flex items-center gap-2">
-              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full border ${bg}`}>
-                <Icon className="w-3.5 h-3.5" />
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full border ${bg}`}>
+                <Icon className="w-3 h-3" />
                 {label}
               </span>
             </div>
-            <h2 className="text-lg font-bold text-slate-800 mt-1.5 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-primary" />
+            <h2 className="text-base font-bold text-slate-800 mt-1 flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5 text-primary" />
               WorkOS Health Score
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5 max-w-sm">
+            <p className="text-[11px] text-slate-500 mt-0.5 max-w-sm">
               Real-time aggregate index across execution throughput, capacity safety, velocity, and goal alignment.
             </p>
           </div>
         </div>
 
         {/* Right: Detailed Metric Pills */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4 gap-3 w-full md:w-auto">
-          <div className="bg-white border border-gray-200 rounded-xl p-3 flex flex-col justify-between shadow-sm">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4 gap-2.5 w-full md:w-auto">
+          <div className="bg-white border border-gray-200 rounded-xl p-2.5 flex flex-col justify-between shadow-sm">
             <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-wider">
               <span>Execution</span>
               <Zap className="w-3.5 h-3.5 text-amber-500" />
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-lg font-bold text-slate-800">{health?.executionScore ?? 80}%</span>
-              <div className="w-12 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+            <div className="mt-1 flex items-baseline justify-between gap-2">
+              <span className="text-base font-bold text-slate-800 tabular-nums">{health?.executionScore ?? 80}%</span>
+              <div className="w-10 h-1 rounded-full bg-slate-100 overflow-hidden">
                 <div className="h-full bg-amber-500 rounded-full" style={{ width: `${health?.executionScore ?? 80}%` }} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-3 flex flex-col justify-between shadow-sm">
+          <div className="bg-white border border-gray-200 rounded-xl p-2.5 flex flex-col justify-between shadow-sm">
             <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-wider">
               <span>Velocity</span>
               <Activity className="w-3.5 h-3.5 text-primary" />
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-lg font-bold text-slate-800">{health?.velocityScore ?? 88}%</span>
-              <div className="w-12 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+            <div className="mt-1 flex items-baseline justify-between gap-2">
+              <span className="text-base font-bold text-slate-800 tabular-nums">{health?.velocityScore ?? 88}%</span>
+              <div className="w-10 h-1 rounded-full bg-slate-100 overflow-hidden">
                 <div className="h-full bg-primary rounded-full" style={{ width: `${health?.velocityScore ?? 88}%` }} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-3 flex flex-col justify-between shadow-sm">
+          <div className="bg-white border border-gray-200 rounded-xl p-2.5 flex flex-col justify-between shadow-sm">
             <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-wider">
               <span>Safety</span>
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-lg font-bold text-slate-800">{health?.riskScore ?? 92}%</span>
-              <div className="w-12 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+            <div className="mt-1 flex items-baseline justify-between gap-2">
+              <span className="text-base font-bold text-slate-800 tabular-nums">{health?.riskScore ?? 92}%</span>
+              <div className="w-10 h-1 rounded-full bg-slate-100 overflow-hidden">
                 <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${health?.riskScore ?? 92}%` }} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-3 flex flex-col justify-between shadow-sm">
+          <div className="bg-white border border-gray-200 rounded-xl p-2.5 flex flex-col justify-between shadow-sm">
             <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-wider">
               <span>Alignment</span>
               <Target className="w-3.5 h-3.5 text-purple-500" />
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-lg font-bold text-slate-800">{health?.alignmentScore ?? 75}%</span>
-              <div className="w-12 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+            <div className="mt-1 flex items-baseline justify-between gap-2">
+              <span className="text-base font-bold text-slate-800 tabular-nums">{health?.alignmentScore ?? 75}%</span>
+              <div className="w-10 h-1 rounded-full bg-slate-100 overflow-hidden">
                 <div className="h-full bg-purple-500 rounded-full" style={{ width: `${health?.alignmentScore ?? 75}%` }} />
               </div>
             </div>
@@ -170,5 +170,4 @@ export default function WorkOSHealthGauge({ health }: WorkOSHealthGaugeProps) {
       </div>
     </div>
   );
-
 }

@@ -26,6 +26,7 @@ import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
+import StatCard from '../../components/common/StatCard';
 import StatusChart from '../../components/insights/StatusChart';
 import PriorityChart from '../../components/insights/PriorityChart';
 import CreateTask from '../tasks/CreateTask';
@@ -253,35 +254,35 @@ function Dashboard() {
         )}
 
         {/* WorkOS Hero Health Gauge Style Banner */}
-        <div className="card bg-gradient-to-r from-primary/10 via-white to-sky-50/50 border border-primary/20 text-slate-800 p-5 shadow-card relative overflow-hidden">
+        <div className="card bg-gradient-to-r from-primary/10 via-white to-sky-50/50 border border-primary/20 text-slate-800 p-3.5 sm:p-4 shadow-card relative overflow-hidden">
           <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-primary/20 blur-3xl opacity-30 pointer-events-none" />
-          <div className="flex flex-wrap items-center justify-between gap-4 relative z-10">
-            <div className="space-y-1">
-              <div className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
-                <Zap className="w-4 h-4 text-primary" />
+          <div className="flex flex-wrap items-center justify-between gap-3 relative z-10">
+            <div className="space-y-0.5">
+              <div className="text-[11px] font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-primary" />
                 WorkOS Workspace Intelligence
               </div>
-              <h2 className="text-lg sm:text-xl font-black text-slate-800">
+              <h2 className="text-base sm:text-lg font-black text-slate-800">
                 {stats.completed} of {stats.all} tasks completed ({completionRate}%)
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-[11px] text-slate-500">
                 Real-time throughput, active priorities, and team execution health.
               </p>
             </div>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setShowCreateTask(true)}
-                className="btn btn-primary text-xs px-4 py-2 flex items-center gap-1.5 font-bold shadow-md hover:bg-primary-hover transition-all"
+                className="btn btn-primary text-xs px-3.5 py-1.5 flex items-center gap-1.5 font-bold shadow-md hover:bg-primary-hover transition-all"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3.5 h-3.5" />
                 New Task
               </button>
               <Link
                 to="/tasks"
-                className="px-3.5 py-2 bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5"
               >
-                <Kanban className="w-4 h-4 text-primary" />
+                <Kanban className="w-3.5 h-3.5 text-primary" />
                 Board View
               </Link>
             </div>
@@ -289,101 +290,43 @@ function Dashboard() {
         </div>
 
         {/* WorkOS Style Metric KPI Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-          <div className="card bg-white border border-slate-200/90 p-4 shadow-sm hover:border-primary/40 transition-all">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500">
-                Total Tasks
-              </span>
-              <div className="p-1.5 rounded-xl bg-slate-100 text-slate-600">
-                <Layers className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-black text-slate-800 tabular-nums">{stats.all}</div>
-            <div className="text-[10px] text-slate-400 mt-1 font-medium">Workspace total</div>
-          </div>
-
-          <div className="card bg-white border border-slate-200/90 p-4 shadow-sm hover:border-primary/40 transition-all">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-sky-600">
-                In Progress
-              </span>
-              <div className="p-1.5 rounded-xl bg-sky-500/10 text-sky-600">
-                <Clock className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-black text-sky-600 tabular-nums">{stats.inProgress}</div>
-            <div className="text-[10px] text-slate-400 mt-1 font-medium">Active developments</div>
-          </div>
-
-          <div className="card bg-white border border-slate-200/90 p-4 shadow-sm hover:border-primary/40 transition-all">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-amber-600">
-                Pending & Review
-              </span>
-              <div className="p-1.5 rounded-xl bg-amber-500/10 text-amber-600">
-                <AlertCircle className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-black text-amber-600 tabular-nums">
-              {stats.pending + stats.inReview}
-            </div>
-            <div className="text-[10px] text-slate-400 mt-1 font-medium">Queue & approvals</div>
-          </div>
-
-          <div className="card bg-white border border-slate-200/90 p-4 shadow-sm hover:border-primary/40 transition-all">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-600">
-                Completed
-              </span>
-              <div className="p-1.5 rounded-xl bg-emerald-500/10 text-emerald-600">
-                <CheckCircle2 className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-black text-emerald-600 tabular-nums">
-              {stats.completed}
-            </div>
-            <div className="w-full bg-slate-100 rounded-full h-1 mt-1.5 overflow-hidden">
-              <div
-                className="bg-emerald-500 h-1 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(completionRate, 100)}%` }}
-              />
-            </div>
-            <div className="text-[10px] text-slate-400 mt-1 font-medium">
-              {completionRate}% completion rate
-            </div>
-          </div>
-
-          <div className="card bg-white border border-slate-200/90 p-4 shadow-sm hover:border-primary/40 transition-all">
-            <div className="flex items-center justify-between mb-1.5">
-              <span
-                className={`text-[10px] uppercase font-bold tracking-wider ${
-                  urgentTasks.length > 0 ? 'text-rose-600' : 'text-slate-500'
-                }`}
-              >
-                Needs Attention
-              </span>
-              <div
-                className={`p-1.5 rounded-xl ${
-                  urgentTasks.length > 0
-                    ? 'bg-rose-500/10 text-rose-600'
-                    : 'bg-slate-100 text-slate-500'
-                }`}
-              >
-                <AlertTriangle className="w-4 h-4" />
-              </div>
-            </div>
-            <div
-              className={`text-2xl font-black tabular-nums ${
-                urgentTasks.length > 0 ? 'text-rose-600' : 'text-slate-800'
-              }`}
-            >
-              {urgentTasks.length}
-            </div>
-            <div className="text-[10px] text-slate-400 mt-1 font-medium">
-              {urgentTasks.length > 0 ? 'Overdue or due soon' : 'All clear!'}
-            </div>
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+          <StatCard
+            title="Total Tasks"
+            value={stats.all}
+            icon={Layers}
+            colorTheme="slate"
+            subtext="Workspace total"
+          />
+          <StatCard
+            title="In Progress"
+            value={stats.inProgress}
+            icon={Clock}
+            colorTheme="sky"
+            subtext="Active developments"
+          />
+          <StatCard
+            title="Pending & Review"
+            value={stats.pending + stats.inReview}
+            icon={AlertCircle}
+            colorTheme="amber"
+            subtext="Queue & approvals"
+          />
+          <StatCard
+            title="Completed"
+            value={stats.completed}
+            icon={CheckCircle2}
+            colorTheme="emerald"
+            progressBarValue={completionRate}
+            subtext={`${completionRate}% completion rate`}
+          />
+          <StatCard
+            title="Needs Attention"
+            value={urgentTasks.length}
+            icon={AlertTriangle}
+            colorTheme={urgentTasks.length > 0 ? 'rose' : 'slate'}
+            subtext={urgentTasks.length > 0 ? 'Overdue or due soon' : 'All clear!'}
+          />
         </div>
 
         {/* Dual Column Layout */}

@@ -2,6 +2,7 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import { Download, Filter, ScrollText, ShieldAlert, Users, Activity, Search, RefreshCw, Layers, X } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import PageShell from '../../components/common/PageShell';
+import StatCard from '../../components/common/StatCard';
 import AdvancedTable, { type Column } from '../../components/common/AdvancedTable';
 import axios from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
@@ -162,45 +163,37 @@ const AuditLogPage = () => {
         {error && <div className="alert-error">{error}</div>}
 
         {/* KPI Overview Summary Header */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="card p-4">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>Total Audit Events</span>
-              <ScrollText className="w-4 h-4 text-primary" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{totalCount || logs.length}</div>
-            <div className="text-[11px] text-slate-500 mt-1">Recorded activities</div>
-          </div>
-
-          <div className="card p-4">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>Unique Actions</span>
-              <Layers className="w-4 h-4 text-violet-500" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{stats.uniqueActions}</div>
-            <div className="text-[11px] text-violet-600 font-medium mt-1">Distinct event types</div>
-          </div>
-
-          <div className="card p-4">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>Active Actors</span>
-              <Users className="w-4 h-4 text-emerald-500" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{stats.uniqueActors}</div>
-            <div className="text-[11px] text-emerald-600 font-medium mt-1">Users & System actors</div>
-          </div>
-
-          <div className="card p-4">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>Audit Status</span>
-              <Activity className="w-4 h-4 text-blue-500" />
-            </div>
-            <div className="text-sm font-bold text-emerald-600 flex items-center gap-1.5 mt-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Active Monitoring
-            </div>
-            <div className="text-[11px] text-slate-400 mt-1">Real-time log capture</div>
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <StatCard
+            title="Total Audit Events"
+            value={totalCount || logs.length}
+            icon={ScrollText}
+            colorTheme="slate"
+            subtext="Recorded activities"
+          />
+          <StatCard
+            title="Unique Actions"
+            value={stats.uniqueActions}
+            icon={Layers}
+            colorTheme="violet"
+            subtext="Distinct event types"
+          />
+          <StatCard
+            title="Active Actors"
+            value={stats.uniqueActors}
+            icon={Users}
+            colorTheme="emerald"
+            subtext="Users & System actors"
+          />
+          <StatCard
+            title="Audit Status"
+            value="Active Monitoring"
+            valueClassName="text-xs font-bold text-emerald-600 flex items-center gap-1.5"
+            badge={<span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+            icon={Activity}
+            colorTheme="blue"
+            subtext="Real-time log capture"
+          />
         </div>
 
         {/* Filter Toolbar & Export Section */}
