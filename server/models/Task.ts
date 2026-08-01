@@ -42,7 +42,7 @@ export interface ITask {
   effortHours?: number;
   collaborators?: mongoose.Types.ObjectId[];
   blockersText?: string[];
-  assignedTo: mongoose.Types.ObjectId;
+  assignedTo?: mongoose.Types.ObjectId | null;
   createdBy: mongoose.Types.ObjectId;
   attachments: ITaskAttachment[];
   todoCheckList: ITodo[];
@@ -188,7 +188,8 @@ const taskSchema = new mongoose.Schema<ITaskDocument>(
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
+      default: null,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

@@ -69,7 +69,7 @@ export interface Task {
   status: TaskStatus;
   dueDate: string;
   startDate?: string;
-  assignedTo: User | string;
+  assignedTo?: User | string | null;
   createdBy: string;
   projectId?: string | { _id: string; name?: string };
   goalIds?: string[];
@@ -238,7 +238,7 @@ export interface TaskFormData {
   description: string;
   priority: TaskPriority;
   dueDate: string;
-  assignedTo: string;
+  assignedTo?: string | null;
   attachments: string[];
 }
 

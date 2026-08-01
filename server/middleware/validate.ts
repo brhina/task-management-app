@@ -29,7 +29,7 @@ export const createTaskSchema = z.object({
   priority: z.enum(["Low", "Medium", "High", "Critical"]).optional(),
   dueDate: z.string().nonempty("Due date is required"),
   startDate: z.string().optional(),
-  assignedTo: z.string().nonempty("Assignee is required"),
+  assignedTo: z.string().optional().nullable().or(z.literal("")),
   todoCheckList: z
     .array(
       z.object({
@@ -67,7 +67,7 @@ export const updateTaskSchema = z.object({
   status: z.enum(["Pending", "In Progress", "In Review", "Completed"]).optional(),
   dueDate: z.string().optional(),
   startDate: z.string().optional().nullable(),
-  assignedTo: z.string().optional(),
+  assignedTo: z.string().optional().nullable().or(z.literal("")),
   todoCheckList: z
     .array(
       z.object({

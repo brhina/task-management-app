@@ -24,9 +24,9 @@ interface BreadcrumbItem {
   path: string;
 }
 
-const getBreadcrumbIcon = (label: string, index: number): LucideIcon | null => {
+const getBreadcrumbIcon = (label?: string | null, index?: number): LucideIcon | null => {
   if (index === 0 || label === 'Home') return Home;
-  const lower = label.toLowerCase();
+  const lower = (label ?? '').toString().trim().toLowerCase();
   if (lower.includes('project')) return Folder;
   if (lower.includes('task')) return ClipboardCheck;
   if (lower.includes('goal')) return Target;
@@ -224,7 +224,8 @@ function Breadcrumbs() {
     <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-slate-500 overflow-x-auto py-0.5 no-scrollbar whitespace-nowrap">
       {breadcrumbs.map((item, index) => {
         const isLast = index === breadcrumbs.length - 1;
-        const IconComponent = getBreadcrumbIcon(item.label, index);
+        const label = item.label?.trim() || 'Untitled';
+        const IconComponent = getBreadcrumbIcon(label, index);
 
         return (
           <div key={`${item.path}-${index}`} className="flex items-center gap-1.5 shrink-0">
@@ -232,7 +233,7 @@ function Breadcrumbs() {
             {isLast ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 font-semibold border border-slate-200/80 text-sm shadow-2xs">
                 {IconComponent && <IconComponent className="w-4 h-4 text-primary shrink-0" />}
-                <span className="truncate max-w-[200px] sm:max-w-[320px]">{item.label}</span>
+                <span className="truncate max-w-[200px] sm:max-w-[320px]">{label}</span>
               </span>
             ) : (
               <Link
@@ -240,7 +241,7 @@ function Breadcrumbs() {
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-slate-600 hover:text-primary hover:bg-slate-100 transition-all text-sm font-medium"
               >
                 {IconComponent && <IconComponent className="w-4 h-4 text-slate-400 hover:text-primary shrink-0" />}
-                <span className="truncate max-w-[150px] sm:max-w-[240px]">{item.label}</span>
+                <span className="truncate max-w-[150px] sm:max-w-[240px]">{label}</span>
               </Link>
             )}
           </div>

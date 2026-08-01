@@ -66,9 +66,11 @@ const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
       filter.$text = { $search: search as string };
     }
 
-    let baseFilter = isOrgElevated(req.membershipRole)
-      ? filter
-      : { ...filter, assignedTo: req.user._id };
+    const userFilter = !isOrgElevated(req.membershipRole)
+      ? { $or: [{ assignedTo: req.user._id }, { assignedTo: null }, { createdBy: req.user._id }] }
+      : {};
+
+    let baseFilter = { ...filter, ...userFilter };
 
     const projection = isSearch ? { score: { $meta: "textScore" } } : {};
     const sortOptions: any = isSearch
@@ -113,31 +115,31 @@ const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
     const allTasks = await Task.countDocuments(
       isOrgElevated(req.membershipRole)
         ? { orgId: filter.orgId }
-        : { ...filter, assignedTo: req.user._id },
+        : { ...filter, ...userFilter },
     );
 
     const pendingTasks = await Task.countDocuments({
       ...filter,
       status: "Pending",
-      ...(!isOrgElevated(req.membershipRole) && { assignedTo: req.user._id }),
+      ...userFilter,
     });
 
     const inProgressTasks = await Task.countDocuments({
       ...filter,
       status: "In Progress",
-      ...(!isOrgElevated(req.membershipRole) && { assignedTo: req.user._id }),
+      ...userFilter,
     });
 
     const inReviewTasks = await Task.countDocuments({
       ...filter,
       status: "In Review",
-      ...(!isOrgElevated(req.membershipRole) && { assignedTo: req.user._id }),
+      ...userFilter,
     });
 
     const completedTasks = await Task.countDocuments({
       ...filter,
       status: "Completed",
-      ...(!isOrgElevated(req.membershipRole) && { assignedTo: req.user._id }),
+      ...userFilter,
     });
 
     res.status(200).json({
@@ -235,10 +237,8 @@ const createTask = async (req: AuthRequest, res: Response): Promise<void> => {
       recurrence,
     } = req.body;
 
-    if (!assignedTo) {
-      res.status(400).json({ message: "Assigned to is required" });
-      return;
-    }
+    const assigneeId = assignedTo && String(assignedTo).trim() !== "" ? assignedTo : null;
+
     if (!req.orgId) {
       res.status(400).json({ message: "Organization context is required" });
       return;
@@ -267,7 +267,7 @@ const createTask = async (req: AuthRequest, res: Response): Promise<void> => {
       effortHours,
       collaborators,
       blockersText,
-      assignedTo,
+      assignedTo: assigneeId,
       createdBy: req.user._id,
       attachments: [],
       todoCheckList,
@@ -288,16 +288,18 @@ const createTask = async (req: AuthRequest, res: Response): Promise<void> => {
       await rollupParentProgress(parentTaskId);
     }
 
-    await notifyUser({
-      orgId: String(req.orgId),
-      userId: String(assignedTo),
-      type: "task_assigned",
-      title: "New task assigned",
-      message: `You were assigned "${title}"`,
-      link: `/user/task/${task._id}`,
-      actorId: String(req.user._id),
-      meta: { taskId: String(task._id) },
-    });
+    if (assigneeId) {
+      await notifyUser({
+        orgId: String(req.orgId),
+        userId: String(assigneeId),
+        type: "task_assigned",
+        title: "New task assigned",
+        message: `You were assigned "${title}"`,
+        link: `/user/task/${task._id}`,
+        actorId: String(req.user._id),
+        meta: { taskId: String(task._id) },
+      });
+    }
 
     const mentioned = await resolveMentions(
       `${title} ${description || ""}`,
@@ -344,7 +346,7 @@ const updateTask = async (req: AuthRequest, res: Response): Promise<void> => {
     }
 
     const prevStatus = task.status;
-    const prevAssignee = String(task.assignedTo);
+    const prevAssignee = task.assignedTo ? String(task.assignedTo) : null;
     const tracked: Array<{ field: string; from: unknown; to: unknown }> = [];
 
     const setIf = (field: string, value: unknown) => {
@@ -363,8 +365,10 @@ const updateTask = async (req: AuthRequest, res: Response): Promise<void> => {
     if (req.body.status !== undefined) setIf("status", req.body.status);
     if (req.body.dueDate !== undefined) setIf("dueDate", req.body.dueDate);
     if (req.body.startDate !== undefined) setIf("startDate", req.body.startDate);
-    if (req.body.assignedTo !== undefined)
-      setIf("assignedTo", req.body.assignedTo);
+    if (req.body.assignedTo !== undefined) {
+      const assigneeVal = req.body.assignedTo && String(req.body.assignedTo).trim() !== "" ? req.body.assignedTo : null;
+      setIf("assignedTo", assigneeVal);
+    }
     if (req.body.todoCheckList !== undefined)
       task.todoCheckList = req.body.todoCheckList;
     if (req.body.projectId !== undefined) task.projectId = req.body.projectId;
@@ -401,31 +405,34 @@ const updateTask = async (req: AuthRequest, res: Response): Promise<void> => {
       });
     }
 
-    if (String(updatedTask.assignedTo) !== prevAssignee) {
+    const newAssignee = updatedTask.assignedTo ? String(updatedTask.assignedTo) : null;
+    if (newAssignee !== prevAssignee) {
       await logTaskActivity({
         orgId: req.orgId,
         taskId: task._id,
         actorId: req.user._id,
-        action: "assignee_changed",
+        action: newAssignee ? "assignee_changed" : "unassigned",
         from: prevAssignee,
-        to: String(updatedTask.assignedTo),
+        to: newAssignee,
       });
-      await notifyUser({
-        orgId: String(req.orgId),
-        userId: String(updatedTask.assignedTo),
-        type: "task_assigned",
-        title: "Task assigned to you",
-        message: `You were assigned "${updatedTask.title}"`,
-        link: `/user/task/${updatedTask._id}`,
-        actorId: String(req.user._id),
-        meta: { taskId: String(updatedTask._id) },
-      });
+      if (newAssignee) {
+        await notifyUser({
+          orgId: String(req.orgId),
+          userId: newAssignee,
+          type: "task_assigned",
+          title: "Task assigned to you",
+          message: `You were assigned "${updatedTask.title}"`,
+          link: `/user/task/${updatedTask._id}`,
+          actorId: String(req.user._id),
+          meta: { taskId: String(updatedTask._id) },
+        });
+      }
     }
 
-    if (req.body.status && req.body.status !== prevStatus) {
+    if (req.body.status && req.body.status !== prevStatus && newAssignee) {
       await notifyUser({
         orgId: String(req.orgId),
-        userId: String(updatedTask.assignedTo),
+        userId: newAssignee,
         type: "task_status_changed",
         title: "Task status updated",
         message: `"${updatedTask.title}" is now ${updatedTask.status}`,
@@ -505,7 +512,7 @@ const updateTaskStatus = async (
       return;
     }
 
-    const isAssigned = task.assignedTo.toString() === req.user._id.toString();
+    const isAssigned = Boolean(task.assignedTo && task.assignedTo.toString() === req.user._id.toString());
 
     if (!isAssigned && !isOrgElevated(req.membershipRole)) {
       res
@@ -536,7 +543,7 @@ const updateTaskStatus = async (
       to: updatedTask.status,
     });
 
-    if (prevStatus !== updatedTask.status) {
+    if (prevStatus !== updatedTask.status && updatedTask.assignedTo) {
       await notifyUser({
         orgId: String(req.orgId),
         userId: String(updatedTask.assignedTo),
@@ -604,34 +611,32 @@ const updateTaskAssignee = async (
     }
 
     const { assignedTo } = req.body;
-    if (!assignedTo) {
-      res.status(400).json({ message: "assignedTo is required" });
-      return;
-    }
-
-    const prev = String(task.assignedTo);
-    task.assignedTo = assignedTo;
+    const assigneeVal = assignedTo && String(assignedTo).trim() !== "" ? assignedTo : null;
+    const prev = task.assignedTo ? String(task.assignedTo) : null;
+    task.assignedTo = assigneeVal;
     const updatedTask = await task.save();
 
     await logTaskActivity({
       orgId: req.orgId,
       taskId: task._id,
       actorId: req.user._id,
-      action: "assignee_changed",
+      action: assigneeVal ? "assignee_changed" : "unassigned",
       from: prev,
-      to: String(assignedTo),
+      to: assigneeVal ? String(assigneeVal) : null,
     });
 
-    await notifyUser({
-      orgId: String(req.orgId),
-      userId: String(assignedTo),
-      type: "task_assigned",
-      title: "Task assigned to you",
-      message: `You were assigned "${task.title}"`,
-      link: `/user/task/${task._id}`,
-      actorId: String(req.user._id),
-      meta: { taskId: String(task._id) },
-    });
+    if (assigneeVal) {
+      await notifyUser({
+        orgId: String(req.orgId),
+        userId: String(assigneeVal),
+        type: "task_assigned",
+        title: "Task assigned to you",
+        message: `You were assigned "${task.title}"`,
+        link: `/user/task/${task._id}`,
+        actorId: String(req.user._id),
+        meta: { taskId: String(task._id) },
+      });
+    }
     broadcastTaskUpdate(String(req.orgId), {
       taskId: String(task._id),
       action: "assignee_changed",
@@ -664,7 +669,7 @@ const updateTaskCheckList = async (
       return;
     }
 
-    const isAssigned = task.assignedTo.toString() === req.user._id.toString();
+    const isAssigned = Boolean(task.assignedTo && task.assignedTo.toString() === req.user._id.toString());
     if (!isAssigned && !isOrgElevated(req.membershipRole)) {
       res
         .status(403)

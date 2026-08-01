@@ -72,7 +72,7 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
           <span className="text-[10px] text-slate-400">No due date</span>
         )}
 
-        {task.assignedTo && typeof task.assignedTo === 'object' && (
+        {task.assignedTo && typeof task.assignedTo === 'object' ? (
           <div className="flex items-center gap-1.5 ml-auto">
             {task.assignedTo.profileImageUrl ? (
               <img className="h-5 w-5 rounded-full ring-1 ring-slate-200" src={task.assignedTo.profileImageUrl} alt="" />
@@ -84,6 +84,10 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
             <span className="text-[10px] font-medium text-slate-600 truncate max-w-[80px]">
               {task.assignedTo.name?.split(' ')[0]}
             </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1 ml-auto text-[10px] font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/80">
+            Unassigned
           </div>
         )}
       </div>

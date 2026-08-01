@@ -206,7 +206,6 @@ function EditTask() {
     e.preventDefault();
     if (!title.trim()) return setError('Title is required');
     if (!dueDate) return setError('Due date is required');
-    if (!assignedTo) return setError('Please assign to a user');
     if (!projectId) return setError('Please select a project');
 
     setSubmitting(true);
@@ -219,7 +218,7 @@ function EditTask() {
         status,
         dueDate,
         startDate: startDate || null,
-        assignedTo,
+        assignedTo: assignedTo || null,
         projectId: projectId || undefined,
         goalIds: goalIds.length > 0 ? goalIds : undefined,
         tags: tags
@@ -456,46 +455,30 @@ function EditTask() {
         </div>
 
         <div className="card">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-            Assign To *
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center justify-between">
+            <span>Assign To</span>
+            {assignedTo === '' ? (
+              <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                Unassigned
+              </span>
+            ) : (
+              <span className="text-[10px] text-indigo-700 font-bold bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                Assigned
+              </span>
+            )}
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+          <select
+            value={assignedTo}
+            onChange={(e) => handleAssigneeChange(e.target.value)}
+            className="input-field w-full text-sm font-semibold bg-white cursor-pointer"
+          >
+            <option value="">-- Unassigned (Open Task) --</option>
             {users.map((u) => (
-              <button
-                key={u._id}
-                type="button"
-                onClick={() => handleAssigneeChange(u._id)}
-                className={`flex items-center gap-2.5 p-2.5 rounded-lg border text-left transition-all ${
-                  assignedTo === u._id
-                    ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-white/50'
-                }`}
-              >
-                <div
-                  className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
-                    assignedTo === u._id
-                      ? 'bg-primary/20 text-primary'
-                      : 'bg-gray-200 text-slate-500'
-                  }`}
-                >
-                  <span className="text-xs font-semibold">
-                    {u.name?.charAt(0).toUpperCase() || '?'}
-                  </span>
-                </div>
-                <div className="min-w-0">
-                  <div
-                    className={`text-xs font-medium truncate ${assignedTo === u._id ? 'text-primary' : 'text-slate-600'}`}
-                  >
-                    {u.name}
-                  </div>
-                  <div className="text-[10px] text-slate-500 truncate">{u.email}</div>
-                </div>
-                {assignedTo === u._id && (
-                  <Check className="w-4 h-4 ml-auto text-primary shrink-0" />
-                )}
-              </button>
+              <option key={u._id} value={u._id}>
+                {u.name} ({u.email})
+              </option>
             ))}
-          </div>
+          </select>
         </div>
 
         <div className="card">

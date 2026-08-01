@@ -58,7 +58,7 @@ export default function SubtaskDetailModal({
         setPriority(sub.priority || 'Medium');
         setDueDate(sub.dueDate ? new Date(sub.dueDate).toISOString().split('T')[0] : '');
         setAssignedTo(
-          typeof sub.assignedTo === 'object' ? sub.assignedTo._id : sub.assignedTo || ''
+          typeof sub.assignedTo === 'object' && sub.assignedTo ? sub.assignedTo._id : typeof sub.assignedTo === 'string' ? sub.assignedTo : ''
         );
         setEffortHours(sub.effortHours || 1);
         setChecklist(sub.todoCheckList || []);
