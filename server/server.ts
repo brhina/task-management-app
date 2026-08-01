@@ -29,6 +29,18 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import teamRoutes from "./routes/teamRoutes.js";
 import roleRoutes from "./routes/roleRoutes.js";
 import auditRoutes from "./routes/auditRoutes.js";
+
+// Phase 9 Routes
+import ssoRoutes from "./routes/ssoRoutes.js";
+import billingRoutes from "./routes/billingRoutes.js";
+import apiKeyRoutes from "./routes/apiKeyRoutes.js";
+import integrationRoutes from "./routes/integrationRoutes.js";
+import brandingRoutes from "./routes/brandingRoutes.js";
+import complianceRoutes from "./routes/complianceRoutes.js";
+
+import { apiKeyAuth } from "./middleware/apiKeyAuth.js";
+import { checkIpAllowlist } from "./middleware/ipAllowlist.js";
+
 import { runLegacyOrgMigration } from "./services/legacyMigration.js";
 import { startRecurringTasksJob } from "./jobs/recurringTasks.js";
 import { startNotificationJobs } from "./jobs/notificationJobs.js";
@@ -56,55 +68,20 @@ app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-org-id"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-org-id", "x-api-key"],
     credentials: true,
   }),
 );
 
-// Rate limiting using in-memory store (use Redis in production)
-const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const RATE_LIMIT_MAX = 500; // requests per window
-const AUTH_RATE_LIMIT_MAX = 50; // stricter for auth endpoints
-
-function rateLimit(maxRequests: number) {
-  return (req: express.Request, res: express.Response, next: express.NextFunction): void => {
-    // Use client IP as unique identifier
-    const key = `${req.ip || req.socket.remoteAddress || "unknown"}`;
-    const now = Date.now();
-    const record = rateLimitStore.get(key);
-
-    // New client or expired window: reset counter
-    if (!record || now > record.resetAt) {
-      rateLimitStore.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-      next();
-      return;
-    }
-
-    // Increment and check limit
-    record.count++;
-    if (record.count > maxRequests) {
-      res.status(429).json({
-        message: "Too many requests. Please try again later.",
-        retryAfter: Math.ceil((record.resetAt - now) / 1000), // seconds until reset
-      });
-      return;
-    }
-    next();
-  };
-}
-
-// General rate limit
-// app.use(rateLimit(RATE_LIMIT_MAX));
-
-// Stricter rate limit for auth endpoints
-// const authRateLimit = rateLimit(AUTH_RATE_LIMIT_MAX);
-
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Global middlewares for API key auth fallback and IP allowlist enforcement
+app.use(apiKeyAuth as any);
+app.use(checkIpAllowlist as any);
+
 app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes); // User & member performance routes
+app.use("/api/users", userRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/projects", projectRoutes);
@@ -124,6 +101,14 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/teams", teamRoutes);
 app.use("/api/roles", roleRoutes);
 app.use("/api/audit-logs", auditRoutes);
+
+// Phase 9 Route Mounts
+app.use("/api/sso", ssoRoutes);
+app.use("/api/billing", billingRoutes);
+app.use("/api/api-keys", apiKeyRoutes);
+app.use("/api/integrations", integrationRoutes);
+app.use("/api/branding", brandingRoutes);
+app.use("/api/compliance", complianceRoutes);
 
 // Health check endpoint
 app.get("/health", (_req, res) => {

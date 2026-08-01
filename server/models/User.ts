@@ -6,6 +6,8 @@ export interface IUser {
   password: string;
   profileImageUrl?: string;
   role: "Admin" | "Member";
+  twoFactorEnabled?: boolean;
+  twoFactorSecret?: string;
 }
 
 export interface IUserDocument extends IUser, mongoose.Document {
@@ -36,6 +38,14 @@ const userSchema = new mongoose.Schema<IUserDocument>(
       type: String,
       enum: ["Admin", "Member"],
       default: "Member",
+    },
+    twoFactorEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    twoFactorSecret: {
+      type: String,
+      default: "",
     },
   },
   { timestamps: true },

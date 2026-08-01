@@ -33,6 +33,7 @@ import MemberPerformanceDashboard from './pages/users/MemberPerformanceDashboard
 import WorkOS from './pages/settings/WorkOS';
 import RolesPermissions from './pages/settings/RolesPermissions';
 import NotificationSettings from './pages/settings/NotificationSettings';
+import EnterpriseSettings from './pages/settings/EnterpriseSettings';
 
 import Reports from './pages/reports/Reports';
 import Resources from './pages/resources/Resources';
@@ -379,6 +380,16 @@ function App() {
                 <NotificationSettings />
               </AuthLayout>
             </UserRouteWrapper>
+          }
+        />
+        <Route
+          path="/settings/enterprise"
+          element={
+            <AdminRouteWrapper>
+              <AuthLayout>
+                <EnterpriseSettings />
+              </AuthLayout>
+            </AdminRouteWrapper>
           }
         />
 

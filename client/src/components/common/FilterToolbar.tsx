@@ -39,7 +39,7 @@ export default function FilterToolbar({
   };
 
   return (
-    <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3">
+    <div className="rounded-2xl shadow-xs ">
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         {/* Search & Main Filter Controls */}
         <div className="flex flex-1 items-center gap-2.5 flex-wrap sm:flex-nowrap">

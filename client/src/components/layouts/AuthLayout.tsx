@@ -21,6 +21,8 @@ import {
   ScrollText,
   Menu,
   X,
+  Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 
 const NavIcons: Record<string, ReactNode> = {
@@ -38,6 +40,8 @@ const NavIcons: Record<string, ReactNode> = {
   teams: <UsersRound className="w-5 h-5" />,
   roles: <Shield className="w-5 h-5" />,
   audit: <ScrollText className="w-5 h-5" />,
+  ai: <Sparkles className="w-5 h-5" />,
+  enterprise: <ShieldCheck className="w-5 h-5" />,
 };
 
 interface NavLink {
@@ -73,7 +77,8 @@ function AuthLayout({ children }: { children: ReactNode }) {
       ];
       links.push(
         { name: 'Templates', path: '/tasks/templates', icon: NavIcons.templates },
-        { name: 'Notifications', path: '/settings/notifications', icon: NavIcons.notifications }
+        { name: 'Notifications', path: '/settings/notifications', icon: NavIcons.notifications },
+        { name: 'Enterprise Center', path: '/settings/enterprise', icon: NavIcons.enterprise }
       );
       if (hasPermission('member:manage') || hasPermission('member:invite') || hasPermission('team:view')) {
         links.push({ name: 'Users & Teams', path: '/users', icon: NavIcons.users });

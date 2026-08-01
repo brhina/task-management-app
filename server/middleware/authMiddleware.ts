@@ -18,6 +18,7 @@ export interface AuthRequest extends Request {
   membership?: any;
   membershipRole?: OrgRole;
   permissions?: Permission[];
+  isApiKey?: boolean;
 }
 
 async function resolveMembershipPermissions(

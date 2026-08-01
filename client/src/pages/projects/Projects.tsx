@@ -182,7 +182,7 @@ function Projects({ initialEditingProjectId, onModalClose }: ProjectsProps = {})
         </div>
 
         {/* Toolbar & View Mode Switcher */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between rounded-xl">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex-1">
             <FilterToolbar
               searchValue={searchTerm}
