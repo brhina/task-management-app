@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Folder, ChevronRight, ClipboardList, Target, User as UserIcon, Plus, CheckCircle2, Pencil, ArrowLeft } from 'lucide-react';
+import { Folder, ChevronRight, ClipboardList, Target, User as UserIcon, Plus, CheckCircle2, Pencil, ArrowLeft, CornerDownRight } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import api from '../../utils/axios';
@@ -416,12 +416,30 @@ function GoalDetails() {
                 {linkedTasks.map((t) => (
                   <Link
                     key={t._id}
-                    to={`/tasks/${t._id}`}
-                    className="flex items-center gap-3 py-2.5 px-2 rounded-lg hover:bg-slate-50 transition-colors group"
+                    to={
+                      t.parentTaskId
+                        ? `/tasks/${
+                            typeof t.parentTaskId === 'object'
+                              ? (t.parentTaskId as any)._id
+                              : t.parentTaskId
+                          }?subtaskId=${t._id}`
+                        : `/tasks/${t._id}`
+                    }
+                    className={`flex items-center gap-3 py-2.5 px-2 rounded-lg hover:bg-slate-50 transition-colors group ${t.parentTaskId ? 'ml-4 pl-3 border-l-2 border-indigo-400/40 bg-slate-50/50' : ''}`}
                   >
+                    {t.parentTaskId && (
+                      <CornerDownRight className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                    )}
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold text-slate-800 group-hover:text-primary truncate">
-                        {t.title}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {t.parentTaskId && (
+                          <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider shrink-0">
+                            Subtask
+                          </span>
+                        )}
+                        <span className="text-sm font-semibold text-slate-800 group-hover:text-primary truncate">
+                          {t.title}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-semibold rounded ${getStatusColor(t.status)}`}>

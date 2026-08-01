@@ -128,6 +128,16 @@ function EditTask() {
       api.get(apiPaths.GOALS.LIST).then((r) => setGoals(r.data?.data?.goals || [])),
       api.get(apiPaths.TASKS.GET_TASK_BY_ID.replace(':id', id)).then((r) => {
         const task: Task = r.data.data;
+        if (task.parentTaskId) {
+          const parentId =
+            typeof task.parentTaskId === 'object'
+              ? (task.parentTaskId as any)._id || task.parentTaskId
+              : task.parentTaskId;
+          if (parentId && parentId !== id) {
+            navigate(`/tasks/${parentId}?subtaskId=${task._id}`, { replace: true });
+            return;
+          }
+        }
         setTitle(task.title);
         setDescription(task.description || '');
         setPriority(task.priority);

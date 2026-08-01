@@ -19,6 +19,8 @@ import {
   Zap,
   Layers,
   Activity,
+  X,
+  CornerDownRight,
 } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
@@ -149,6 +151,44 @@ function Dashboard() {
 
     return list;
   }, [dashboardData, activeTab, searchQuery, priorityFilter, urgentTasks]);
+
+  const groupedTasksList = useMemo(() => {
+    const groups: { parent: Task; subtasks: Task[] }[] = [];
+    const map = new Map<string, { parent: Task; subtasks: Task[] }>();
+
+    filteredTasks.forEach((t) => {
+      const parentId = t.parentTaskId
+        ? typeof t.parentTaskId === 'object'
+          ? (t.parentTaskId as any)._id
+          : t.parentTaskId
+        : null;
+
+      if (!parentId) {
+        const node = { parent: t, subtasks: [] };
+        map.set(String(t._id), node);
+        groups.push(node);
+      }
+    });
+
+    filteredTasks.forEach((t) => {
+      const parentId = t.parentTaskId
+        ? typeof t.parentTaskId === 'object'
+          ? (t.parentTaskId as any)._id
+          : t.parentTaskId
+        : null;
+
+      if (parentId) {
+        const node = map.get(String(parentId));
+        if (node) {
+          node.subtasks.push(t);
+        } else {
+          groups.push({ parent: t, subtasks: [] });
+        }
+      }
+    });
+
+    return groups;
+  }, [filteredTasks]);
 
   if (!user) {
     return <PageShell title="Please Log In" subtitle="You need to be logged in." />;
@@ -369,8 +409,18 @@ function Dashboard() {
                       placeholder="Search tasks..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                      className="w-full pl-9 pr-8 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/40 transition-all shadow-2xs"
                     />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 transition-colors"
+                        title="Clear search"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                   <select
                     value={priorityFilter}
@@ -448,113 +498,209 @@ function Dashboard() {
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100">
-                  {filteredTasks.map((task) => {
+                  {groupedTasksList.map(({ parent: task, subtasks }) => {
                     const daysLeft = getDaysUntilDue(task.dueDate);
                     const overdue = isOverdue(task.dueDate) && task.status !== 'Completed';
                     const isUpdating = updatingTaskId === task._id;
 
                     return (
-                      <div
-                        key={task._id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 px-2 -mx-2 rounded-xl hover:bg-slate-50 transition-colors group"
-                      >
-                        {/* Task info & Checkbox toggle */}
-                        <div className="flex items-start gap-3 min-w-0 flex-1">
-                          <button
-                            type="button"
-                            title={
-                              task.status === 'Completed'
-                                ? 'Mark as Pending'
-                                : 'Mark as Completed'
-                            }
-                            disabled={isUpdating}
-                            onClick={() =>
-                              handleStatusChange(
-                                task._id,
-                                task.status === 'Completed' ? 'Pending' : 'Completed'
-                              )
-                            }
-                            className={`mt-0.5 rounded-full p-0.5 border transition-all ${
-                              task.status === 'Completed'
-                                ? 'bg-emerald-500 border-emerald-500 text-white'
-                                : 'border-slate-300 hover:border-primary text-transparent'
-                            }`}
-                          >
-                            {isUpdating ? (
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin text-slate-400" />
-                            ) : (
-                              <CheckCircle className="w-3.5 h-3.5 fill-current" />
-                            )}
-                          </button>
-
-                          <div className="min-w-0 flex-1">
-                            <Link
-                              to={`/tasks/${task._id}`}
-                              className={`text-sm font-bold hover:text-primary transition-colors block truncate ${
+                      <div key={task._id} className="py-2.5">
+                        {/* Parent Task Row */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-1.5 px-2 rounded-xl hover:bg-slate-50 transition-colors group">
+                          {/* Task info & Checkbox toggle */}
+                          <div className="flex items-start gap-3 min-w-0 flex-1">
+                            <button
+                              type="button"
+                              title={
                                 task.status === 'Completed'
-                                  ? 'line-through text-slate-400'
-                                  : 'text-slate-800'
+                                  ? 'Mark as Pending'
+                                  : 'Mark as Completed'
+                              }
+                              disabled={isUpdating}
+                              onClick={() =>
+                                handleStatusChange(
+                                  task._id,
+                                  task.status === 'Completed' ? 'Pending' : 'Completed'
+                                )
+                              }
+                              className={`mt-0.5 rounded-full p-0.5 border transition-all ${
+                                task.status === 'Completed'
+                                  ? 'bg-emerald-500 border-emerald-500 text-white'
+                                  : 'border-slate-300 hover:border-primary text-transparent'
                               }`}
                             >
-                              {task.title}
-                            </Link>
+                              {isUpdating ? (
+                                <RefreshCw className="w-3.5 h-3.5 animate-spin text-slate-400" />
+                              ) : (
+                                <CheckCircle className="w-3.5 h-3.5 fill-current" />
+                              )}
+                            </button>
 
-                            <div className="flex flex-wrap items-center gap-2 mt-1">
-                              <span
-                                className={`inline-flex px-2 py-0.5 text-[10px] font-bold rounded border ${getPriorityColor(
-                                  task.priority
-                                )}`}
-                              >
-                                {task.priority}
-                              </span>
-
-                              {task.dueDate && (
-                                <span
-                                  className={`text-[10px] font-semibold flex items-center gap-1 ${
-                                    overdue
-                                      ? 'text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200'
-                                      : daysLeft === 0
-                                      ? 'text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200'
-                                      : 'text-slate-400'
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Link
+                                  to={`/tasks/${task._id}`}
+                                  className={`text-sm font-bold hover:text-primary transition-colors block truncate ${
+                                    task.status === 'Completed'
+                                      ? 'line-through text-slate-400'
+                                      : 'text-slate-800'
                                   }`}
                                 >
-                                  <Clock className="w-3 h-3" />
-                                  {overdue
-                                    ? `${Math.abs(daysLeft!)}d overdue`
-                                    : daysLeft === 0
-                                    ? 'Due Today'
-                                    : `${daysLeft}d left`}
+                                  {task.title}
+                                </Link>
+                                {subtasks.length > 0 && (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary/10 text-primary border border-primary/20 shrink-0">
+                                    <Layers className="w-3 h-3" />
+                                    {subtasks.length} {subtasks.length === 1 ? 'subtask' : 'subtasks'}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex flex-wrap items-center gap-2 mt-1">
+                                <span
+                                  className={`inline-flex px-2 py-0.5 text-[10px] font-bold rounded border ${getPriorityColor(
+                                    task.priority
+                                  )}`}
+                                >
+                                  {task.priority}
                                 </span>
-                              )}
+
+                                {task.dueDate && (
+                                  <span
+                                    className={`text-[10px] font-semibold flex items-center gap-1 ${
+                                      overdue
+                                        ? 'text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200'
+                                        : daysLeft === 0
+                                        ? 'text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200'
+                                        : 'text-slate-400'
+                                    }`}
+                                  >
+                                    <Clock className="w-3 h-3" />
+                                    {overdue
+                                      ? `${Math.abs(daysLeft!)}d overdue`
+                                      : daysLeft === 0
+                                      ? 'Due Today'
+                                      : `${daysLeft}d left`}
+                                  </span>
+                                )}
+                              </div>
                             </div>
+                          </div>
+
+                          {/* Inline Status Dropdown & View link */}
+                          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                            <select
+                              disabled={isUpdating}
+                              value={task.status}
+                              onChange={(e) =>
+                                handleStatusChange(task._id, e.target.value as TaskStatus)
+                              }
+                              className={`text-[11px] font-bold py-1 px-2.5 rounded-lg border focus:outline-none transition-all cursor-pointer ${getStatusColor(
+                                task.status
+                              )}`}
+                            >
+                              <option value="Pending">Pending</option>
+                              <option value="In Progress">In Progress</option>
+                              <option value="In Review">In Review</option>
+                              <option value="Completed">Completed</option>
+                            </select>
+
+                            <Link
+                              to={`/tasks/${task._id}`}
+                              className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                            >
+                              <ChevronRight className="w-4 h-4" />
+                            </Link>
                           </div>
                         </div>
 
-                        {/* Inline Status Dropdown & View link */}
-                        <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                          <select
-                            disabled={isUpdating}
-                            value={task.status}
-                            onChange={(e) =>
-                              handleStatusChange(task._id, e.target.value as TaskStatus)
-                            }
-                            className={`text-[11px] font-bold py-1 px-2.5 rounded-lg border focus:outline-none transition-all cursor-pointer ${getStatusColor(
-                              task.status
-                            )}`}
-                          >
-                            <option value="Pending">Pending</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="In Review">In Review</option>
-                            <option value="Completed">Completed</option>
-                          </select>
+                        {/* Indented Child Subtasks */}
+                        {subtasks.length > 0 && (
+                          <div className="ml-5 pl-4 border-l-2 border-indigo-400/40 mt-1.5 space-y-1.5">
+                            {subtasks.map((st) => {
+                              const stDaysLeft = getDaysUntilDue(st.dueDate);
+                              const stOverdue = isOverdue(st.dueDate) && st.status !== 'Completed';
+                              const stUpdating = updatingTaskId === st._id;
 
-                          <Link
-                            to={`/tasks/${task._id}`}
-                            className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                          >
-                            <ChevronRight className="w-4 h-4" />
-                          </Link>
-                        </div>
+                              return (
+                                <div
+                                  key={st._id}
+                                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-1.5 px-2 rounded-lg bg-slate-50/70 border border-slate-200/60 hover:bg-slate-100/80 transition-colors"
+                                >
+                                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                                    <CornerDownRight className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                                    <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider shrink-0">
+                                      Subtask
+                                    </span>
+                                    <button
+                                      type="button"
+                                      disabled={stUpdating}
+                                      onClick={() =>
+                                        handleStatusChange(
+                                          st._id,
+                                          st.status === 'Completed' ? 'Pending' : 'Completed'
+                                        )
+                                      }
+                                      className={`rounded-full p-0.5 border shrink-0 transition-all ${
+                                        st.status === 'Completed'
+                                          ? 'bg-emerald-500 border-emerald-500 text-white'
+                                          : 'border-slate-300 hover:border-primary text-transparent'
+                                      }`}
+                                    >
+                                      {stUpdating ? (
+                                        <RefreshCw className="w-3 h-3 animate-spin text-slate-400" />
+                                      ) : (
+                                        <CheckCircle className="w-3 h-3 fill-current" />
+                                      )}
+                                    </button>
+
+                                    <Link
+                                      to={`/tasks/${task._id}?subtaskId=${st._id}`}
+                                      className={`text-xs font-semibold hover:text-primary transition-colors truncate ${
+                                        st.status === 'Completed'
+                                          ? 'line-through text-slate-400'
+                                          : 'text-slate-700'
+                                      }`}
+                                    >
+                                      {st.title}
+                                    </Link>
+                                  </div>
+
+                                  <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                                    <span
+                                      className={`inline-flex px-1.5 py-0.2 text-[9px] font-bold rounded border ${getPriorityColor(
+                                        st.priority
+                                      )}`}
+                                    >
+                                      {st.priority}
+                                    </span>
+                                    <select
+                                      disabled={stUpdating}
+                                      value={st.status}
+                                      onChange={(e) =>
+                                        handleStatusChange(st._id, e.target.value as TaskStatus)
+                                      }
+                                      className={`text-[10px] font-bold py-0.5 px-2 rounded border focus:outline-none transition-all cursor-pointer ${getStatusColor(
+                                        st.status
+                                      )}`}
+                                    >
+                                      <option value="Pending">Pending</option>
+                                      <option value="In Progress">In Progress</option>
+                                      <option value="In Review">In Review</option>
+                                      <option value="Completed">Completed</option>
+                                    </select>
+                                    <Link
+                                      to={`/tasks/${task._id}?subtaskId=${st._id}`}
+                                      className="p-1 text-slate-400 hover:text-primary rounded"
+                                    >
+                                      <ChevronRight className="w-3.5 h-3.5" />
+                                    </Link>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     );
                   })}

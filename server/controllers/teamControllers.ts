@@ -270,14 +270,18 @@ export const getTeamDashboard = async (
     const memberIds = team.memberIds;
     const now = new Date();
 
+    const topLevelMatch = {
+      $or: [{ parentTaskId: null }, { parentTaskId: { $exists: false } }],
+    };
+
     const [byStatus, byPriority, overdue, recentTasks, completedLast30, memberTaskAggregation] =
       await Promise.all([
         Task.aggregate([
-          { $match: { orgId: req.orgId, teamId: team._id } },
+          { $match: { orgId: req.orgId, teamId: team._id, ...topLevelMatch } },
           { $group: { _id: "$status", count: { $sum: 1 } } },
         ]),
         Task.aggregate([
-          { $match: { orgId: req.orgId, teamId: team._id } },
+          { $match: { orgId: req.orgId, teamId: team._id, ...topLevelMatch } },
           { $group: { _id: "$priority", count: { $sum: 1 } } },
         ]),
         Task.countDocuments({
@@ -285,20 +289,29 @@ export const getTeamDashboard = async (
           teamId: team._id,
           status: { $ne: "Completed" },
           dueDate: { $lt: now },
+          ...topLevelMatch,
         }),
-        Task.find({ orgId: req.orgId, teamId: team._id })
+        Task.find({
+          orgId: req.orgId,
+          teamId: team._id,
+        })
           .sort({ updatedAt: -1 })
-          .limit(10)
-          .select("title status priority dueDate assignedTo updatedAt")
-          .populate("assignedTo", "name email profileImageUrl"),
+          .limit(15)
+          .select("title status priority dueDate assignedTo updatedAt parentTaskId")
+          .populate("assignedTo", "name email profileImageUrl")
+          .populate({
+            path: "parentTaskId",
+            select: "title status priority assignedTo",
+          }),
         Task.countDocuments({
           orgId: req.orgId,
           teamId: team._id,
           status: "Completed",
           updatedAt: { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) },
+          ...topLevelMatch,
         }),
         Task.aggregate([
-          { $match: { orgId: req.orgId, teamId: team._id } },
+          { $match: { orgId: req.orgId, teamId: team._id, ...topLevelMatch } },
           {
             $group: {
               _id: "$assignedTo",

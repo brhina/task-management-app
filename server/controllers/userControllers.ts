@@ -213,18 +213,22 @@ export const getUserPerformance = async (
     const orgObjId = new mongoose.Types.ObjectId(req.orgId.toString());
     const now = new Date();
 
+    const topLevelMatch = {
+      $or: [{ parentTaskId: null }, { parentTaskId: { $exists: false } }],
+    };
+
     const [byStatus, byPriority, byProject, overdue, recentTasks, completedLast30] =
       await Promise.all([
         Task.aggregate([
-          { $match: { orgId: orgObjId, assignedTo: userObjId } },
+          { $match: { orgId: orgObjId, assignedTo: userObjId, ...topLevelMatch } },
           { $group: { _id: "$status", count: { $sum: 1 } } },
         ]),
         Task.aggregate([
-          { $match: { orgId: orgObjId, assignedTo: userObjId } },
+          { $match: { orgId: orgObjId, assignedTo: userObjId, ...topLevelMatch } },
           { $group: { _id: "$priority", count: { $sum: 1 } } },
         ]),
         Task.aggregate([
-          { $match: { orgId: orgObjId, assignedTo: userObjId } },
+          { $match: { orgId: orgObjId, assignedTo: userObjId, ...topLevelMatch } },
           {
             $group: {
               _id: "$projectId",
@@ -256,17 +260,27 @@ export const getUserPerformance = async (
           assignedTo: user._id,
           status: { $ne: "Completed" },
           dueDate: { $lt: now },
+          ...topLevelMatch,
         }),
-        Task.find({ orgId: req.orgId, assignedTo: user._id })
+        Task.find({
+          orgId: req.orgId,
+          assignedTo: user._id,
+        })
           .sort({ updatedAt: -1 })
-          .limit(10)
-          .select("title status priority dueDate projectId updatedAt")
-          .populate("projectId", "name"),
+          .limit(15)
+          .select("title status priority dueDate projectId updatedAt parentTaskId assignedTo")
+          .populate("projectId", "name")
+          .populate({
+            path: "parentTaskId",
+            select: "title status priority projectId assignedTo",
+            populate: { path: "projectId", select: "name" },
+          }),
         Task.countDocuments({
           orgId: req.orgId,
           assignedTo: user._id,
           status: "Completed",
           updatedAt: { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) },
+          ...topLevelMatch,
         }),
       ]);
 

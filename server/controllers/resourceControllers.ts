@@ -86,10 +86,10 @@ export const getResourceAllocation = async (
       orgId: req.orgId,
       assignedTo: { $in: userIds },
       status: { $ne: "Completed" },
-      parentTaskId: { $exists: false },
     })
-      .select("assignedTo effortHours title status priority dueDate projectId")
-      .populate("projectId", "name");
+      .select("assignedTo effortHours title status priority dueDate projectId parentTaskId")
+      .populate("projectId", "name")
+      .populate("parentTaskId", "title status priority");
 
     const timeEntries = await TimeEntry.find({
       orgId: req.orgId,

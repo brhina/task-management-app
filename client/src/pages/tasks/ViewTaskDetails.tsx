@@ -15,6 +15,7 @@ import TaskAttachments from '../../components/tasks/TaskAttachments';
 import TaskTimeTracking from '../../components/tasks/TaskTimeTracking';
 import TaskSubtasks from '../../components/tasks/TaskSubtasks';
 import TaskDependencies from '../../components/tasks/TaskDependencies';
+import SubtaskDetailModal from '../../components/tasks/SubtaskDetailModal';
 import MentionText from '../../components/common/MentionText';
 import { useSocket } from '../../context/SocketContext';
 import {
@@ -120,6 +121,34 @@ export default function ViewTaskDetails() {
       setError('');
       const response = await api.get(apiPaths.TASKS.GET_TASK_BY_ID.replace(':id', id || ''));
       const fetchedTask: Task = response.data.data;
+      if (fetchedTask.parentTaskId) {
+        const parentId =
+          typeof fetchedTask.parentTaskId === 'object'
+            ? (fetchedTask.parentTaskId as any)._id || (fetchedTask.parentTaskId as any).id || fetchedTask.parentTaskId
+            : fetchedTask.parentTaskId;
+        const parentIdStr =
+          typeof parentId === 'object' && parentId !== null
+            ? (parentId as any)._id || String(parentId)
+            : String(parentId || '');
+        if (
+          parentIdStr &&
+          parentIdStr !== id &&
+          parentIdStr !== '[object Object]' &&
+          /^[0-9a-fA-F]{24}$/.test(parentIdStr)
+        ) {
+          try {
+            const parentResponse = await api.get(apiPaths.TASKS.GET_TASK_BY_ID.replace(':id', parentIdStr));
+            const parentTask: Task = parentResponse.data.data;
+            setTask(parentTask);
+            setTitleValue(parentTask.title || '');
+            setDescValue(parentTask.description || '');
+            navigate(`/tasks/${parentIdStr}?subtaskId=${fetchedTask._id}`, { replace: true });
+            return;
+          } catch (parentErr) {
+            console.warn('Parent task could not be loaded, displaying subtask directly:', parentErr);
+          }
+        }
+      }
       setTask(fetchedTask);
       setTitleValue(fetchedTask.title || '');
       setDescValue(fetchedTask.description || '');
@@ -128,7 +157,7 @@ export default function ViewTaskDetails() {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, navigate]);
 
   const fetchDependencies = useCallback(async () => {
     try {
@@ -773,94 +802,14 @@ export default function ViewTaskDetails() {
                 )}
               </div>
 
-              {/* Subtasks or Subtask Checklist Card */}
-              {!task.parentTaskId ? (
-                <TaskSubtasks
-                  parentId={task._id}
-                  isAdmin={canEdit}
-                  detailBasePath="/tasks"
-                  onProgressChange={fetchTaskDetails}
-                  members={members}
-                />
-              ) : (
-                <div className="card space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                      Subtask Checklist
-                    </h3>
-                    {task.todoCheckList && task.todoCheckList.length > 0 && (
-                      <span className="text-xs font-bold text-slate-600 tabular-nums">
-                        {task.todoCheckList.filter((t) => t.isCompleted).length}/{task.todoCheckList.length} Completed
-                      </span>
-                    )}
-                  </div>
-
-                  {task.todoCheckList && task.todoCheckList.length > 0 && (
-                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                      <div
-                        className="h-full bg-emerald-500 rounded-full transition-all duration-300"
-                        style={{
-                          width: `${Math.round(
-                            (task.todoCheckList.filter((t) => t.isCompleted).length / task.todoCheckList.length) * 100
-                          )}%`,
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  <div className="space-y-1.5 pt-1">
-                    {task.todoCheckList?.map((todo, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-2.5 p-2 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white transition-colors group"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={todo.isCompleted}
-                          onChange={(e) => handleTodoToggle(index, e.target.checked)}
-                          disabled={updating}
-                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded cursor-pointer disabled:opacity-50"
-                        />
-                        <span
-                          className={`flex-1 text-sm ${
-                            todo.isCompleted ? 'line-through text-slate-400' : 'text-slate-700 font-medium'
-                          }`}
-                        >
-                          {todo.text}
-                        </span>
-                        {canEdit && (
-                          <button
-                            onClick={() => handleDeleteChecklistItem(index)}
-                            disabled={updating}
-                            className="opacity-0 group-hover:opacity-100 p-1 text-rose-400 hover:text-rose-600 transition-opacity"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {canEdit && (
-                    <form onSubmit={handleAddChecklistItem} className="flex gap-2 pt-2">
-                      <input
-                        type="text"
-                        value={newChecklistItem}
-                        onChange={(e) => setNewChecklistItem(e.target.value)}
-                        placeholder="Add item to checklist..."
-                        className="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      />
-                      <button
-                        type="submit"
-                        disabled={!newChecklistItem.trim() || updating}
-                        className="btn-primary px-4 py-1.5 text-xs font-semibold disabled:opacity-50"
-                      >
-                        Add Item
-                      </button>
-                    </form>
-                  )}
-                </div>
-              )}
+              {/* Subtasks Component */}
+              <TaskSubtasks
+                parentId={task._id}
+                isAdmin={canEdit}
+                detailBasePath="/tasks"
+                onProgressChange={fetchTaskDetails}
+                members={members}
+              />
             </div>
           )}
 
@@ -1092,6 +1041,27 @@ export default function ViewTaskDetails() {
         message={`Are you sure you want to permanently delete "${task.title}" and its subtasks? This action cannot be undone.`}
         confirmText="Permanently Delete"
       />
+
+      {/* SUBTASK DETAIL MODAL */}
+      {(() => {
+        const searchParams = new URLSearchParams(location.search);
+        const activeSubtaskId = searchParams.get('subtaskId');
+        if (!activeSubtaskId) return null;
+        return (
+          <SubtaskDetailModal
+            isOpen={!!activeSubtaskId}
+            subtaskId={activeSubtaskId}
+            onClose={() => {
+              navigate(`/tasks/${task?._id || id}`, { replace: true });
+            }}
+            onUpdated={() => {
+              fetchTaskDetails();
+            }}
+            isAdmin={canEdit}
+            members={members}
+          />
+        );
+      })()}
     </PageShell>
   );
 }

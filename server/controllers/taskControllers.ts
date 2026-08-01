@@ -83,7 +83,8 @@ const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
       .sort(sortOptions)
       .skip(skip)
       .limit(limit)
-      .populate("assignedTo", "name email profileImageUrl");
+      .populate("assignedTo", "name email profileImageUrl")
+      .populate("parentTaskId", "title status priority");
 
     const enrichedTasks = await Promise.all(
       tasks.map(async (task) => {
@@ -1019,15 +1020,17 @@ const getDashboardTasks = async (
       {},
     );
 
-    const recentTasks = await Task.find(topLevelFilter)
+    const recentTasks = await Task.find({ orgId: req.orgId })
       .sort({ createdAt: -1 })
       .limit(10)
-      .select("title status priority dueDate createdAt");
+      .select("title status priority dueDate createdAt parentTaskId")
+      .populate("parentTaskId", "title status priority");
 
-    const recentCompletedTasks = await Task.find({ ...topLevelFilter, status: "Completed" })
+    const recentCompletedTasks = await Task.find({ orgId: req.orgId, status: "Completed" })
       .sort({ createdAt: -1 })
       .limit(10)
-      .select("title status priority dueDate assignedTo createdAt");
+      .select("title status priority dueDate assignedTo createdAt parentTaskId")
+      .populate("parentTaskId", "title status priority");
 
     res.status(200).json({
       statistics: {
@@ -1120,18 +1123,21 @@ const getUserDashboardTasks = async (
       {},
     );
 
-    const recentTasks = await Task.find(topLevelFilter)
+    const userTaskFilter = { orgId, assignedTo: req.user._id };
+    const recentTasks = await Task.find(userTaskFilter)
       .sort({ createdAt: -1 })
       .limit(10)
-      .select("title status priority dueDate createdAt");
+      .select("title status priority dueDate createdAt parentTaskId")
+      .populate("parentTaskId", "title status priority");
 
     const recentCompletedTasks = await Task.find({
-      ...topLevelFilter,
+      ...userTaskFilter,
       status: "Completed",
     })
       .sort({ createdAt: -1 })
       .limit(10)
-      .select("title status priority dueDate assignedTo createdAt");
+      .select("title status priority dueDate assignedTo createdAt parentTaskId")
+      .populate("parentTaskId", "title status priority");
 
     res.status(200).json({
       statistics: {

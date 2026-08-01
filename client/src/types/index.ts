@@ -82,7 +82,7 @@ export interface Task {
   attachments: (string | TaskAttachment)[];
   todoCheckList: TodoItem[];
   progress: number;
-  parentTaskId?: string;
+  parentTaskId?: string | { _id?: string; title?: string; status?: string; priority?: string } | null;
   sortOrder?: number;
   sprintId?: string;
   recurrence?: TaskRecurrence | null;

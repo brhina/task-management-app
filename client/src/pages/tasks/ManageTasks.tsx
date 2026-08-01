@@ -9,7 +9,7 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from '@dnd-kit/core';
-import { LayoutGrid, List, Users, ClipboardList, GanttChart, Timer, RefreshCw, Plus, Pencil } from 'lucide-react';
+import { LayoutGrid, List, Users, ClipboardList, GanttChart, Timer, RefreshCw, Plus, Pencil, CornerDownRight } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../utils/axios';
@@ -559,9 +559,30 @@ function ManageTasks() {
                 header: 'Title',
                 sortable: true,
                 render: (task) => (
-                  <Link to={`/tasks/${task._id}`} className="text-sm font-medium text-slate-700 hover:text-primary truncate transition-colors">
-                    {task.title}
-                  </Link>
+                  <div className={`flex items-center gap-2 ${task.parentTaskId ? 'pl-4' : ''}`}>
+                    {task.parentTaskId && (
+                      <CornerDownRight className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                    )}
+                    {task.parentTaskId && (
+                      <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider shrink-0">
+                        Subtask
+                      </span>
+                    )}
+                    <Link
+                      to={
+                        task.parentTaskId
+                          ? `/tasks/${
+                              typeof task.parentTaskId === 'object'
+                                ? (task.parentTaskId as any)._id
+                                : task.parentTaskId
+                            }?subtaskId=${task._id}`
+                          : `/tasks/${task._id}`
+                      }
+                      className="text-sm font-medium text-slate-700 hover:text-primary truncate transition-colors"
+                    >
+                      {task.title}
+                    </Link>
+                  </div>
                 ),
               },
               {

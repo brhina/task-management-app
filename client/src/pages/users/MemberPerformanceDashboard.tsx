@@ -21,6 +21,7 @@ import PageShell from '../../components/common/PageShell';
 import KpiStatCard from '../../components/analytics/KpiStatCard';
 import StatusDistributionChart from '../../components/analytics/StatusDistributionChart';
 import PriorityBreakdownChart from '../../components/analytics/PriorityBreakdownChart';
+import RecentTaskActivityTree from '../../components/users/RecentTaskActivityTree';
 import { UserContext } from '../../context/UserContext';
 
 interface MemberPerformanceData {
@@ -64,6 +65,12 @@ interface MemberPerformanceData {
       _id: string;
       name: string;
     };
+    parentTaskId?: {
+      _id?: string;
+      title?: string;
+      status?: string;
+      priority?: string;
+    } | string | null;
     updatedAt: string;
   }>;
 }
@@ -389,59 +396,12 @@ export default function MemberPerformanceDashboard() {
             </div>
 
             {/* Member Recent Task Activity */}
-            <div className="card">
-              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-primary" />
-                Member Recent Task Activity
-              </div>
-
-              {data.recentTasks.length === 0 ? (
-                <div className="text-center py-6 text-xs text-slate-400 italic">
-                  No recent tasks found for this member.
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {data.recentTasks.map((t) => (
-                    <div
-                      key={t._id}
-                      className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-100 text-xs hover:bg-gray-100/60 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-2 h-2 rounded-full ${
-                            t.status === 'Completed'
-                              ? 'bg-emerald-500'
-                              : t.status === 'In Progress'
-                              ? 'bg-sky-500'
-                              : 'bg-amber-500'
-                          }`}
-                        ></div>
-                        <Link
-                          to={`/tasks/${t._id}`}
-                          className="font-semibold text-slate-800 hover:text-primary transition-colors truncate max-w-[280px]"
-                        >
-                          {t.title}
-                        </Link>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-200 text-slate-700">
-                          {t.priority}
-                        </span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-200 text-slate-700">
-                          {t.status}
-                        </span>
-                        {t.projectId?.name && (
-                          <span className="text-[10px] text-slate-400 hidden sm:inline">
-                            {t.projectId.name}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <RecentTaskActivityTree
+              tasks={data.recentTasks}
+              title="Member Recent Task Activity"
+              emptyMessage="No recent tasks found for this member."
+              showAssignee={false}
+            />
           </>
         ) : null}
       </div>

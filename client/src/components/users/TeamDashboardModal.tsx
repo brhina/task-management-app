@@ -1,5 +1,6 @@
 import Modal from '../common/Modal';
-import { BarChart3, CheckCircle2, AlertCircle, Clock, Users, Activity } from 'lucide-react';
+import { BarChart3, CheckCircle2, AlertCircle, Users, Activity } from 'lucide-react';
+import RecentTaskActivityTree from './RecentTaskActivityTree';
 
 interface TeamDashboardModalProps {
   isOpen: boolean;
@@ -114,38 +115,12 @@ export default function TeamDashboardModal({
           </div>
 
           {/* Recent Activity Timeline */}
-          <div className="border border-slate-200/80 rounded-2xl p-4 bg-white/90 shadow-2xs">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3.5 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-primary" />
-              Recent Team Activity
-            </h4>
-            {(dashboardData.recentTasks || []).length === 0 ? (
-              <div className="text-xs text-slate-400 italic py-2 text-center">
-                No recent activity recorded for this team
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                {(dashboardData.recentTasks || []).map((t: any) => (
-                  <div
-                    key={t._id}
-                    className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/80 border border-slate-100 text-xs hover:bg-slate-100/60 transition-colors"
-                  >
-                    <div className="font-semibold text-slate-800 truncate max-w-[260px]">
-                      {t.title}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">
-                        {t.status}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-medium">
-                        {t.assignedTo?.name || 'Unassigned'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <RecentTaskActivityTree
+            tasks={dashboardData.recentTasks || []}
+            title="Recent Team Activity"
+            emptyMessage="No recent activity recorded for this team"
+            showAssignee={true}
+          />
         </div>
       ) : null}
     </Modal>

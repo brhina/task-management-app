@@ -20,6 +20,7 @@ import {
   Zap,
   ClipboardList,
   Layers,
+  CornerDownRight,
 } from 'lucide-react';
 
 interface TaskSummary {
@@ -30,6 +31,7 @@ interface TaskSummary {
   effortHours: number;
   dueDate?: string;
   projectId?: { _id: string; name: string };
+  parentTaskId?: any;
 }
 
 interface AllocationRow {
@@ -391,14 +393,24 @@ export default function Resources() {
           {/* Search & Status Filter */}
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
             <div className="relative min-w-[200px] flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search member..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                className="w-full pl-9 pr-8 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/40 transition-all shadow-2xs"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 transition-colors"
+                  title="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
 
             <select
@@ -664,14 +676,24 @@ export default function Resources() {
 
             {/* Task Search Bar inside Modal */}
             <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Filter assigned tasks by title or project..."
                 value={taskSearchQuery}
                 onChange={(e) => setTaskSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                className="w-full pl-9 pr-8 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/40 transition-all shadow-2xs"
               />
+              {taskSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setTaskSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 transition-colors"
+                  title="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
 
             {/* Tasks List Content */}
@@ -684,10 +706,18 @@ export default function Resources() {
                 modalFilteredTasks.map((t) => (
                   <div
                     key={t._id}
-                    className="p-3.5 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3"
+                    className={`p-3.5 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3 ${t.parentTaskId ? 'ml-4 pl-3 border-l-2 border-indigo-400/40 bg-slate-50/50' : ''}`}
                   >
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
+                        {t.parentTaskId && (
+                          <CornerDownRight className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                        )}
+                        {t.parentTaskId && (
+                          <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider shrink-0">
+                            Subtask
+                          </span>
+                        )}
                         <span className="font-bold text-xs text-slate-800 truncate">{t.title}</span>
                         {t.projectId && (
                           <span className="text-[10px] px-2 py-0.5 rounded-md font-semibold bg-slate-100 text-slate-600 flex items-center gap-1">
@@ -717,7 +747,15 @@ export default function Resources() {
                         {t.effortHours || 0} hrs
                       </span>
                       <Link
-                        to={`/tasks/${t._id}`}
+                        to={
+                          t.parentTaskId
+                            ? `/tasks/${
+                                typeof t.parentTaskId === 'object'
+                                  ? (t.parentTaskId as any)._id
+                                  : t.parentTaskId
+                              }?subtaskId=${t._id}`
+                            : `/tasks/${t._id}`
+                        }
                         onClick={() => setViewingTasksUser(null)}
                         className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-cyan-50 hover:bg-cyan-100 text-cyan-700 text-xs font-semibold transition-colors"
                       >
