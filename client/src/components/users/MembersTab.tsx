@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Users, UsersRound, Crown, Folder, CheckCircle2, Shield, MoreVertical, LayoutGrid, List } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Users, UsersRound, Crown, Folder, CheckCircle2, Shield, TrendingUp, BarChart2, MoreVertical, LayoutGrid, List } from 'lucide-react';
 import FilterToolbar from '../common/FilterToolbar';
 import NavTabs from '../common/NavTabs';
 import AdvancedTable, { RowActions, type Column, type ActionItem } from '../common/AdvancedTable';
@@ -20,6 +20,8 @@ interface MembersTabProps {
   onOpenUserTeamsModal: (user: UserWithTaskCounts) => void;
   onOpenChangeRoleModal?: (user: UserWithTaskCounts) => void;
   onDeleteUser: (userId: string) => void;
+  searchTerm?: string;
+  onSearchChange?: (val: string) => void;
 }
 
 export default function MembersTab({
@@ -33,7 +35,10 @@ export default function MembersTab({
   onOpenUserTeamsModal,
   onOpenChangeRoleModal,
   onDeleteUser,
+  searchTerm: propSearchTerm,
+  onSearchChange,
 }: MembersTabProps) {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [teamFilter, setTeamFilter] = useState('');
@@ -254,7 +259,8 @@ export default function MembersTab({
             return (
               <div
                 key={u._id}
-                className="card group relative hover:shadow-md hover:border-primary/40 transition-all p-5 flex flex-col justify-between"
+                onClick={() => navigate(`/users/${u._id}/performance`)}
+                className="card group relative cursor-pointer hover:shadow-md hover:border-primary/50 transition-all p-5 flex flex-col justify-between"
               >
                 <div>
                   {/* Top Member Header */}
@@ -263,12 +269,12 @@ export default function MembersTab({
                       <div className="relative">
                         {u.profileImageUrl ? (
                           <img
-                            className="h-12 w-12 rounded-2xl ring-2 ring-slate-100 object-cover shadow-sm"
+                            className="h-12 w-12 rounded-2xl ring-2 ring-slate-100 object-cover shadow-sm group-hover:ring-primary transition-all"
                             src={u.profileImageUrl}
                             alt={u.name}
                           />
                         ) : (
-                          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/10 to-indigo-500/20 text-primary font-extrabold text-base flex items-center justify-center ring-2 ring-primary/10 shadow-sm">
+                          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/10 to-indigo-500/20 text-primary font-extrabold text-base flex items-center justify-center ring-2 ring-primary/10 shadow-sm group-hover:ring-primary transition-all">
                             {u.name?.charAt(0).toUpperCase() || '?'}
                           </div>
                         )}
@@ -317,7 +323,10 @@ export default function MembersTab({
                       <span>Teams & Departments</span>
                       {hasPermission('team:manage') && (
                         <button
-                          onClick={() => onOpenUserTeamsModal(u)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenUserTeamsModal(u);
+                          }}
                           className="text-primary hover:underline text-[10px] lowercase font-semibold"
                         >
                           edit
@@ -418,10 +427,24 @@ export default function MembersTab({
                     })}
                   </span>
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/users/${u._id}/performance`);
+                      }}
+                      className="text-xs font-bold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors flex items-center gap-1"
+                      title="View Member Performance Analytics"
+                    >
+                      <TrendingUp className="w-3.5 h-3.5" />
+                      Performance
+                    </button>
                     {hasPermission('member:manage') && (
                       <button
-                        onClick={() => onOpenChangeRoleModal?.(u)}
-                        className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors flex items-center gap-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenChangeRoleModal?.(u);
+                        }}
+                        className="text-xs font-semibold text-slate-600 hover:text-slate-800 hover:underline transition-colors flex items-center gap-1"
                       >
                         <Shield className="w-3 h-3" />
                         Role
@@ -429,7 +452,10 @@ export default function MembersTab({
                     )}
                     {hasPermission('team:manage') && (
                       <button
-                        onClick={() => onOpenUserTeamsModal(u)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenUserTeamsModal(u);
+                        }}
                         className="text-xs font-semibold text-primary hover:text-primary-hover hover:underline transition-colors"
                       >
                         Teams
@@ -439,7 +465,10 @@ export default function MembersTab({
                       (u.role as string) !== 'OrgAdmin' &&
                       (u.role as string) !== 'Owner' && (
                         <button
-                          onClick={() => onDeleteUser(u._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteUser(u._id);
+                          }}
                           className="text-xs font-semibold text-rose-500 hover:text-rose-600 hover:underline transition-colors"
                         >
                           Remove
@@ -621,6 +650,7 @@ export default function MembersTab({
             <AdvancedTable
               data={filteredUsers}
               columns={userColumns}
+              onRowClick={(u) => navigate(`/users/${u._id}/performance`)}
               emptyMessage={
                 users.length === 0 ? 'No team members yet.' : 'No members match your filters.'
               }

@@ -681,57 +681,6 @@ function ManageUsers() {
           </div>
         )}
 
-        {/* Executive KPI Overview Banner */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="card p-4 flex flex-col justify-between hover:shadow-md transition-all">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Members</span>
-              <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600">
-                <Users className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-extrabold text-slate-900 mt-2 tabular-nums">{users.length}</div>
-            <div className="text-[11px] text-slate-500 mt-1">Across all organization roles</div>
-          </div>
-
-          <div className="card p-4 flex flex-col justify-between hover:shadow-md transition-all">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Active Teams</span>
-              <div className="p-2 rounded-xl bg-sky-500/10 text-sky-600">
-                <UsersRound className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-extrabold text-slate-900 mt-2 tabular-nums">{teams.length}</div>
-            <div className="text-[11px] text-slate-500 mt-1">Department & project units</div>
-          </div>
-
-          <div className="card p-4 flex flex-col justify-between hover:shadow-md transition-all">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Workload Capacity</span>
-              <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600">
-                <BarChart2 className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-extrabold text-slate-900 mt-2 tabular-nums">
-              {workloadStats.moderate + workloadStats.light} Balanced
-            </div>
-            <div className="text-[11px] text-emerald-600 font-medium mt-1">
-              {workloadStats.heavy} Heavy • {workloadStats.idle} Idle
-            </div>
-          </div>
-
-          <div className="card p-4 flex flex-col justify-between hover:shadow-md transition-all">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Active Projects</span>
-              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
-                <Folder className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-extrabold text-slate-900 mt-2 tabular-nums">{projects.length}</div>
-            <div className="text-[11px] text-slate-500 mt-1">Linked project workspaces</div>
-          </div>
-        </div>
-
         {/* Unified Tab Navigation & Action Toolbar */}
         <div className="flex items-center justify-between pb-1">
           <NavTabs<'members' | 'teams'>

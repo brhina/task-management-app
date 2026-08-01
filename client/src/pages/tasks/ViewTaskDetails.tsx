@@ -150,17 +150,28 @@ export default function ViewTaskDetails() {
 
   const fetchMembers = useCallback(async () => {
     try {
+      let list: User[] = [];
       const orgId = localStorage.getItem('activeOrgId');
-      if (!orgId) return;
-      const res = await api.get(apiPaths.ORG_MEMBERSHIP.GET_MEMBERS.replace(':orgId', orgId));
-      const list = (res.data.data || res.data.members || []).map((m: any) =>
-        m.userId && typeof m.userId === 'object'
-          ? m.userId
-          : { _id: m.userId || m._id, name: m.name, email: m.email }
-      );
+      if (orgId) {
+        try {
+          const res = await api.get(apiPaths.ORG_MEMBERSHIP.GET_MEMBERS.replace(':orgId', orgId));
+          const rawMembers = res.data?.data || res.data?.members || [];
+          list = rawMembers.map((m: any) =>
+            m.userId && typeof m.userId === 'object'
+              ? m.userId
+              : { _id: m.userId || m._id, name: m.name || m.email, email: m.email, profileImageUrl: m.profileImageUrl }
+          );
+        } catch (e) {
+          // Fallback to all users if org members call fails
+        }
+      }
+      if (!list || list.length === 0) {
+        const res = await api.get(apiPaths.USERS.GET_ALL_USERS);
+        list = res.data?.data?.users || res.data?.users || (Array.isArray(res.data) ? res.data : []);
+      }
       setMembers(list);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching members:', err);
     }
   }, []);
 
@@ -966,46 +977,71 @@ export default function ViewTaskDetails() {
           </div>
 
           {/* Assignee Card */}
-          <div className="card space-y-3">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
-              <span>Assignee</span>
-              <UserIcon className="w-4 h-4 text-slate-400" />
-            </h3>
+          {(() => {
+            const assignedUser: any = task.assignedTo
+              ? typeof task.assignedTo === 'object'
+                ? task.assignedTo
+                : members.find((m) => String(m._id) === String(task.assignedTo)) || null
+              : null;
 
-            {canEdit ? (
-              <select
-                value={typeof task.assignedTo === 'object' ? task.assignedTo._id : task.assignedTo || ''}
-                onChange={(e) => handleUpdateTaskField({ assignedTo: e.target.value as any })}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-              >
-                {members.map((m) => (
-                  <option key={m._id} value={m._id}>
-                    {m.name} ({m.email})
-                  </option>
-                ))}
-              </select>
-            ) : task.assignedTo && typeof task.assignedTo === 'object' ? (
-              <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                {task.assignedTo.profileImageUrl ? (
-                  <img
-                    className="h-9 w-9 rounded-full ring-2 ring-indigo-200 object-cover"
-                    src={task.assignedTo.profileImageUrl}
-                    alt={task.assignedTo.name}
-                  />
+            return (
+              <div className="card space-y-3">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                  <span>Assignee</span>
+                  <UserIcon className="w-4 h-4 text-indigo-500" />
+                </h3>
+
+                {assignedUser ? (
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 shadow-2xs">
+                    {assignedUser.profileImageUrl ? (
+                      <img
+                        className="h-10 w-10 rounded-full ring-2 ring-indigo-200 object-cover shadow-2xs shrink-0"
+                        src={assignedUser.profileImageUrl}
+                        alt={assignedUser.name || 'Assignee'}
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-extrabold text-sm shadow-2xs shrink-0">
+                        {assignedUser.name?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-extrabold text-slate-900 truncate">
+                        {assignedUser.name || 'Assigned Member'}
+                      </div>
+                      {assignedUser.email && (
+                        <div className="text-[11px] text-slate-500 truncate">{assignedUser.email}</div>
+                      )}
+                    </div>
+                  </div>
                 ) : (
-                  <div className="h-9 w-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
-                    {task.assignedTo.name?.charAt(0).toUpperCase()}
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-400 italic flex items-center gap-2">
+                    <UserIcon className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span>Currently Unassigned</span>
                   </div>
                 )}
-                <div className="min-w-0">
-                  <div className="text-xs font-bold text-slate-800 truncate">{task.assignedTo.name}</div>
-                  <div className="text-[11px] text-slate-500 truncate">{task.assignedTo.email}</div>
-                </div>
+
+                {canEdit && (
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      {assignedUser ? 'Reassign Task' : 'Select Assignee'}
+                    </label>
+                    <select
+                      value={typeof task.assignedTo === 'object' ? task.assignedTo?._id : task.assignedTo || ''}
+                      onChange={(e) => handleUpdateTaskField({ assignedTo: e.target.value as any })}
+                      className="w-full rounded-xl border border-slate-200/90 bg-white px-3 py-2 text-xs text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer shadow-2xs"
+                    >
+                      <option value="">-- Unassigned --</option>
+                      {members.map((m) => (
+                        <option key={m._id} value={m._id}>
+                          {m.name} ({m.email})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
-            ) : (
-              <span className="text-xs text-slate-400 italic">Unassigned</span>
-            )}
-          </div>
+            );
+          })()}
 
           {/* Effort & Impact Card */}
           <div className="card space-y-3">

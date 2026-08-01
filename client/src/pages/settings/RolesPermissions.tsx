@@ -221,8 +221,18 @@ const RolesPermissions = () => {
           </div>
         )}
 
-        {/* Controls: Search Input BEFORE Sub-Navigation Tabs */}
+        {/* Controls Toolbar: NavTabs on LEFT, Search Input on RIGHT */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
+          <NavTabs<'overview' | 'matrix' | 'members'>
+            tabs={[
+              { id: 'overview', label: 'Roles Overview', icon: Grid },
+              { id: 'matrix', label: 'Permission Matrix', icon: Layers },
+              { id: 'members', label: 'Member Directory', icon: Users, badge: members.length },
+            ]}
+            activeTab={activeTab}
+            onChange={setActiveTab}
+          />
+
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
@@ -239,16 +249,6 @@ const RolesPermissions = () => {
               className="pl-9 pr-3 py-2 text-xs bg-white border border-slate-200/80 rounded-xl w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
             />
           </div>
-
-          <NavTabs<'overview' | 'matrix' | 'members'>
-            tabs={[
-              { id: 'overview', label: 'Roles Overview', icon: Grid },
-              { id: 'matrix', label: 'Permission Matrix', icon: Layers },
-              { id: 'members', label: 'Member Directory', icon: Users, badge: members.length },
-            ]}
-            activeTab={activeTab}
-            onChange={setActiveTab}
-          />
         </div>
 
         {/* Loading Spinner */}
