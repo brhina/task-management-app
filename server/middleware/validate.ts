@@ -144,6 +144,19 @@ export const createGoalSchema = z.object({
   timeframe: z
     .enum(["Weekly", "Monthly", "Quarterly", "Yearly", "Custom"])
     .optional(),
+  status: z
+    .enum([
+      "Not Started",
+      "In Progress",
+      "On Track",
+      "At Risk",
+      "Behind",
+      "Completed",
+      "Closed",
+    ])
+    .optional(),
+  category: z.enum(["Company", "Team", "Individual"]).optional(),
+  priority: z.enum(["Low", "Medium", "High", "Critical"]).optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
 });

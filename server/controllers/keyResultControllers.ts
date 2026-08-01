@@ -7,8 +7,16 @@ import GoalLink from "../models/GoalLink.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
 
 async function computeProgress(kr: any): Promise<number> {
+  if (kr.unit === "boolean") {
+    return kr.currentValue && kr.currentValue >= 1 ? 100 : 0;
+  }
+
   if (kr.targetValue && kr.targetValue > 0 && kr.currentValue != null) {
-    return Math.min(100, Math.round((kr.currentValue / kr.targetValue) * 100));
+    const start = kr.startValue || 0;
+    const range = kr.targetValue - start;
+    if (range <= 0) return Math.min(100, Math.round((kr.currentValue / kr.targetValue) * 100));
+    const achieved = kr.currentValue - start;
+    return Math.min(100, Math.max(0, Math.round((achieved / range) * 100)));
   }
 
   const taskIds = [...(kr.linkedTaskIds || [])];
@@ -39,7 +47,7 @@ export const listKeyResults = async (
     const filter: Record<string, unknown> = { orgId: req.orgId };
     if (req.query.objectiveId) filter.objectiveId = req.query.objectiveId;
 
-    const krs = await KeyResult.find(filter).sort({ createdAt: 1 });
+    const krs = await KeyResult.find(filter).populate("ownerId", "name email profileImageUrl").sort({ createdAt: 1 });
     const data = await Promise.all(
       krs.map(async (kr) => ({
         ...kr.toObject(),
@@ -76,15 +84,21 @@ export const createKeyResult = async (
       objectiveId: req.body.objectiveId,
       title: req.body.title,
       metric: req.body.metric,
+      unit: req.body.unit || "percentage",
+      status: req.body.status || "In Progress",
+      startValue: req.body.startValue ?? 0,
       targetValue: req.body.targetValue,
       currentValue: req.body.currentValue ?? 0,
+      ownerId: req.body.ownerId,
       linkedProjectIds: req.body.linkedProjectIds || [],
       linkedTaskIds: req.body.linkedTaskIds || [],
     });
 
+    const populated = await kr.populate("ownerId", "name email profileImageUrl");
+
     res.status(201).json({
       message: "Key result created",
-      data: { ...kr.toObject(), progressPercent: await computeProgress(kr) },
+      data: { ...populated.toObject(), progressPercent: await computeProgress(populated) },
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -113,8 +127,12 @@ export const updateKeyResult = async (
     const fields = [
       "title",
       "metric",
+      "unit",
+      "status",
+      "startValue",
       "targetValue",
       "currentValue",
+      "ownerId",
       "linkedProjectIds",
       "linkedTaskIds",
     ] as const;
@@ -122,18 +140,25 @@ export const updateKeyResult = async (
       if (req.body[f] !== undefined) (kr as any)[f] = req.body[f];
     }
 
+    // Auto-sync status to Completed if progress is 100%
+    const pct = await computeProgress(kr);
+    if (pct >= 100) {
+      kr.status = "Completed";
+    }
+
     // Auto-sync currentValue from linked completion when requested
     if (req.body.autoProgress) {
-      const pct = await computeProgress(kr);
       if (kr.targetValue) {
-        kr.currentValue = Math.round((pct / 100) * kr.targetValue);
+        const start = kr.startValue || 0;
+        kr.currentValue = Math.round(start + (pct / 100) * (kr.targetValue - start));
       }
     }
 
     await kr.save();
+    const populated = await kr.populate("ownerId", "name email profileImageUrl");
     res.status(200).json({
       message: "Key result updated",
-      data: { ...kr.toObject(), progressPercent: await computeProgress(kr) },
+      data: { ...populated.toObject(), progressPercent: await computeProgress(populated) },
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });

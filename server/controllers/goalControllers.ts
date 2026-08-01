@@ -15,7 +15,7 @@ export const listGoals = async (
       return;
     }
 
-    const { search, page: pageStr, limit: limitStr } = req.query;
+    const { search, timeframe, status, category, ownerId, page: pageStr, limit: limitStr } = req.query;
     const page = Math.max(1, parseInt(pageStr as string, 10) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(limitStr as string, 10) || 50));
     const skip = (page - 1) * limit;
@@ -26,6 +26,18 @@ export const listGoals = async (
     if (isSearch) {
       filter.$text = { $search: search as string };
     }
+    if (timeframe) {
+      filter.timeframe = timeframe;
+    }
+    if (status) {
+      filter.status = status;
+    }
+    if (category) {
+      filter.category = category;
+    }
+    if (ownerId) {
+      filter.ownerId = ownerId;
+    }
 
     const projection = isSearch ? { score: { $meta: "textScore" } } : {};
     const sortOptions: any = isSearch
@@ -35,6 +47,7 @@ export const listGoals = async (
     const total = await Goal.countDocuments(filter);
 
     const goals = await Goal.find(filter, projection)
+      .populate("ownerId", "name email profileImageUrl")
       .sort(sortOptions)
       .skip(skip)
       .limit(limit);
@@ -66,7 +79,7 @@ export const getGoalById = async (
       return;
     }
 
-    const goal = await Goal.findOne({ _id: req.params.id, orgId: req.orgId });
+    const goal = await Goal.findOne({ _id: req.params.id, orgId: req.orgId }).populate("ownerId", "name email profileImageUrl");
     if (!goal) {
       res.status(404).json({ message: "Goal not found" });
       return;
@@ -117,6 +130,9 @@ export const createGoal = async (
       currentValue,
       ownerId,
       timeframe,
+      status,
+      category,
+      priority,
       startDate,
       endDate,
     } = req.body;
@@ -134,11 +150,16 @@ export const createGoal = async (
       currentValue,
       ownerId: ownerId || req.user._id,
       timeframe,
+      status,
+      category,
+      priority,
       startDate,
       endDate,
     });
 
-    res.status(201).json({ message: "Goal created successfully", data: goal });
+    const populatedGoal = await goal.populate("ownerId", "name email profileImageUrl");
+
+    res.status(201).json({ message: "Goal created successfully", data: populatedGoal });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -167,13 +188,17 @@ export const updateGoal = async (
     goal.currentValue = req.body.currentValue ?? goal.currentValue;
     goal.ownerId = req.body.ownerId ?? goal.ownerId;
     goal.timeframe = req.body.timeframe ?? goal.timeframe;
+    goal.status = req.body.status ?? goal.status;
+    goal.category = req.body.category ?? goal.category;
+    goal.priority = req.body.priority ?? goal.priority;
     goal.startDate = req.body.startDate ?? goal.startDate;
     goal.endDate = req.body.endDate ?? goal.endDate;
 
     const updated = await goal.save();
+    const populated = await updated.populate("ownerId", "name email profileImageUrl");
     res
       .status(200)
-      .json({ message: "Goal updated successfully", data: updated });
+      .json({ message: "Goal updated successfully", data: populated });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

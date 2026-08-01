@@ -157,13 +157,20 @@ export interface Milestone {
   progress?: number;
 }
 
+export type KeyResultUnit = 'percentage' | 'currency' | 'number' | 'boolean';
+export type KeyResultStatus = 'Not Started' | 'In Progress' | 'Completed' | 'At Risk';
+
 export interface KeyResult {
   _id: string;
   objectiveId: string;
   title: string;
   metric?: string;
+  unit?: KeyResultUnit;
+  status?: KeyResultStatus;
+  startValue?: number;
   targetValue?: number;
   currentValue?: number;
+  ownerId?: string | User;
   linkedProjectIds?: string[];
   linkedTaskIds?: string[];
   progressPercent?: number;
@@ -307,6 +314,16 @@ export interface Project {
 }
 
 export type GoalTimeframe = 'Weekly' | 'Monthly' | 'Quarterly' | 'Yearly' | 'Custom';
+export type GoalStatus =
+  | 'Not Started'
+  | 'In Progress'
+  | 'On Track'
+  | 'At Risk'
+  | 'Behind'
+  | 'Completed'
+  | 'Closed';
+export type GoalCategory = 'Company' | 'Team' | 'Individual';
+export type GoalPriority = 'Low' | 'Medium' | 'High' | 'Critical';
 
 export interface Goal {
   _id: string;
@@ -316,10 +333,15 @@ export interface Goal {
   metric?: string;
   targetValue?: number;
   currentValue?: number;
-  ownerId: string;
+  ownerId: string | User;
   timeframe: GoalTimeframe;
+  status: GoalStatus;
+  category: GoalCategory;
+  priority: GoalPriority;
   startDate?: string;
   endDate?: string;
+  keyResultsCount?: number;
+  progressPercent?: number;
   createdAt: string;
   updatedAt: string;
 }

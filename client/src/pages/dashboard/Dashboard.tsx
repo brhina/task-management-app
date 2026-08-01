@@ -369,7 +369,7 @@ function Dashboard() {
             <div className="card bg-white border border-slate-200 p-5">
               {/* Header & Controls */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-200/80">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <ListFilter className="w-5 h-5 text-primary" />
                   <h2 className="text-base font-bold text-slate-800">Task Work Hub</h2>
                   <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-primary/10 text-primary border border-primary/20">
@@ -377,22 +377,22 @@ function Dashboard() {
                   </span>
                 </div>
 
-                {/* Filter Controls */}
-                <div className="flex items-center gap-2">
-                  <div className="input-icon-wrapper flex-1 sm:w-48">
-                    <Search className="input-icon w-4 h-4" />
+                {/* Filter Controls - Clean Separated Flex Layout */}
+                <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                  <div className="relative flex-1 sm:w-52 sm:flex-initial">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                     <input
                       type="text"
                       placeholder="Search tasks..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="input-field py-1.5 text-xs"
+                      className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                     />
                   </div>
                   <select
                     value={priorityFilter}
                     onChange={(e) => setPriorityFilter(e.target.value)}
-                    className="input-field py-1.5 text-xs font-medium text-slate-700"
+                    className="px-3 py-1.5 text-xs font-bold bg-white border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-colors shrink-0 shadow-sm"
                   >
                     <option value="all">All Priorities</option>
                     <option value="Critical">Critical</option>
@@ -403,12 +403,12 @@ function Dashboard() {
                 </div>
               </div>
 
-              {/* WorkOS Style Navigation Tabs */}
-              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 mb-4 text-xs font-bold">
+              {/* WorkOS Style Navigation Tabs (Horizontally Scrollable on Mobile) */}
+              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 mb-4 text-xs font-bold overflow-x-auto max-w-full flex-nowrap no-scrollbar">
                 <button
                   type="button"
                   onClick={() => setActiveTab('active')}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all ${
+                  className={`px-3.5 py-1.5 rounded-lg transition-all shrink-0 whitespace-nowrap ${
                     activeTab === 'active'
                       ? 'bg-white text-primary shadow-sm font-black'
                       : 'text-slate-500 hover:text-slate-800'
@@ -419,19 +419,19 @@ function Dashboard() {
                 <button
                   type="button"
                   onClick={() => setActiveTab('urgent')}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                  className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
                     activeTab === 'urgent'
                       ? 'bg-rose-500/10 text-rose-600 border border-rose-500/30 font-black'
                       : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
                   Needs Attention ({urgentTasks.length})
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab('completed')}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all ${
+                  className={`px-3.5 py-1.5 rounded-lg transition-all shrink-0 whitespace-nowrap ${
                     activeTab === 'completed'
                       ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 font-black'
                       : 'text-slate-500 hover:text-slate-800'
@@ -442,7 +442,7 @@ function Dashboard() {
                 <button
                   type="button"
                   onClick={() => setActiveTab('all')}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all ${
+                  className={`px-3.5 py-1.5 rounded-lg transition-all shrink-0 whitespace-nowrap ${
                     activeTab === 'all'
                       ? 'bg-white text-slate-800 shadow-sm font-black'
                       : 'text-slate-500 hover:text-slate-800'

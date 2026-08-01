@@ -1,5 +1,5 @@
-import { useContext, useEffect, useState } from 'react';
-import { Download, Filter, ScrollText } from 'lucide-react';
+import { useContext, useEffect, useMemo, useState } from 'react';
+import { Download, Filter, ScrollText, ShieldAlert, Users, Activity, Search, RefreshCw, Layers } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import PageShell from '../../components/common/PageShell';
 import AdvancedTable, { type Column } from '../../components/common/AdvancedTable';
@@ -17,12 +17,30 @@ interface AuditEntry {
   ip?: string;
 }
 
+const ACTION_COLORS: Record<string, string> = {
+  create: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
+  update: 'bg-blue-500/15 text-blue-600 border-blue-500/30',
+  delete: 'bg-rose-500/15 text-rose-600 border-rose-500/30',
+  login: 'bg-violet-500/15 text-violet-600 border-violet-500/30',
+  invite: 'bg-amber-500/15 text-amber-600 border-amber-500/30',
+};
+
+const getActionColor = (action: string) => {
+  const lower = action.toLowerCase();
+  if (lower.includes('create') || lower.includes('add')) return ACTION_COLORS.create;
+  if (lower.includes('delete') || lower.includes('remove')) return ACTION_COLORS.delete;
+  if (lower.includes('login') || lower.includes('auth')) return ACTION_COLORS.login;
+  if (lower.includes('invite')) return ACTION_COLORS.invite;
+  return ACTION_COLORS.update;
+};
+
 const AuditLogPage = () => {
   const { hasPermission } = useContext(UserContext);
   const [logs, setLogs] = useState<AuditEntry[]>([]);
   const [actions, setActions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     action: '',
     startDate: '',
@@ -30,12 +48,14 @@ const AuditLogPage = () => {
   });
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   const canView = hasPermission('org:audit');
 
   const fetchLogs = async () => {
     try {
       setLoading(true);
+      setError('');
       const params = new URLSearchParams();
       params.set('page', String(page));
       params.set('limit', '40');
@@ -45,6 +65,7 @@ const AuditLogPage = () => {
       const res = await axios.get(`${apiPaths.AUDIT.LIST}?${params.toString()}`);
       setLogs(res.data.data || []);
       setPages(res.data.pagination?.pages || 1);
+      setTotalCount(res.data.pagination?.total || (res.data.data || []).length);
       setActions(res.data.filters?.actions || []);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load audit logs');
@@ -58,8 +79,31 @@ const AuditLogPage = () => {
     else setLoading(false);
   }, [canView, page, filters.action, filters.startDate, filters.endDate]);
 
+  const filteredLogs = useMemo(() => {
+    if (!searchTerm) return logs;
+    const term = searchTerm.toLowerCase();
+    return logs.filter((log) => {
+      const actorName = log.actorId?.name?.toLowerCase() || '';
+      const actorEmail = log.actorId?.email?.toLowerCase() || '';
+      const action = log.action.toLowerCase();
+      const targetType = log.targetType.toLowerCase();
+      return (
+        actorName.includes(term) ||
+        actorEmail.includes(term) ||
+        action.includes(term) ||
+        targetType.includes(term)
+      );
+    });
+  }, [logs, searchTerm]);
+
+  const stats = useMemo(() => {
+    const uniqueActors = new Set(logs.map((l) => l.actorId?.email).filter(Boolean)).size;
+    const uniqueActions = new Set(logs.map((l) => l.action)).size;
+    return { uniqueActors, uniqueActions };
+  }, [logs]);
+
   if (!canView) {
-    return <PageShell title="Access Denied" subtitle="You need org:audit permission." />;
+    return <PageShell title="Access Denied" subtitle="You need org:audit permission to view audit logs." />;
   }
 
   const exportLogs = async (format: 'xlsx' | 'csv') => {
@@ -81,7 +125,7 @@ const AuditLogPage = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `audit-log.${format === 'csv' ? 'csv' : 'xlsx'}`;
+      link.download = `audit-log-${new Date().toISOString().split('T')[0]}.${format === 'csv' ? 'csv' : 'xlsx'}`;
       link.click();
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
@@ -92,147 +136,285 @@ const AuditLogPage = () => {
   return (
     <PageShell
       title="Audit Log"
-      subtitle="Track significant organization actions with filters and export."
+      subtitle="Comprehensive security activity and organizational audit history"
+      actions={
+        <button
+          type="button"
+          onClick={fetchLogs}
+          className="btn-secondary text-sm flex items-center gap-1.5 px-3 py-1.5"
+        >
+          <RefreshCw className="w-4 h-4 text-slate-500" />
+          Refresh Log
+        </button>
+      }
     >
-      <div className="space-y-4">
-        {error && (
-          <div className="bg-rose-500/10 border border-rose-500/30 rounded-lg px-4 py-3 text-sm text-rose-400">
-            {error}
-          </div>
-        )}
+      <div className="space-y-5">
+        {error && <div className="alert-error">{error}</div>}
 
-        <div className="bg-white/50 border border-gray-200/50 rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Filter className="w-4 h-4 text-slate-500" />
-            <span className="text-sm text-slate-600">Filters</span>
+        {/* KPI Overview Summary Header */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="card p-4">
+            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
+              <span>Total Audit Events</span>
+              <ScrollText className="w-4 h-4 text-primary" />
+            </div>
+            <div className="text-2xl font-black text-slate-800">{totalCount || logs.length}</div>
+            <div className="text-[11px] text-slate-500 mt-1">Recorded activities</div>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <select
-              value={filters.action}
-              onChange={(e) => {
-                setPage(1);
-                setFilters({ ...filters, action: e.target.value });
-              }}
-              className="bg-gray-100 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-800"
-            >
-              <option value="">All actions</option>
-              {actions.map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
-              ))}
-            </select>
-            <input
-              type="date"
-              value={filters.startDate}
-              onChange={(e) => {
-                setPage(1);
-                setFilters({ ...filters, startDate: e.target.value });
-              }}
-              className="bg-gray-100 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-800"
-            />
-            <input
-              type="date"
-              value={filters.endDate}
-              onChange={(e) => {
-                setPage(1);
-                setFilters({ ...filters, endDate: e.target.value });
-              }}
-              className="bg-gray-100 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-800"
-            />
-            <div className="flex gap-2">
+
+          <div className="card p-4">
+            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
+              <span>Unique Actions</span>
+              <Layers className="w-4 h-4 text-violet-500" />
+            </div>
+            <div className="text-2xl font-black text-slate-800">{stats.uniqueActions}</div>
+            <div className="text-[11px] text-violet-600 font-medium mt-1">Distinct event types</div>
+          </div>
+
+          <div className="card p-4">
+            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
+              <span>Active Actors</span>
+              <Users className="w-4 h-4 text-emerald-500" />
+            </div>
+            <div className="text-2xl font-black text-slate-800">{stats.uniqueActors}</div>
+            <div className="text-[11px] text-emerald-600 font-medium mt-1">Users & System actors</div>
+          </div>
+
+          <div className="card p-4">
+            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
+              <span>Audit Status</span>
+              <Activity className="w-4 h-4 text-blue-500" />
+            </div>
+            <div className="text-sm font-bold text-emerald-600 flex items-center gap-1.5 mt-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Active Monitoring
+            </div>
+            <div className="text-[11px] text-slate-400 mt-1">Real-time log capture</div>
+          </div>
+        </div>
+
+        {/* Filter Toolbar & Export Section */}
+        <div className="card p-4 space-y-3">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Filter by actor, action name, or target..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="input-field w-full pl-9 text-sm"
+              />
+            </div>
+
+            {/* Export Buttons */}
+            <div className="flex items-center gap-2 shrink-0">
               <button
+                type="button"
                 onClick={() => exportLogs('xlsx')}
-                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 border border-slate-600 rounded-lg text-xs text-slate-800"
+                className="btn-secondary text-xs flex items-center gap-1.5 py-2 px-3"
               >
-                <Download className="w-3.5 h-3.5" /> Excel
+                <Download className="w-3.5 h-3.5 text-emerald-600" />
+                Export Excel
               </button>
               <button
+                type="button"
                 onClick={() => exportLogs('csv')}
-                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 border border-slate-600 rounded-lg text-xs text-slate-800"
+                className="btn-secondary text-xs flex items-center gap-1.5 py-2 px-3"
               >
-                <Download className="w-3.5 h-3.5" /> CSV
+                <Download className="w-3.5 h-3.5 text-blue-600" />
+                Export CSV
               </button>
+            </div>
+          </div>
+
+          {/* Action & Date Range Filters */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
+            <div>
+              <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide block mb-1">
+                Action Type
+              </label>
+              <select
+                value={filters.action}
+                onChange={(e) => {
+                  setPage(1);
+                  setFilters({ ...filters, action: e.target.value });
+                }}
+                className="input-field w-full text-xs"
+              >
+                <option value="">All Action Types</option>
+                {actions.map((a) => (
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide block mb-1">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={filters.startDate}
+                onChange={(e) => {
+                  setPage(1);
+                  setFilters({ ...filters, startDate: e.target.value });
+                }}
+                className="input-field w-full text-xs"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide block mb-1">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={filters.endDate}
+                onChange={(e) => {
+                  setPage(1);
+                  setFilters({ ...filters, endDate: e.target.value });
+                }}
+                className="input-field w-full text-xs"
+              />
             </div>
           </div>
         </div>
 
+        {/* Audit Log Table */}
         {loading ? (
-          <p className="text-slate-500 text-sm">Loading audit log...</p>
+          <div className="flex justify-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
         ) : (
-          <AdvancedTable
-            data={logs}
-            columns={[
-              {
-                key: 'createdAt',
-                header: 'Time',
-                render: (log) => (
-                  <span className="text-xs whitespace-nowrap">{new Date(log.createdAt).toLocaleString()}</span>
-                ),
-              },
-              {
-                key: 'actorId',
-                header: 'Actor',
-                render: (log) => (
-                  <div>
-                    <div className="text-slate-800 text-xs">{log.actorId?.name || 'System'}</div>
-                    <div className="text-[10px] text-slate-500">{log.actorId?.email}</div>
-                  </div>
-                ),
-              },
-              {
-                key: 'action',
-                header: 'Action',
-                render: (log) => (
-                  <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-gray-100 border border-gray-200">
-                    <ScrollText className="w-3 h-3" />
-                    {log.action}
-                  </span>
-                ),
-              },
-              {
-                key: 'targetType',
-                header: 'Target',
-                render: (log) => (
-                  <span className="text-xs">
-                    {log.targetType}
-                    {log.targetId ? ` · ${String(log.targetId).slice(-6)}` : ''}
-                  </span>
-                ),
-              },
-              {
-                key: 'metadata',
-                header: 'Details',
-                render: (log) => (
-                  <span className="text-xs text-slate-500 max-w-xs truncate block">
-                    {log.metadata ? JSON.stringify(log.metadata) : '—'}
-                  </span>
-                ),
-              },
-            ] satisfies Column<AuditEntry>[]}
-            emptyMessage="No audit events yet."
-          />
-        )}
+          <div className="space-y-3">
+            <AdvancedTable
+              data={filteredLogs}
+              columns={[
+                {
+                  key: 'createdAt',
+                  header: 'Timestamp',
+                  sortable: true,
+                  render: (log) => (
+                    <div>
+                      <div className="text-xs font-semibold text-slate-800">
+                        {new Date(log.createdAt).toLocaleDateString()}
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-mono">
+                        {new Date(log.createdAt).toLocaleTimeString()}
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  key: 'actorId',
+                  header: 'Actor',
+                  render: (log) => {
+                    const name = log.actorId?.name || 'System';
+                    const email = log.actorId?.email || 'automated-task';
+                    const initials = name.slice(0, 2).toUpperCase();
 
-        {pages > 1 && (
-          <div className="flex items-center justify-center gap-3">
-            <button
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-              className="px-3 py-1.5 text-xs rounded border border-slate-600 text-slate-600 disabled:opacity-40"
-            >
-              Previous
-            </button>
-            <span className="text-xs text-slate-500">
-              Page {page} / {pages}
-            </span>
-            <button
-              disabled={page >= pages}
-              onClick={() => setPage((p) => p + 1)}
-              className="px-3 py-1.5 text-xs rounded border border-slate-600 text-slate-600 disabled:opacity-40"
-            >
-              Next
-            </button>
+                    return (
+                      <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0">
+                          {initials}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-slate-800 truncate">{name}</div>
+                          <div className="text-[10px] text-slate-500 truncate">{email}</div>
+                        </div>
+                      </div>
+                    );
+                  },
+                },
+                {
+                  key: 'action',
+                  header: 'Action',
+                  render: (log) => (
+                    <span
+                      className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full border ${getActionColor(
+                        log.action
+                      )}`}
+                    >
+                      <ScrollText className="w-3 h-3" />
+                      {log.action}
+                    </span>
+                  ),
+                },
+                {
+                  key: 'targetType',
+                  header: 'Target Entity',
+                  render: (log) => (
+                    <div className="flex items-center gap-1 text-xs font-medium text-slate-700">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
+                        {log.targetType}
+                      </span>
+                      {log.targetId && (
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          #{String(log.targetId).slice(-6)}
+                        </span>
+                      )}
+                    </div>
+                  ),
+                },
+                {
+                  key: 'metadata',
+                  header: 'Metadata Details',
+                  render: (log) => {
+                    if (!log.metadata || Object.keys(log.metadata).length === 0) {
+                      return <span className="text-xs text-slate-400">—</span>;
+                    }
+                    const keys = Object.keys(log.metadata).slice(0, 3);
+                    return (
+                      <div className="flex flex-wrap gap-1 max-w-sm">
+                        {keys.map((k) => (
+                          <span
+                            key={k}
+                            className="inline-flex text-[10px] px-1.5 py-0.5 rounded bg-slate-50 border border-slate-200 text-slate-600 font-mono"
+                          >
+                            <span className="font-semibold text-slate-700 mr-1">{k}:</span>
+                            <span className="truncate max-w-[100px]">
+                              {String(log.metadata?.[k])}
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  },
+                },
+              ] satisfies Column<AuditEntry>[]}
+              emptyMessage="No audit events found."
+              emptyIcon={<ShieldAlert className="w-12 h-12 text-slate-400 mx-auto mb-3" />}
+            />
+
+            {/* Pagination Controls */}
+            {pages > 1 && (
+              <div className="flex items-center justify-between card p-3">
+                <span className="text-xs text-slate-500">
+                  Showing page <span className="font-bold text-slate-700">{page}</span> of{' '}
+                  <span className="font-bold text-slate-700">{pages}</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    disabled={page <= 1}
+                    onClick={() => setPage((p) => p - 1)}
+                    className="btn-secondary text-xs py-1 px-3 disabled:opacity-40"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    disabled={page >= pages}
+                    onClick={() => setPage((p) => p + 1)}
+                    className="btn-secondary text-xs py-1 px-3 disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

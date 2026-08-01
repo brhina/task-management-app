@@ -60,6 +60,9 @@ interface GoalResponse {
     targetValue?: number;
     currentValue?: number;
     timeframe: GoalTimeframe;
+    status: 'Not Started' | 'In Progress' | 'On Track' | 'At Risk' | 'Behind' | 'Completed' | 'Closed';
+    category: 'Company' | 'Team' | 'Individual';
+    priority: 'Low' | 'Medium' | 'High' | 'Critical';
   };
   linkedProjects: Project[];
   linkedTasks: { _id: string; title: string }[];
@@ -77,6 +80,9 @@ function EditGoal() {
   const [targetValue, setTargetValue] = useState<number | ''>('');
   const [currentValue, setCurrentValue] = useState<number | ''>('');
   const [timeframe, setTimeframe] = useState<GoalTimeframe>('Quarterly');
+  const [category, setCategory] = useState<'Company' | 'Team' | 'Individual'>('Company');
+  const [status, setStatus] = useState<string>('On Track');
+  const [priority, setPriority] = useState<'Low' | 'Medium' | 'High' | 'Critical'>('Medium');
   const [saving, setSaving] = useState(false);
   const [linkedProjects, setLinkedProjects] = useState<Project[]>([]);
   const [allProjects, setAllProjects] = useState<Project[]>([]);
@@ -95,6 +101,9 @@ function EditGoal() {
         setTargetValue(goal.targetValue ?? '');
         setCurrentValue(goal.currentValue ?? '');
         setTimeframe(goal.timeframe || 'Quarterly');
+        setCategory(goal.category || 'Company');
+        setStatus(goal.status || 'On Track');
+        setPriority(goal.priority || 'Medium');
         setLinkedProjects(data.linkedProjects || []);
       }),
       api.get(apiPaths.PROJECTS.LIST).then((r) => setAllProjects(r.data?.data?.projects || [])),
@@ -146,6 +155,9 @@ function EditGoal() {
         objective: objective.trim(),
         metric: metric.trim(),
         timeframe,
+        category,
+        status,
+        priority,
         targetValue: targetValue === '' ? undefined : Number(targetValue),
         currentValue: currentValue === '' ? undefined : Number(currentValue),
       });
@@ -211,6 +223,56 @@ function EditGoal() {
               className="input-field w-full text-sm resize-none"
               placeholder="Why does this matter? What's the business impact?"
             />
+          </div>
+        </div>
+
+        <div className="card grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1">
+              Category / Alignment
+            </label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as any)}
+              className="input-field w-full text-sm"
+            >
+              <option value="Company">Company (Strategic)</option>
+              <option value="Team">Team / Dept</option>
+              <option value="Individual">Individual / Personal</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1">
+              Goal Status
+            </label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="input-field w-full text-sm"
+            >
+              <option value="Not Started">Not Started</option>
+              <option value="In Progress">In Progress</option>
+              <option value="On Track">On Track</option>
+              <option value="At Risk">At Risk</option>
+              <option value="Behind">Behind</option>
+              <option value="Completed">Completed</option>
+              <option value="Closed">Closed</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1">
+              Priority
+            </label>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as any)}
+              className="input-field w-full text-sm"
+            >
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+              <option value="Critical">Critical</option>
+            </select>
           </div>
         </div>
 

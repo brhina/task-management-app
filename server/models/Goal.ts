@@ -7,6 +7,18 @@ export type GoalTimeframe =
   | "Yearly"
   | "Custom";
 
+export type GoalStatus =
+  | "Not Started"
+  | "In Progress"
+  | "On Track"
+  | "At Risk"
+  | "Behind"
+  | "Completed"
+  | "Closed";
+
+export type GoalCategory = "Company" | "Team" | "Individual";
+export type GoalPriority = "Low" | "Medium" | "High" | "Critical";
+
 export interface IGoal {
   orgId: mongoose.Types.ObjectId;
   title: string;
@@ -16,6 +28,9 @@ export interface IGoal {
   currentValue?: number;
   ownerId: mongoose.Types.ObjectId;
   timeframe: GoalTimeframe;
+  status: GoalStatus;
+  category: GoalCategory;
+  priority: GoalPriority;
   startDate?: Date;
   endDate?: Date;
 }
@@ -70,6 +85,31 @@ const goalSchema = new mongoose.Schema<IGoalDocument>(
       enum: ["Weekly", "Monthly", "Quarterly", "Yearly", "Custom"],
       default: "Quarterly",
       index: true,
+    },
+    status: {
+      type: String,
+      enum: [
+        "Not Started",
+        "In Progress",
+        "On Track",
+        "At Risk",
+        "Behind",
+        "Completed",
+        "Closed",
+      ],
+      default: "On Track",
+      index: true,
+    },
+    category: {
+      type: String,
+      enum: ["Company", "Team", "Individual"],
+      default: "Company",
+      index: true,
+    },
+    priority: {
+      type: String,
+      enum: ["Low", "Medium", "High", "Critical"],
+      default: "Medium",
     },
     startDate: {
       type: Date,

@@ -313,30 +313,19 @@ export default function NotificationSettings() {
             {/* Search & Filter Pills */}
             <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
               {/* Filter Pills */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
-                {categories.map((cat) => {
-                  const IconComp = cat.icon;
-                  const isSelected = filterType === cat.id;
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => {
-                        setFilterType(cat.id);
-                        setPage(1);
-                      }}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                        isSelected
-                          ? 'bg-slate-900 text-white shadow-xs'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      <IconComp className="w-3.5 h-3.5" />
-                      {cat.label}
-                    </button>
-                  );
-                })}
-              </div>
+              <NavTabs
+                size="sm"
+                tabs={categories.map((cat) => ({
+                  id: cat.id,
+                  label: cat.label,
+                  icon: cat.icon,
+                }))}
+                activeTab={filterType}
+                onChange={(id) => {
+                  setFilterType(id);
+                  setPage(1);
+                }}
+              />
 
               {/* Search Bar */}
               <div className="relative min-w-[240px]">

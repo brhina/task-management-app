@@ -682,7 +682,7 @@ function ManageUsers() {
         )}
 
         {/* Unified Tab Navigation & Action Toolbar */}
-        <div className="flex items-center justify-between pb-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
           <NavTabs<'members' | 'teams'>
             tabs={[
               { id: 'members', label: 'Members', icon: Users, badge: users.length },
@@ -694,23 +694,25 @@ function ManageUsers() {
             onChange={handleTabChange}
           />
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {activeTab === 'members' && hasPermission('member:invite') && (
               <button
+                type="button"
                 onClick={handleOpenInviteModal}
                 className="btn-primary text-xs font-bold flex items-center gap-1.5 px-4 py-2 rounded-xl shadow-xs"
               >
                 <UserPlus className="w-4 h-4" />
-                <span className="hidden sm:inline">Invite Member</span>
+                <span>Invite Member</span>
               </button>
             )}
             {activeTab === 'teams' && hasPermission('team:manage') && (
               <button
+                type="button"
                 onClick={handleOpenCreateTeam}
                 className="btn-primary text-xs font-bold flex items-center gap-1.5 px-4 py-2 rounded-xl shadow-xs"
               >
                 <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Create Team</span>
+                <span>Create Team</span>
               </button>
             )}
           </div>

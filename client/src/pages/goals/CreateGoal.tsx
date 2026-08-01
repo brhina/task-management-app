@@ -33,6 +33,9 @@ function CreateGoal({ isOpen, onClose, onCreated }: CreateGoalProps) {
   const [metric, setMetric] = useState('');
   const [targetValue, setTargetValue] = useState<number | ''>('');
   const [timeframe, setTimeframe] = useState<GoalTimeframe>('Quarterly');
+  const [category, setCategory] = useState<'Company' | 'Team' | 'Individual'>('Company');
+  const [status, setStatus] = useState<string>('On Track');
+  const [priority, setPriority] = useState<'Low' | 'Medium' | 'High' | 'Critical'>('Medium');
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
@@ -42,6 +45,9 @@ function CreateGoal({ isOpen, onClose, onCreated }: CreateGoalProps) {
       setMetric('');
       setTargetValue('');
       setTimeframe('Quarterly');
+      setCategory('Company');
+      setStatus('On Track');
+      setPriority('Medium');
       setError('');
     }
   }, [isOpen]);
@@ -58,6 +64,9 @@ function CreateGoal({ isOpen, onClose, onCreated }: CreateGoalProps) {
         objective: objective.trim(),
         metric: metric.trim(),
         timeframe,
+        category,
+        status,
+        priority,
         targetValue: targetValue === '' ? undefined : Number(targetValue),
       });
       onCreated?.();
@@ -129,6 +138,54 @@ function CreateGoal({ isOpen, onClose, onCreated }: CreateGoalProps) {
               className="input-field w-full text-sm resize-none"
               placeholder="Why does this matter? What's the business impact?"
             />
+          </div>
+        </div>
+
+        <div className="card grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1">
+              Category / Alignment
+            </label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as any)}
+              className="input-field w-full text-sm"
+            >
+              <option value="Company">Company (Strategic)</option>
+              <option value="Team">Team / Dept</option>
+              <option value="Individual">Individual / Personal</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1">
+              Initial Status
+            </label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="input-field w-full text-sm"
+            >
+              <option value="Not Started">Not Started</option>
+              <option value="In Progress">In Progress</option>
+              <option value="On Track">On Track</option>
+              <option value="At Risk">At Risk</option>
+              <option value="Behind">Behind</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1">
+              Priority
+            </label>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as any)}
+              className="input-field w-full text-sm"
+            >
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+              <option value="Critical">Critical</option>
+            </select>
           </div>
         </div>
         <div className="card">
