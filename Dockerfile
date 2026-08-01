@@ -1,32 +1,34 @@
-# Dockerfile for Task Manager Application
+# Multi-stage Dockerfile for Task Management Application
 
-# Build stage for client
-FROM node:18-alpine AS client-builder
+# Stage 1: Build Frontend Client
+FROM node:20-alpine AS client-builder
 WORKDIR /app/client
 COPY client/package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 COPY client/ ./
 RUN npm run build
 
-# Production stage
-FROM node:18-alpine AS production
+# Stage 2: Build Production Application
+FROM node:20-alpine AS production
 WORKDIR /app
+
+ENV NODE_ENV=production
 
 # Install server dependencies
 COPY server/package*.json ./
 RUN npm ci --only=production
 
-# Copy server code
+# Copy server application files
 COPY server/ ./
 
-# Copy built client from client-builder stage
+# Copy compiled static frontend assets
 COPY --from=client-builder /app/client/dist ./client/dist
 
-# Create uploads directory
+# Ensure persistent uploads directory exists
 RUN mkdir -p uploads
 
-# Expose port
+# Expose HTTP port
 EXPOSE 3001
 
-# Start the application
+# Run API server
 CMD ["npm", "start"]

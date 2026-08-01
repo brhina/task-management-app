@@ -422,7 +422,7 @@ function ManageTasks() {
           </div>
         )}
         {/* Filters Row */}
-        <div className="flex flex-col md:flex-row md:items-center gap-3">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex-1">
             <FilterToolbar
               searchValue={searchTerm}

@@ -5,8 +5,12 @@ import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
 import http from "http";
+import mongoose from "mongoose";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
+import { validateEnv } from "./config/envSchema.js";
+import { initCacheService, isRedisConnected } from "./services/cacheService.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -48,10 +52,13 @@ import { startReportJobs } from "./jobs/reportJobs.js";
 import { ensureUploadsDir } from "./services/fileStorage.js";
 import { initSocketServer } from "./services/socketService.js";
 
+// Validate environment variables on startup
+validateEnv();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
+export const app = express();
 const httpServer = http.createServer(app);
 
 // Security headers
@@ -110,9 +117,31 @@ app.use("/api/integrations", integrationRoutes);
 app.use("/api/branding", brandingRoutes);
 app.use("/api/compliance", complianceRoutes);
 
-// Health check endpoint
+// Enhanced Health check endpoint
 app.get("/health", (_req, res) => {
-  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+  const dbStateMap: Record<number, string> = {
+    0: "disconnected",
+    1: "connected",
+    2: "connecting",
+    3: "disconnecting",
+  };
+
+  const dbState = dbStateMap[mongoose.connection.readyState] || "unknown";
+
+  res.status(200).json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    database: {
+      status: dbState,
+      name: mongoose.connection.name || "N/A",
+    },
+    redis: {
+      connected: isRedisConnected(),
+    },
+    memoryUsage: process.memoryUsage(),
+    environment: process.env.NODE_ENV || "development",
+  });
 });
 
 if (process.env.NODE_ENV === "production") {
@@ -126,13 +155,16 @@ if (process.env.NODE_ENV === "production") {
   app.get("/", (_req, res) => res.send("✅ Task Manager API is running..."));
 }
 
+// Register Global Error Handler
+app.use(errorHandler as any);
+
 const PORT = process.env.PORT || 3001;
 
 const startServer = async () => {
   try {
     await connectDB();
+    initCacheService();
 
-    const mongoose = (await import("mongoose")).default;
     mongoose.connection.on("connecting", () =>
       console.log("MongoDB connecting..."),
     );
@@ -151,25 +183,47 @@ const startServer = async () => {
     startReportJobs();
     initSocketServer(httpServer);
 
-    httpServer.listen(PORT, () => {
-      console.log(
-        `🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || "development"} mode`,
-      );
-    });
+    if (process.env.NODE_ENV !== "test") {
+      httpServer.listen(PORT, () => {
+        console.log(
+          `🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || "development"} mode`,
+        );
+      });
+    }
+
+    const gracefulShutdown = async (signal: string) => {
+      console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`);
+      httpServer.close(async () => {
+        console.log("  ↳ HTTP server closed.");
+        try {
+          await mongoose.connection.close();
+          console.log("  ↳ Mongoose connection closed.");
+          process.exit(0);
+        } catch (err) {
+          console.error("  ❌ Error closing connections during shutdown:", err);
+          process.exit(1);
+        }
+      });
+    };
+
+    process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+    process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
     process.on("unhandledRejection", (err: Error) => {
       console.error("Unhandled Rejection:", err);
-      process.exit(1);
     });
 
     process.on("uncaughtException", (err: Error) => {
       console.error("Uncaught Exception:", err);
-      process.exit(1);
     });
   } catch (error) {
     console.error("Failed to start server:", error);
-    process.exit(1);
+    if (process.env.NODE_ENV !== "test") {
+      process.exit(1);
+    }
   }
 };
 
-startServer();
+if (process.env.NODE_ENV !== "test") {
+  startServer();
+}

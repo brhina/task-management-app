@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "main": "server.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npx --no-install vitest run",
+    "test:watch": "npx --no-install vitest",
     "start": "node --import tsx server.ts",
     "dev": "nodemon --exec tsx server.ts",
     "build": "tsc",
     "heroku-postbuild": "cd ../client && npm install && npm run build",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "npx --no-install tsc --noEmit",
     "seed": "node --import tsx scripts/seedMockData.ts",
     "worker": "node --import tsx worker.ts"
   },
@@ -40,6 +41,10 @@
     "nodemon": "^3.1.10",
     "rate-limiter-flexible": "^5.0.5",
     "socket.io": "^4.8.3",
+    "supertest": "^7.0.0",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "vitest": "^3.0.5",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -51,7 +56,6 @@
     "@types/node": "^25.9.3",
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^8.0.1",
-    "tsx": "^4.22.4",
-    "typescript": "^6.0.3"
+    "@types/supertest": "^6.0.2"
   }
 }

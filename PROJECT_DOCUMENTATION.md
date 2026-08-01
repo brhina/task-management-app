@@ -567,7 +567,7 @@ The following improvements would transform Cadence from a solid foundation into 
 - [ ] Remove all unused models, dependencies, and dead code
 - [ ] Consistent error handling patterns across all controllers
 - [ ] Proper TypeScript types (eliminate `any` types)
-- [ ] Split large components (ManageUsers is 859 lines)
+- [ ] Split large components
 - [ ] Create custom hooks for reusable logic
 - [ ] Add JSDoc comments for public APIs
 

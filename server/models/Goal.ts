@@ -124,7 +124,7 @@ const goalSchema = new mongoose.Schema<IGoalDocument>(
 );
 
 goalSchema.index({ orgId: 1, title: 1 });
-
+goalSchema.index({ orgId: 1, status: 1, ownerId: 1 });
 goalSchema.index({ title: "text", objective: "text" });
 
 const Goal = mongoose.model<IGoalDocument>("Goal", goalSchema);

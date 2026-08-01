@@ -1,0 +1,52 @@
+name: Continuous Integration & Delivery
+
+on:
+  push:
+    branches: [ main, master, dev ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend-checks:
+    name: Backend Lint, Typecheck & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install Server Dependencies
+        run: cd server && npm ci
+
+      - name: Server Typecheck
+        run: cd server && npm run typecheck
+
+      - name: Server Unit & Integration Tests
+        run: cd server && npm test
+
+  frontend-checks:
+    name: Frontend Lint, Typecheck & Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install Client Dependencies
+        run: cd client && npm ci
+
+      - name: Client Typecheck
+        run: cd client && npm run typecheck
+
+      - name: Client Build
+        run: cd client && npm run build

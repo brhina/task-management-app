@@ -11,7 +11,7 @@ export interface DependencyAnalysis {
   bottlenecks: Array<{ taskId: NodeId; blockedDependents: number }>;
 }
 
-function buildAdjacency(
+export function buildAdjacency(
   edges: Array<{ from: NodeId; to: NodeId }>,
 ): Map<NodeId, NodeId[]> {
   const adj = new Map<NodeId, NodeId[]>();
@@ -24,7 +24,7 @@ function buildAdjacency(
   return adj;
 }
 
-function findCycles(adj: Map<NodeId, NodeId[]>): NodeId[][] {
+export function findCycles(adj: Map<NodeId, NodeId[]>): NodeId[][] {
   const visited = new Set<NodeId>();
   const inStack = new Set<NodeId>();
   const stack: NodeId[] = [];
@@ -54,7 +54,7 @@ function findCycles(adj: Map<NodeId, NodeId[]>): NodeId[][] {
   return cycles;
 }
 
-function topoSort(adj: Map<NodeId, NodeId[]>): NodeId[] {
+export function topoSort(adj: Map<NodeId, NodeId[]>): NodeId[] {
   const inDeg = new Map<NodeId, number>();
   for (const [u, vs] of adj.entries()) {
     if (!inDeg.has(u)) inDeg.set(u, 0);

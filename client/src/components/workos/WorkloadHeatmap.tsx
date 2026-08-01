@@ -94,11 +94,21 @@ export default function WorkloadHeatmap({
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748B' }} />
                 <YAxis tick={{ fontSize: 11, fill: '#64748B' }} />
                 <Tooltip
+                  cursor={{ fill: 'transparent' }}
                   formatter={(value: any, name: any) => [
                     `${value} hours`,
                     name === 'assigned' ? 'Assigned Effort' : 'Weekly Capacity',
                   ]}
-                  contentStyle={{ backgroundColor: '#1E293B', color: '#FFF', borderRadius: '8px', border: 'none', fontSize: '12px' }}
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    color: '#0F172A',
+                    borderRadius: '8px',
+                    border: '1px solid #E2E8F0',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                    fontSize: '12px',
+                  }}
+                  itemStyle={{ color: '#334155' }}
+                  labelStyle={{ color: '#0F172A', fontWeight: 'bold' }}
                 />
                 <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
                 <Bar dataKey="assigned" name="Assigned Effort (h)" radius={[4, 4, 0, 0]}>

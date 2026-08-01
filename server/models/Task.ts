@@ -226,6 +226,9 @@ const taskSchema = new mongoose.Schema<ITaskDocument>(
 taskSchema.index({ title: "text", description: "text", tags: "text", category: "text" });
 taskSchema.index({ orgId: 1, "recurrence.nextRunAt": 1 });
 taskSchema.index({ orgId: 1, parentTaskId: 1, sortOrder: 1 });
+taskSchema.index({ orgId: 1, assignedTo: 1, status: 1 });
+taskSchema.index({ orgId: 1, projectId: 1, status: 1 });
+taskSchema.index({ orgId: 1, dueDate: 1 });
 
 const Task = mongoose.model<ITaskDocument>("Task", taskSchema);
 
