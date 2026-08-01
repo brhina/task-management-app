@@ -25,6 +25,15 @@ body {
   background: rgba(0, 0, 0, 0.25);
 }
 
+/* Hide scrollbar for cross-browser horizontal scroll tabs */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 #root {
   min-height: 100vh;
 }

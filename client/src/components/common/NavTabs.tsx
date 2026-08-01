@@ -29,7 +29,7 @@ export default function NavTabs<T extends string = string>({
 
   if (variant === 'underline') {
     return (
-      <div className={`flex items-center gap-6 border-b border-slate-200/80 ${className}`}>
+      <div className={`flex items-center gap-4 sm:gap-6 border-b border-slate-200/80 overflow-x-auto no-scrollbar max-w-full w-full py-1 ${className}`}>
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -39,7 +39,7 @@ export default function NavTabs<T extends string = string>({
               type="button"
               onClick={() => !tab.disabled && onChange(tab.id)}
               disabled={tab.disabled}
-              className={`flex items-center gap-2 py-3 text-xs font-bold transition-all duration-200 border-b-2 whitespace-nowrap cursor-pointer -mb-px ${
+              className={`flex items-center gap-2 py-3 text-xs font-bold transition-all duration-200 border-b-2 whitespace-nowrap shrink-0 cursor-pointer -mb-px ${
                 isActive
                   ? 'border-indigo-600 text-indigo-600'
                   : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
@@ -73,7 +73,7 @@ export default function NavTabs<T extends string = string>({
 
   return (
     <div
-      className={`inline-flex items-center gap-1 rounded-2xl shadow-2xs overflow-x-auto scrollbar-none ${className}`}
+      className={`flex items-center gap-1.5 rounded-2xl shadow-2xs overflow-x-auto no-scrollbar max-w-full w-full py-1 px-1 bg-slate-100/80 border border-slate-200/60 ${className}`}
     >
       {tabs.map((tab) => {
         const Icon = tab.icon;
@@ -84,7 +84,7 @@ export default function NavTabs<T extends string = string>({
             type="button"
             onClick={() => !tab.disabled && onChange(tab.id)}
             disabled={tab.disabled}
-            className={`flex items-center gap-2 rounded-xl font-bold transition-all duration-200 whitespace-nowrap group ${
+            className={`flex items-center gap-2 rounded-xl font-bold transition-all duration-200 whitespace-nowrap shrink-0 group ${
               isSm ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-xs'
             } ${
               isActive

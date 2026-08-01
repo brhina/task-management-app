@@ -282,18 +282,20 @@ export default function WorkOS() {
               </div>
             </div>
 
-            {/* Navigation Tabs */}
-            <NavTabs<'overview' | 'workload' | 'matrix' | 'schedule' | 'automations'>
-              tabs={[
-                { id: 'overview', label: 'Executive Overview', icon: Sparkles },
-                { id: 'workload', label: 'Team Workload & Capacity', icon: Users },
-                { id: 'matrix', label: 'Priorities & Risk Matrix', icon: Zap },
-                { id: 'schedule', label: 'Schedule & Critical Path', icon: Calendar },
-                { id: 'automations', label: 'Automations & Rules', icon: RefreshCw },
-              ]}
-              activeTab={activeTab}
-              onChange={setActiveTab}
-            />
+            {/* Navigation Tabs (Horizontally Scrollable on Mobile) */}
+            <div className="w-full max-w-full overflow-x-auto no-scrollbar py-1">
+              <NavTabs<'overview' | 'workload' | 'matrix' | 'schedule' | 'automations'>
+                tabs={[
+                  { id: 'overview', label: 'Executive Overview', icon: Sparkles },
+                  { id: 'workload', label: 'Team Workload & Capacity', icon: Users },
+                  { id: 'matrix', label: 'Priorities & Risk Matrix', icon: Zap },
+                  { id: 'schedule', label: 'Schedule & Critical Path', icon: Calendar },
+                  { id: 'automations', label: 'Automations & Rules', icon: RefreshCw },
+                ]}
+                activeTab={activeTab}
+                onChange={setActiveTab}
+              />
+            </div>
 
             {/* TAB CONTENT 1: OVERVIEW */}
             {activeTab === 'overview' && (

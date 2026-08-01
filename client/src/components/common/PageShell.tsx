@@ -41,7 +41,7 @@ function PageShell({ title, subtitle, actions, topSlot, children }: PageShellPro
                 <button
                   type="button"
                   onClick={() => setMenuOpen(!menuOpen)}
-                  className="p-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-slate-600 hover:text-slate-900 shadow-sm transition-colors flex items-center justify-center"
+                  className="p-2 rounded-xl bg-white text-slate-600 hover:text-slate-900 shadow-sm transition-colors flex items-center justify-center"
                   title="Actions menu"
                 >
                   {menuOpen ? <X className="w-5 h-5" /> : <MoreVertical className="w-5 h-5" />}
