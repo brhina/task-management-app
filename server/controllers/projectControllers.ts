@@ -1,6 +1,8 @@
 import { Response } from "express";
 import Project from "../models/Project.js";
 import Task from "../models/Task.js";
+import Organization from "../models/Organization.js";
+import { PLAN_LIMITS } from "../services/billingService.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
 
 export const listProjects = async (
@@ -140,6 +142,20 @@ export const createProject = async (
       req.body;
     if (!name || !String(name).trim()) {
       res.status(400).json({ message: "Project name is required" });
+      return;
+    }
+
+    // Plan quota limit check
+    const org = await Organization.findById(req.orgId);
+    const plan = org?.plan || "Free";
+    const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.Free;
+    const projectCount = await Project.countDocuments({ orgId: req.orgId });
+
+    if (projectCount >= limits.maxProjects) {
+      res.status(403).json({
+        message: `Plan limit reached: Your organization is on the ${plan} plan which allows a maximum of ${limits.maxProjects} projects. Upgrade your plan in Enterprise Center to create more projects.`,
+        upgradeRequired: true,
+      });
       return;
     }
 

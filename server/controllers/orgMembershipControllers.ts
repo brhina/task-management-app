@@ -2,6 +2,8 @@ import { Response } from "express";
 import OrgMembership from "../models/OrgMembership.js";
 import Invite from "../models/Invite.js";
 import CustomRole from "../models/CustomRole.js";
+import Organization from "../models/Organization.js";
+import { PLAN_LIMITS } from "../services/billingService.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
 import { shortRandomId } from "../utils/slugUtils.js";
 import {
@@ -150,6 +152,20 @@ export const generateInviteToken = async (
 
     const ok = await requireElevatedAdmin(req, orgId, res);
     if (!ok) return;
+
+    // Member quota check
+    const org = await Organization.findById(orgId);
+    const plan = org?.plan || "Free";
+    const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.Free;
+    const currentMembers = await OrgMembership.countDocuments({ orgId, status: "Active" });
+
+    if (currentMembers >= limits.maxMembers) {
+      res.status(403).json({
+        message: `Plan limit reached: Your organization is on the ${plan} plan which allows a maximum of ${limits.maxMembers} members. Upgrade your plan in Enterprise Center to invite more team members.`,
+        upgradeRequired: true,
+      });
+      return;
+    }
 
     if (role === "Owner") {
       res.status(400).json({

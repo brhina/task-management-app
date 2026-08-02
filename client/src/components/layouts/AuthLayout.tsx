@@ -51,7 +51,7 @@ interface NavLink {
 }
 
 function AuthLayout({ children }: { children: ReactNode }) {
-  const { user, canAccessAdminSuite, hasPermission, getEffectiveRole } =
+  const { user, canAccessAdminSuite, hasPermission, getEffectiveRole, activeOrgBranding, activePlan } =
     useContext(UserContext);
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -63,6 +63,9 @@ function AuthLayout({ children }: { children: ReactNode }) {
     },
     [location.pathname]
   );
+
+  const appTitle = activeOrgBranding?.customTitle || 'Cadence';
+  const logoUrl = activeOrgBranding?.logoUrl;
 
   const getNavLinks: NavLink[] = useMemo(() => {
     if (!user) return [];
@@ -127,10 +130,14 @@ function AuthLayout({ children }: { children: ReactNode }) {
             <Menu className="w-5 h-5" />
           </button>
           <Link to="/" className="flex items-center gap-2">
-            <div className="bg-primary p-1.5 rounded-lg shadow-xs">
-              <ClipboardList className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-base font-bold text-slate-800 tracking-tight">Cadence</span>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="w-6 h-6 object-contain" />
+            ) : (
+              <div className="bg-primary p-1.5 rounded-lg shadow-xs">
+                <ClipboardList className="w-4 h-4 text-white" />
+              </div>
+            )}
+            <span className="text-base font-bold text-slate-800 tracking-tight">{appTitle}</span>
           </Link>
         </div>
 
@@ -176,16 +183,20 @@ function AuthLayout({ children }: { children: ReactNode }) {
           } h-14 border-b border-gray-200 shrink-0`}
         >
           <div className="flex items-center gap-3 min-w-0">
-            <div className="bg-primary p-2 rounded-xl shadow-xs shrink-0">
-              <ClipboardList className="w-5 h-5 text-white" />
-            </div>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="w-7 h-7 object-contain shrink-0" />
+            ) : (
+              <div className="bg-primary p-2 rounded-xl shadow-xs shrink-0">
+                <ClipboardList className="w-5 h-5 text-white" />
+              </div>
+            )}
             {!isSidebarCollapsed && (
               <Link
                 to="/"
                 className="text-lg font-bold text-slate-800 tracking-tight truncate"
                 onClick={closeSidebar}
               >
-                Cadence
+                {appTitle}
               </Link>
             )}
           </div>
@@ -242,25 +253,35 @@ function AuthLayout({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        {/* Organization Switcher Footer */}
+        {/* Organization Switcher & Plan Badge Footer */}
         <div className="border-t border-gray-100 px-3 py-3 shrink-0 bg-slate-50/50">
           {!isSidebarCollapsed ? (
             <div>
-              <div className="px-2 pb-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                Workspace
+              <div className="flex items-center justify-between px-2 pb-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  Workspace
+                </span>
+                <Link
+                  to="/settings/enterprise"
+                  className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-extrabold px-2 py-0.5 rounded-md hover:bg-primary/20 transition-colors"
+                  title="Manage Enterprise Tier & Billing"
+                >
+                  {activePlan || 'Free'}
+                </Link>
               </div>
               <OrgSwitcher />
             </div>
           ) : (
             <div className="flex justify-center py-1">
-              <div
+              <Link
+                to="/settings/enterprise"
                 className="h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors"
-                title="Organization Switcher"
+                title={`Workspace (${activePlan || 'Free'})`}
               >
                 <span className="text-sm font-bold text-primary">
-                  {user?.activeOrgId ? 'O' : '?'}
+                  {activePlan ? activePlan[0] : 'F'}
                 </span>
-              </div>
+              </Link>
             </div>
           )}
         </div>

@@ -78,6 +78,25 @@ function Login() {
     }
   };
 
+  const handleSSOLogin = async () => {
+    if (!formData.email || !validateEmail(formData.email)) {
+      setFieldErrors((prev) => ({ ...prev, email: 'Enter your work email to initiate Enterprise SSO' }));
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      const res = await api.post('/api/sso/login/initiate', { email: formData.email });
+      if (res.data?.redirectUrl) {
+        window.location.href = res.data.redirectUrl;
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'No active SSO integration found for this domain');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <PublicLayout>
       <div className="grid min-h-[calc(100vh-4rem)] lg:grid-cols-12 gap-6 items-center py-2 sm:py-4">
@@ -237,6 +256,16 @@ function Login() {
                     <span>Sign In to Workspace</span>
                   </>
                 )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSSOLogin}
+                disabled={loading}
+                className="btn-secondary w-full py-2 rounded-lg flex justify-center items-center gap-1.5 text-xs font-semibold text-slate-700"
+              >
+                <Shield className="w-3.5 h-3.5 text-primary" />
+                <span>Sign in with Enterprise SSO</span>
               </button>
             </form>
 

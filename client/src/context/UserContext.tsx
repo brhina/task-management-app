@@ -31,6 +31,8 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [permissions, setPermissions] = useState<string[]>([]);
+  const [activeOrgBranding, setActiveOrgBranding] = useState<any>(null);
+  const [activePlan, setActivePlan] = useState<string | null>("Free");
   const hasFetchedRef = useRef(false);
 
   const getEffectiveRole = useCallback((): OrgRole | null => {
@@ -40,6 +42,20 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
     );
     return (membership?.role as OrgRole) || null;
   }, [user]);
+
+  const refreshOrgDetails = useCallback(async () => {
+    if (!user?.activeOrgId) return;
+    try {
+      const [brandingRes, billingRes] = await Promise.all([
+        api.get("/api/branding").catch(() => null),
+        api.get("/api/billing/metrics").catch(() => null),
+      ]);
+      if (brandingRes?.data) setActiveOrgBranding(brandingRes.data);
+      if (billingRes?.data?.plan) setActivePlan(billingRes.data.plan);
+    } catch {
+      /* ignore default fallback */
+    }
+  }, [user?.activeOrgId]);
 
   const refreshPermissions = useCallback(async () => {
     try {
@@ -60,10 +76,13 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!user) {
       setPermissions([]);
+      setActiveOrgBranding(null);
+      setActivePlan("Free");
       return;
     }
     void refreshPermissions();
-  }, [user?.activeOrgId, user?._id, refreshPermissions]);
+    void refreshOrgDetails();
+  }, [user?.activeOrgId, user?._id, refreshPermissions, refreshOrgDetails]);
 
   useEffect(() => {
     if (hasFetchedRef.current) return;
@@ -148,6 +167,8 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
   const clearUser = useCallback(() => {
     setUser(null);
     setPermissions([]);
+    setActiveOrgBranding(null);
+    setActivePlan("Free");
     localStorage.removeItem('token');
     localStorage.removeItem('activeOrgId');
     hasFetchedRef.current = false;
@@ -174,6 +195,8 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
     () => ({
       user,
       loading,
+      activeOrgBranding,
+      activePlan,
       updateUser,
       clearUser,
       getEffectiveRole,
@@ -184,6 +207,8 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
     [
       user,
       loading,
+      activeOrgBranding,
+      activePlan,
       updateUser,
       clearUser,
       getEffectiveRole,

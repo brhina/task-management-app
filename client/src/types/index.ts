@@ -273,9 +273,20 @@ export interface Filter {
   options: FilterOption[];
 }
 
+export interface OrgBranding {
+  logoUrl?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  customTitle?: string;
+  customFavicon?: string;
+  whiteLabelEnabled?: boolean;
+}
+
 export interface UserContextType {
   user: User | null;
   loading: boolean;
+  activeOrgBranding?: OrgBranding | null;
+  activePlan?: string | null;
   updateUser: (
     userData: User & { token?: string; activeOrgId?: string; orgs?: OrgMembership[] }
   ) => void;
