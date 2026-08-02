@@ -5,6 +5,7 @@ import {
   AlertTriangle, Plus, RefreshCw, LayoutGrid, List, Layers, Calendar, ArrowRight, User
 } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
+import StatCard from '../../components/common/StatCard';
 import FilterToolbar from '../../components/common/FilterToolbar';
 import AdvancedTable, { RowActions, type Column } from '../../components/common/AdvancedTable';
 import api from '../../utils/axios';
@@ -128,57 +129,35 @@ function Projects({ initialEditingProjectId, onModalClose }: ProjectsProps = {})
 
         {/* Portfolio KPI Outcomes Summary */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="card bg-white border border-gray-200 p-4">
-            <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-              <span>Active Projects</span>
-              <Folder className="w-4 h-4 text-primary" />
-            </div>
-            <div className="text-2xl font-black text-slate-800 mt-2">
-              {portfolioStats.active} <span className="text-xs font-semibold text-slate-400">/ {portfolioStats.total}</span>
-            </div>
-            <div className="text-[10px] text-slate-400 mt-1">
-              {portfolioStats.completed} projects completed
-            </div>
-          </div>
-
-          <div className="card bg-white border border-gray-200 p-4">
-            <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-              <span>Portfolio Progress</span>
-              <Target className="w-4 h-4 text-emerald-500" />
-            </div>
-            <div className="text-2xl font-black text-emerald-600 mt-2">
-              {portfolioStats.overallProgress}%
-            </div>
-            <div className="h-1.5 rounded-full bg-slate-100 mt-1.5 overflow-hidden">
-              <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${portfolioStats.overallProgress}%` }} />
-            </div>
-          </div>
-
-          <div className="card bg-white border border-gray-200 p-4">
-            <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-              <span>Total Work Outcomes</span>
-              <Layers className="w-4 h-4 text-blue-500" />
-            </div>
-            <div className="text-2xl font-black text-slate-800 mt-2">
-              {portfolioStats.completedTasks} <span className="text-xs font-semibold text-slate-400">/ {portfolioStats.totalTasks}</span>
-            </div>
-            <div className="text-[10px] text-slate-400 mt-1">
-              Tasks executed across projects
-            </div>
-          </div>
-
-          <div className="card bg-white border border-gray-200 p-4">
-            <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-              <span>Timeline Risks</span>
-              <AlertTriangle className="w-4 h-4 text-amber-500" />
-            </div>
-            <div className="text-2xl font-black text-amber-600 mt-2">
-              {portfolioStats.overdueTasks}
-            </div>
-            <div className="text-[10px] text-slate-400 mt-1">
-              Overdue tasks requiring attention
-            </div>
-          </div>
+          <StatCard
+            title="Active Projects"
+            value={`${portfolioStats.active} / ${portfolioStats.total}`}
+            icon={Folder}
+            colorTheme="slate"
+            subtext={`${portfolioStats.completed} projects completed`}
+          />
+          <StatCard
+            title="Portfolio Progress"
+            value={`${portfolioStats.overallProgress}%`}
+            icon={Target}
+            colorTheme="emerald"
+            progressBarValue={portfolioStats.overallProgress}
+            subtext="Overall completion percentage"
+          />
+          <StatCard
+            title="Total Work Outcomes"
+            value={`${portfolioStats.completedTasks} / ${portfolioStats.totalTasks}`}
+            icon={Layers}
+            colorTheme="blue"
+            subtext="Tasks executed across projects"
+          />
+          <StatCard
+            title="Timeline Risks"
+            value={portfolioStats.overdueTasks}
+            icon={AlertTriangle}
+            colorTheme={portfolioStats.overdueTasks > 0 ? "amber" : "slate"}
+            subtext={portfolioStats.overdueTasks > 0 ? "Overdue tasks requiring attention" : "All tasks on schedule"}
+          />
         </div>
 
         {/* Toolbar & View Mode Switcher */}

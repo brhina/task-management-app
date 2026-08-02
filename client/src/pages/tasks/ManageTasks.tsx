@@ -9,12 +9,13 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from '@dnd-kit/core';
-import { LayoutGrid, List, Users, ClipboardList, GanttChart, Timer, RefreshCw, Plus, Pencil, CornerDownRight } from 'lucide-react';
+import { LayoutGrid, List, Users, ClipboardList, GanttChart, Timer, RefreshCw, Plus, Pencil, CornerDownRight, CheckCircle2, Clock, AlertTriangle, Layers } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
+import StatCard from '../../components/common/StatCard';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import FilterToolbar from '../../components/common/FilterToolbar';
 import AdvancedTable, { RowActions, type Column, type ActionItem } from '../../components/common/AdvancedTable';
@@ -379,6 +380,60 @@ function ManageTasks() {
     >
       <div className="space-y-4 overflow-hidden">
         {error && <div className="alert-error">{error}</div>}
+
+        {/* Task Status Summary KPI Strip */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+          <StatCard
+            title="Total Tasks"
+            value={statusSummary.all}
+            icon={Layers}
+            colorTheme="slate"
+            subtext={
+              isProjectScoped && scopedProject
+                ? `Project: ${scopedProject.name}`
+                : projectFilter
+                ? 'Filtered by project'
+                : 'All workspace tasks'
+            }
+          />
+          <StatCard
+            title="Pending"
+            value={statusSummary.pending}
+            icon={ClipboardList}
+            colorTheme="amber"
+            subtext="Awaiting work"
+          />
+          <StatCard
+            title="In Progress"
+            value={statusSummary.inProgress}
+            icon={Clock}
+            colorTheme="sky"
+            subtext="Active developments"
+          />
+          <StatCard
+            title="In Review"
+            value={statusSummary.inReview}
+            icon={AlertTriangle}
+            colorTheme="purple"
+            subtext="QA & approval"
+          />
+          <StatCard
+            title="Completed"
+            value={statusSummary.completed}
+            icon={CheckCircle2}
+            colorTheme="emerald"
+            progressBarValue={
+              statusSummary.all > 0
+                ? Math.round((statusSummary.completed / statusSummary.all) * 100)
+                : 0
+            }
+            subtext={`${
+              statusSummary.all > 0
+                ? Math.round((statusSummary.completed / statusSummary.all) * 100)
+                : 0
+            }% completion rate`}
+          />
+        </div>
 
         {/* Project Outcome Context Banner */}
         {isProjectScoped && scopedProject && (

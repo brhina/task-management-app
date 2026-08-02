@@ -6,6 +6,7 @@ import {
   Calendar, ArrowUpRight, Play, ShieldAlert, Sparkles, Check, FileText
 } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
+import StatCard from '../../components/common/StatCard';
 import NavTabs from '../../components/common/NavTabs';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
@@ -229,57 +230,38 @@ export default function WorkOS() {
 
             {/* Metric KPI Highlights */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="card bg-white border border-gray-200 p-4">
-                <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-                  <span>Active Tasks</span>
-                  <Layers className="w-4 h-4 text-primary" />
-                </div>
-                <div className="text-2xl font-black text-slate-800 mt-2">
-                  {data?.tasks?.length ?? 0}
-                </div>
-                <div className="text-[10px] text-slate-400 mt-1">
-                  Estimated {data?.estimated_effort?.hours ?? 0}h total effort
-                </div>
-              </div>
+              <StatCard
+                title="Active Tasks"
+                value={data?.tasks?.length ?? 0}
+                icon={Layers}
+                colorTheme="slate"
+                subtext={`Estimated ${data?.estimated_effort?.hours ?? 0}h total effort`}
+              />
 
-              <div className="card bg-white border border-gray-200 p-4">
-                <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-                  <span>Urgent & Risks</span>
-                  <AlertTriangle className="w-4 h-4 text-amber-500" />
-                </div>
-                <div className="text-2xl font-black text-amber-600 mt-2">
-                  {urgentTasks.length}
-                </div>
-                <div className="text-[10px] text-slate-400 mt-1">
-                  {blockedTasks.length} blocked by prerequisites
-                </div>
-              </div>
+              <StatCard
+                title="Urgent & Risks"
+                value={urgentTasks.length}
+                icon={AlertTriangle}
+                colorTheme={urgentTasks.length > 0 ? "rose" : "slate"}
+                subtext={`${blockedTasks.length} blocked by prerequisites`}
+              />
 
-              <div className="card bg-white border border-gray-200 p-4">
-                <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-                  <span>Capacity Load</span>
-                  <Users className="w-4 h-4 text-blue-500" />
-                </div>
-                <div className="text-2xl font-black text-slate-800 mt-2">
-                  {data?.workload?.capacity_utilization ?? 0}%
-                </div>
-                <div className="text-[10px] text-slate-400 mt-1">
-                  {data?.workload?.overloadedCount ?? 0} member(s) over capacity
-                </div>
-              </div>
+              <StatCard
+                title="Capacity Load"
+                value={`${data?.workload?.capacity_utilization ?? 0}%`}
+                icon={Users}
+                colorTheme="blue"
+                progressBarValue={data?.workload?.capacity_utilization ?? 0}
+                subtext={`${data?.workload?.overloadedCount ?? 0} member(s) over capacity`}
+              />
 
-              <div className="card bg-white border border-gray-200 p-4">
-                <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-                  <span>Goal Alignment</span>
-                  <Target className="w-4 h-4 text-purple-500" />
-                </div>
-                <div className="text-2xl font-black text-purple-600 mt-2">
-                  {data?.goal_alignment?.score ?? 0}%
-                </div>
-                <div className="text-[10px] text-slate-400 mt-1">
-                  {(data?.goal_alignment?.related_goals || []).length} linked strategic OKRs
-                </div>
-              </div>
+              <StatCard
+                title="Goal Alignment"
+                value={`${data?.goal_alignment?.score ?? 0}%`}
+                icon={Target}
+                colorTheme="purple"
+                subtext={`${(data?.goal_alignment?.related_goals || []).length} linked strategic OKRs`}
+              />
             </div>
 
             {/* Navigation Tabs (Horizontally Scrollable on Mobile) */}

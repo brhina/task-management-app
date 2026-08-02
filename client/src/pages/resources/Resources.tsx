@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import PageShell from '../../components/common/PageShell';
+import StatCard from '../../components/common/StatCard';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import {
@@ -248,93 +249,42 @@ export default function Resources() {
         {/* KPI Analytics Summary Cards */}
         {summary && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Total Team Capacity */}
-            <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-              <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
-                <Clock className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-xs font-medium text-slate-500">Total Capacity</div>
-                <div className="text-xl font-extrabold text-slate-800 mt-0.5">
-                  {summary.totalCapacity.toFixed(1)} hrs
-                </div>
-                <div className="text-[11px] text-slate-400 mt-0.5">
-                  {summary.totalMembers} active team members
-                </div>
-              </div>
-            </div>
+            <StatCard
+              title="Total Capacity"
+              value={`${summary.totalCapacity.toFixed(1)} hrs`}
+              icon={Clock}
+              colorTheme="blue"
+              subtext={`${summary.totalMembers} active team members`}
+            />
 
-            {/* Assigned Workload */}
-            <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-              <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600">
-                <PieChart className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-xs font-medium text-slate-500">Allocated Workload</div>
-                <div className="text-xl font-extrabold text-slate-800 mt-0.5">
-                  {summary.totalAssigned.toFixed(1)} hrs
-                </div>
-                <div className="text-[11px] text-slate-400 mt-0.5">
-                  {summary.teamUtilization}% team utilization rate
-                </div>
-              </div>
-            </div>
+            <StatCard
+              title="Allocated Workload"
+              value={`${summary.totalAssigned.toFixed(1)} hrs`}
+              icon={PieChart}
+              colorTheme="indigo"
+              progressBarValue={summary.teamUtilization}
+              subtext={`${summary.teamUtilization}% team utilization rate`}
+            />
 
-            {/* Logged Hours */}
-            <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-              <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600">
-                <TrendingUp className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-xs font-medium text-slate-500">Actual Logged</div>
-                <div className="text-xl font-extrabold text-slate-800 mt-0.5">
-                  {summary.totalLogged.toFixed(1)} hrs
-                </div>
-                <div className="text-[11px] text-slate-400 mt-0.5">
-                  Time entry logs in window
-                </div>
-              </div>
-            </div>
+            <StatCard
+              title="Actual Logged"
+              value={`${summary.totalLogged.toFixed(1)} hrs`}
+              icon={TrendingUp}
+              colorTheme="emerald"
+              subtext="Time entry logs in window"
+            />
 
-            {/* Overload Status */}
-            <div
-              className={`p-4 rounded-2xl border shadow-xs flex items-center gap-3.5 ${
+            <StatCard
+              title="Workload Conflicts"
+              value={summary.overloadedCount}
+              icon={AlertTriangle}
+              colorTheme={summary.overloadedCount > 0 ? "rose" : "slate"}
+              subtext={
                 summary.overloadedCount > 0
-                  ? 'bg-rose-50/50 border-rose-200'
-                  : 'bg-white border-slate-200/80'
-              }`}
-            >
-              <div
-                className={`p-3 rounded-xl ${
-                  summary.overloadedCount > 0
-                    ? 'bg-rose-100 text-rose-600'
-                    : 'bg-emerald-50 text-emerald-600'
-                }`}
-              >
-                {summary.overloadedCount > 0 ? (
-                  <AlertTriangle className="w-5 h-5 animate-bounce" />
-                ) : (
-                  <CheckCircle2 className="w-5 h-5" />
-                )}
-              </div>
-              <div>
-                <div className="text-xs font-medium text-slate-500">Workload Conflicts</div>
-                <div
-                  className={`text-xl font-extrabold mt-0.5 ${
-                    summary.overloadedCount > 0 ? 'text-rose-700' : 'text-slate-800'
-                  }`}
-                >
-                  {summary.overloadedCount > 0
-                    ? `${summary.overloadedCount} Overloaded`
-                    : 'Balanced'}
-                </div>
-                <div className="text-[11px] text-slate-400 mt-0.5">
-                  {summary.overloadedCount > 0
-                    ? 'Requires task rebalancing'
-                    : 'All members within capacity'}
-                </div>
-              </div>
-            </div>
+                  ? `${summary.overloadedCount} member(s) over capacity`
+                  : "All members within capacity"
+              }
+            />
           </div>
         )}
 

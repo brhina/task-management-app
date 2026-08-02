@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, useContext } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Clock, Zap, Layers } from 'lucide-react';
 import {
   DndContext,
   DragOverlay,
@@ -11,6 +11,7 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core';
 import PageShell from '../../components/common/PageShell';
+import StatCard from '../../components/common/StatCard';
 import TaskBoard from '../../components/tasks/TaskBoard';
 import TaskCard from '../../components/tasks/TaskCard';
 import api from '../../utils/axios';
@@ -81,6 +82,10 @@ export default function SprintBoard() {
     }
   };
 
+  const completionPct = velocity.totalTasks > 0
+    ? Math.round((velocity.completedTasks / velocity.totalTasks) * 100)
+    : 0;
+
   return (
     <PageShell
       title={sprint ? `Sprint board — ${sprint.name}` : 'Sprint board'}
@@ -103,19 +108,55 @@ export default function SprintBoard() {
         ) : null
       }
     >
-      <DndContext
-        sensors={sensors}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <TaskBoard
-          tasks={tasks}
-          onTaskClick={(taskId) => navigate(`/tasks/${taskId}`)}
-        />
-        <DragOverlay>
-          {activeTask ? <TaskCard task={activeTask} /> : null}
-        </DragOverlay>
-      </DndContext>
+      <div className="space-y-5">
+        {sprint && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <StatCard
+              title="Sprint Status"
+              value={sprint.status}
+              icon={Zap}
+              colorTheme={sprint.status === 'Active' ? 'cyan' : sprint.status === 'Completed' ? 'emerald' : 'slate'}
+              subtext={`Target: ${new Date(sprint.endDate).toLocaleDateString()}`}
+            />
+            <StatCard
+              title="Tasks Completed"
+              value={`${velocity.completedTasks} / ${velocity.totalTasks}`}
+              icon={CheckCircle2}
+              colorTheme="emerald"
+              progressBarValue={completionPct}
+              subtext={`${completionPct}% completion rate`}
+            />
+            <StatCard
+              title="Sprint Velocity"
+              value={`${velocity.velocityHours}h`}
+              icon={Clock}
+              colorTheme="indigo"
+              subtext="Total effort completed"
+            />
+            <StatCard
+              title="Active Board Tasks"
+              value={tasks.length}
+              icon={Layers}
+              colorTheme="slate"
+              subtext="Sprint board scope"
+            />
+          </div>
+        )}
+
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <TaskBoard
+            tasks={tasks}
+            onTaskClick={(taskId) => navigate(`/tasks/${taskId}`)}
+          />
+          <DragOverlay>
+            {activeTask ? <TaskCard task={activeTask} /> : null}
+          </DragOverlay>
+        </DndContext>
+      </div>
     </PageShell>
   );
 }

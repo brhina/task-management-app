@@ -113,35 +113,18 @@ const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
       }),
     );
 
-    const allTasks = await Task.countDocuments(
-      isOrgElevated(req.membershipRole)
-        ? { orgId: filter.orgId }
-        : { ...filter, ...userFilter },
-    );
+    const summaryFilter: any = { ...filter };
+    delete summaryFilter.status;
+    delete summaryFilter.$text;
+    if (!isOrgElevated(req.membershipRole)) {
+      Object.assign(summaryFilter, userFilter);
+    }
 
-    const pendingTasks = await Task.countDocuments({
-      ...filter,
-      status: "Pending",
-      ...userFilter,
-    });
-
-    const inProgressTasks = await Task.countDocuments({
-      ...filter,
-      status: "In Progress",
-      ...userFilter,
-    });
-
-    const inReviewTasks = await Task.countDocuments({
-      ...filter,
-      status: "In Review",
-      ...userFilter,
-    });
-
-    const completedTasks = await Task.countDocuments({
-      ...filter,
-      status: "Completed",
-      ...userFilter,
-    });
+    const allTasks = await Task.countDocuments(summaryFilter);
+    const pendingTasks = await Task.countDocuments({ ...summaryFilter, status: "Pending" });
+    const inProgressTasks = await Task.countDocuments({ ...summaryFilter, status: "In Progress" });
+    const inReviewTasks = await Task.countDocuments({ ...summaryFilter, status: "In Review" });
+    const completedTasks = await Task.countDocuments({ ...summaryFilter, status: "Completed" });
 
     res.status(200).json({
       message: "Tasks fetched successfully",

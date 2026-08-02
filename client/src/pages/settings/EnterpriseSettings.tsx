@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PageShell from "../../components/common/PageShell";
+import StatCard from "../../components/common/StatCard";
 import NavTabs from "../../components/common/NavTabs";
 import axiosInstance from "../../utils/axios";
 import {
@@ -189,46 +190,44 @@ export default function EnterpriseSettings() {
       <div className="space-y-6">
         {/* KPI Overview Summary Header */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="card p-4">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>Subscription Plan</span>
-              <CreditCard className="w-4 h-4 text-primary" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">
-              {billingData?.plan || "Free"}
-            </div>
-            <div className="text-[11px] text-primary font-medium mt-1">Active organization tier</div>
-          </div>
+          <StatCard
+            title="Subscription Plan"
+            value={billingData?.plan || "Free"}
+            icon={CreditCard}
+            colorTheme="slate"
+            subtext="Active organization tier"
+          />
 
-          <div className="card p-4">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>SSO Status</span>
-              <ShieldCheck className="w-4 h-4 text-emerald-500" />
-            </div>
-            <div className="text-sm font-bold text-emerald-600 flex items-center gap-1.5 mt-2">
-              <span className={`w-2 h-2 rounded-full ${ssoConfig.enabled ? "bg-emerald-500 animate-pulse" : "bg-slate-300"}`} />
-              {ssoConfig.enabled ? "Configured & Active" : "Disabled"}
-            </div>
-            <div className="text-[11px] text-slate-400 mt-1">SAML 2.0 / OIDC provider</div>
-          </div>
+          <StatCard
+            title="SSO Status"
+            value={ssoConfig.enabled ? "Active" : "Disabled"}
+            icon={ShieldCheck}
+            colorTheme={ssoConfig.enabled ? "emerald" : "slate"}
+            badge={
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  ssoConfig.enabled ? "bg-emerald-500 animate-pulse" : "bg-slate-300"
+                }`}
+              />
+            }
+            subtext="SAML 2.0 / OIDC provider"
+          />
 
-          <div className="card p-4">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>Active API Keys</span>
-              <Key className="w-4 h-4 text-amber-500" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{apiKeys.length}</div>
-            <div className="text-[11px] text-slate-500 mt-1">Issued access tokens</div>
-          </div>
+          <StatCard
+            title="Active API Keys"
+            value={apiKeys.length}
+            icon={Key}
+            colorTheme="amber"
+            subtext="Issued access tokens"
+          />
 
-          <div className="card p-4">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-              <span>Active Sessions</span>
-              <Users className="w-4 h-4 text-blue-500" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{sessions.length}</div>
-            <div className="text-[11px] text-blue-600 font-medium mt-1">Logged in devices</div>
-          </div>
+          <StatCard
+            title="Active Sessions"
+            value={sessions.length}
+            icon={Users}
+            colorTheme="blue"
+            subtext="Logged in devices"
+          />
         </div>
 
         {/* Navigation Tabs */}

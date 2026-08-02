@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import PageShell from '../../components/common/PageShell';
+import StatCard from '../../components/common/StatCard';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
@@ -259,7 +260,38 @@ export default function ProjectGantt() {
         </div>
       }
     >
-      <div className="space-y-4">
+      <div className="space-y-5">
+        {/* Gantt Timeline KPI Strip */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <StatCard
+            title="Scheduled Tasks"
+            value={tasks.length}
+            icon={Layers}
+            colorTheme="slate"
+            subtext="Timeline deliverables"
+          />
+          <StatCard
+            title="Target Milestones"
+            value={milestones.length}
+            icon={Target}
+            colorTheme="amber"
+            subtext="Strategic checkpoints"
+          />
+          <StatCard
+            title="Agile Sprints"
+            value={sprints.length}
+            icon={Timer}
+            colorTheme="purple"
+            subtext="Execution iterations"
+          />
+          <StatCard
+            title="Dependencies"
+            value={deps.length}
+            icon={Calendar}
+            colorTheme="sky"
+            subtext="Task sequence linkages"
+          />
+        </div>
         {/* Toolbar & Controls Bar */}
         <div className="card flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50 border-slate-200">
           <div className="flex flex-wrap items-center gap-3">

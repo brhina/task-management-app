@@ -23,6 +23,7 @@ import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
 import PageShell from '../../components/common/PageShell';
+import StatCard from '../../components/common/StatCard';
 import NavTabs from '../../components/common/NavTabs';
 import FilterToolbar from '../../components/common/FilterToolbar';
 import AdvancedTable, { RowActions, type Column, type ActionItem } from '../../components/common/AdvancedTable';
@@ -718,6 +719,38 @@ function ManageUsers() {
             {successMsg}
           </div>
         )}
+
+        {/* Organization KPI Overview Strip */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <StatCard
+            title="Total Members"
+            value={users.length}
+            icon={Users}
+            colorTheme="slate"
+            subtext="Organization directory"
+          />
+          <StatCard
+            title="Active Teams"
+            value={teams.length}
+            icon={UsersRound}
+            colorTheme="indigo"
+            subtext="Department groups"
+          />
+          <StatCard
+            title="Total Tasks Scope"
+            value={tasks.length}
+            icon={BarChart2}
+            colorTheme="sky"
+            subtext="Assigned organization tasks"
+          />
+          <StatCard
+            title="Custom Roles"
+            value={customRoles.length}
+            icon={Shield}
+            colorTheme="emerald"
+            subtext="Configured permission roles"
+          />
+        </div>
 
         {/* Unified Tab Navigation & Action Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
