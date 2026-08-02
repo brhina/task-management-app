@@ -146,3 +146,67 @@ export async function ssoCallbackHandler(req: AuthRequest, res: Response): Promi
     res.status(500).json({ message: error.message || "SSO Callback authentication failed" });
   }
 }
+
+export async function getSPMetadataHandler(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const orgId = req.orgId;
+    if (!orgId) {
+      res.status(400).json({ message: "Organization ID required" });
+      return;
+    }
+    const host = req.get("host") || "localhost:3001";
+    const protocol = req.protocol || "http";
+    const baseUrl = `${protocol}://${host}`;
+    const entityId = `${baseUrl}/api/sso/metadata/${orgId}`;
+    const acsUrl = `${baseUrl}/api/sso/login/callback`;
+
+    res.status(200).json({
+      entityId,
+      acsUrl,
+      binding: "HTTP-POST",
+      nameIDFormat: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message || "Failed to fetch SP Metadata" });
+  }
+}
+
+export async function testSSOConnectionHandler(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const orgId = req.orgId;
+    if (!orgId) {
+      res.status(400).json({ message: "Organization ID required" });
+      return;
+    }
+
+    const config = await SSOConfig.findOne({ orgId });
+    if (!config || !config.enabled) {
+      res.status(400).json({ success: false, message: "SSO is not enabled for this organization." });
+      return;
+    }
+
+    if (!config.entryPoint) {
+      res.status(400).json({ success: false, message: "Identity Provider Entry Point URL is missing." });
+      return;
+    }
+
+    if (config.domainWhitelist.length === 0) {
+      res.status(400).json({ success: false, message: "No whitelisted email domains configured." });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `SSO configuration validated successfully! Configured for ${config.domainWhitelist.join(", ")}.`,
+      details: {
+        provider: config.provider,
+        entryPoint: config.entryPoint,
+        domains: config.domainWhitelist,
+        jitProvisioning: config.jitProvisioning,
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || "Failed to test SSO connection" });
+  }
+}
+

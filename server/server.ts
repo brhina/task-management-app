@@ -41,6 +41,7 @@ import apiKeyRoutes from "./routes/apiKeyRoutes.js";
 import integrationRoutes from "./routes/integrationRoutes.js";
 import brandingRoutes from "./routes/brandingRoutes.js";
 import complianceRoutes from "./routes/complianceRoutes.js";
+import webhookRoutes from "./routes/webhookRoutes.js";
 
 import { apiKeyAuth } from "./middleware/apiKeyAuth.js";
 import { checkIpAllowlist } from "./middleware/ipAllowlist.js";
@@ -65,6 +66,7 @@ const httpServer = http.createServer(app);
 // Security headers
 app.use(helmet({
   contentSecurityPolicy: process.env.NODE_ENV === "production" ? undefined : false,
+  crossOriginResourcePolicy: { policy: "cross-origin" },
 }));
 
 // Request logging
@@ -117,6 +119,7 @@ app.use("/api/api-keys", apiKeyRoutes);
 app.use("/api/integrations", integrationRoutes);
 app.use("/api/branding", brandingRoutes);
 app.use("/api/compliance", complianceRoutes);
+app.use("/api/webhooks", webhookRoutes);
 
 // Enhanced Health check endpoint
 app.get("/health", (_req, res) => {

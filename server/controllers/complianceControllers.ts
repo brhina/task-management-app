@@ -122,20 +122,78 @@ export async function revokeSessionHandler(req: AuthRequest, res: Response): Pro
 export async function updateIPAllowlistHandler(req: AuthRequest, res: Response): Promise<void> {
   try {
     const orgId = req.orgId;
-    const { ipAllowlist } = req.body;
+    const { ipAllowlist, ipAllowlistEnabled } = req.body;
     if (!orgId) {
       res.status(400).json({ message: "Organization ID required" });
       return;
     }
 
+    const updateObj: any = {
+      ipAllowlist: Array.isArray(ipAllowlist) ? ipAllowlist : [],
+    };
+    if (ipAllowlistEnabled !== undefined) {
+      updateObj["securityPolicy.ipAllowlistEnabled"] = Boolean(ipAllowlistEnabled);
+    }
+
     const org = await Organization.findByIdAndUpdate(
       orgId,
-      { ipAllowlist: Array.isArray(ipAllowlist) ? ipAllowlist : [] },
+      updateObj,
       { new: true },
     );
 
-    res.status(200).json({ message: "IP Allowlist updated successfully", ipAllowlist: org?.ipAllowlist });
+    res.status(200).json({ message: "IP Allowlist updated successfully", ipAllowlist: org?.ipAllowlist, ipAllowlistEnabled: org?.securityPolicy?.ipAllowlistEnabled });
   } catch (error: any) {
     res.status(500).json({ message: error.message || "Failed to update IP Allowlist" });
   }
 }
+
+export async function getIPAllowlistHandler(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const orgId = req.orgId;
+    if (!orgId) {
+      res.status(400).json({ message: "Organization ID required" });
+      return;
+    }
+    const org = await Organization.findById(orgId);
+    res.status(200).json({
+      ipAllowlist: org?.ipAllowlist || [],
+      ipAllowlistEnabled: org?.securityPolicy?.ipAllowlistEnabled || false,
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message || "Failed to fetch IP Allowlist" });
+  }
+}
+
+export async function updateSecurityPolicyHandler(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const orgId = req.orgId;
+    const { enforce2FA, sessionTimeoutMinutes, ipAllowlistEnabled } = req.body;
+    if (!orgId) {
+      res.status(400).json({ message: "Organization ID required" });
+      return;
+    }
+
+    const org = await Organization.findById(orgId);
+    if (!org) {
+      res.status(404).json({ message: "Organization not found" });
+      return;
+    }
+
+    const securityPolicy = {
+      enforce2FA: enforce2FA !== undefined ? Boolean(enforce2FA) : org.securityPolicy?.enforce2FA || false,
+      sessionTimeoutMinutes: sessionTimeoutMinutes !== undefined ? Number(sessionTimeoutMinutes) : org.securityPolicy?.sessionTimeoutMinutes || 60,
+      ipAllowlistEnabled: ipAllowlistEnabled !== undefined ? Boolean(ipAllowlistEnabled) : org.securityPolicy?.ipAllowlistEnabled || false,
+    };
+
+    const updatedOrg = await Organization.findByIdAndUpdate(
+      orgId,
+      { securityPolicy },
+      { new: true },
+    );
+
+    res.status(200).json({ message: "Security policy updated successfully", securityPolicy: updatedOrg?.securityPolicy });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message || "Failed to update security policy" });
+  }
+}
+

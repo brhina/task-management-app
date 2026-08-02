@@ -5,6 +5,8 @@ import {
   updateSSOConfigHandler,
   ssoLoginInitiateHandler,
   ssoCallbackHandler,
+  getSPMetadataHandler,
+  testSSOConnectionHandler,
 } from "../controllers/ssoControllers.js";
 
 const router = Router();
@@ -18,5 +20,7 @@ router.use(protect as any);
 
 router.get("/config", getSSOConfigHandler as any);
 router.put("/config", updateSSOConfigHandler as any);
+router.get("/sp-metadata", getSPMetadataHandler as any);
+router.post("/test-connection", testSSOConnectionHandler as any);
 
 export default router;

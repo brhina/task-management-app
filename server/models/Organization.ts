@@ -5,7 +5,14 @@ export interface IOrganizationBranding {
   primaryColor?: string;
   accentColor?: string;
   customTitle?: string;
+  customFavicon?: string;
   whiteLabelEnabled?: boolean;
+}
+
+export interface ISecurityPolicy {
+  enforce2FA?: boolean;
+  sessionTimeoutMinutes?: number;
+  ipAllowlistEnabled?: boolean;
 }
 
 export interface IOrganization {
@@ -15,7 +22,10 @@ export interface IOrganization {
   createdBy: mongoose.Types.ObjectId;
   branding?: IOrganizationBranding;
   ipAllowlist?: string[];
+  securityPolicy?: ISecurityPolicy;
   billingEmail?: string;
+  billingContact?: string;
+  poNumber?: string;
 }
 
 export interface IOrganizationDocument
@@ -53,10 +63,18 @@ const organizationSchema = new mongoose.Schema<IOrganizationDocument>(
       primaryColor: { type: String, default: "#6366F1" },
       accentColor: { type: String, default: "#8B5CF6" },
       customTitle: { type: String, default: "" },
+      customFavicon: { type: String, default: "" },
       whiteLabelEnabled: { type: Boolean, default: false },
     },
     ipAllowlist: [{ type: String }],
+    securityPolicy: {
+      enforce2FA: { type: Boolean, default: false },
+      sessionTimeoutMinutes: { type: Number, default: 60 },
+      ipAllowlistEnabled: { type: Boolean, default: false },
+    },
     billingEmail: { type: String, default: "" },
+    billingContact: { type: String, default: "" },
+    poNumber: { type: String, default: "" },
   },
   { timestamps: true },
 );

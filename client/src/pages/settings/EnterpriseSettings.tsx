@@ -9,61 +9,121 @@ import {
   Key,
   Palette,
   Lock,
-  Download,
-  Plus,
-  Trash2,
-  Calendar,
-  ExternalLink,
+  FileText,
   Users,
   CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
 
-export default function EnterpriseSettings() {
-  const [activeTab, setActiveTab] = useState<"sso" | "billing" | "apikeys" | "branding" | "security">("sso");
+import SsoSettingsTab from "../../components/settings/enterprise/SsoSettingsTab";
+import BillingSettingsTab from "../../components/settings/enterprise/BillingSettingsTab";
+import ApiWebhooksTab from "../../components/settings/enterprise/ApiWebhooksTab";
+import BrandingSettingsTab from "../../components/settings/enterprise/BrandingSettingsTab";
+import ComplianceSecurityTab from "../../components/settings/enterprise/ComplianceSecurityTab";
+import AuditLogsTab from "../../components/settings/enterprise/AuditLogsTab";
 
-  // SSO state
+export default function EnterpriseSettings() {
+  const [activeTab, setActiveTab] = useState<"sso" | "billing" | "apikeys" | "branding" | "security" | "audit">("sso");
+
+  // Notification Toast State
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+
+  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  // Copy Feedback State
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const copyToClipboard = (text: string, fieldId: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(fieldId);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  // --- TAB 1: SSO State ---
   const [ssoConfig, setSsoConfig] = useState<any>({
     enabled: false,
     provider: "saml",
     issuerUrl: "",
     entryPoint: "",
+    certificate: "",
     domainWhitelist: [],
     jitProvisioning: true,
+    defaultRole: "OrgMember",
   });
+  const [spMetadata, setSpMetadata] = useState<any>(null);
+  const [ssoTestResult, setSsoTestResult] = useState<any>(null);
+  const [isTestingSso, setIsTestingSso] = useState(false);
 
-  // Billing state
+  // --- TAB 2: Billing State ---
   const [billingData, setBillingData] = useState<any>(null);
 
-  // API Keys state
+  // --- TAB 3: API Keys & Webhooks State ---
   const [apiKeys, setApiKeys] = useState<any[]>([]);
   const [keyName, setKeyName] = useState("");
+  const [keyScopes, setKeyScopes] = useState<string[]>(["read"]);
+  const [keyExpiration, setKeyExpiration] = useState("30");
   const [newSecretKey, setNewSecretKey] = useState("");
 
-  // Branding state
+  const [webhooks, setWebhooks] = useState<any[]>([]);
+  const [webhookName, setWebhookName] = useState("");
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookEvents, setWebhookEvents] = useState<string[]>(["task.created", "project.updated"]);
+
+  // --- TAB 4: Branding State ---
   const [branding, setBranding] = useState<any>({
     logoUrl: "",
+    customFavicon: "",
     primaryColor: "#6366F1",
     accentColor: "#8B5CF6",
     customTitle: "",
     whiteLabelEnabled: false,
   });
 
-  // Security & Compliance state
+  // --- TAB 5: Compliance & Security State ---
   const [sessions, setSessions] = useState<any[]>([]);
   const [totpData, setTotpData] = useState<any>(null);
+  const [totpCode, setTotpCode] = useState("");
+  const [ipAllowlist, setIpAllowlist] = useState<string[]>([]);
+  const [ipAllowlistEnabled, setIpAllowlistEnabled] = useState(false);
+  const [newIpInput, setNewIpInput] = useState("");
+
+  // --- TAB 6: Audit Logs State ---
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [auditTotal, setAuditTotal] = useState(0);
+  const [auditPage, setAuditPage] = useState(1);
+  const [auditSearch, setAuditSearch] = useState("");
+  const [auditActionFilter, setAuditActionFilter] = useState("");
+  const [auditTargetFilter, setAuditTargetFilter] = useState("");
+  const [auditActionsList, setAuditActionsList] = useState<string[]>([]);
 
   useEffect(() => {
     fetchSSOConfig();
+    fetchSPMetadata();
     fetchBilling();
     fetchApiKeys();
+    fetchWebhooks();
     fetchBranding();
     fetchSessions();
+    fetchIPAllowlist();
+    fetchAuditLogs();
   }, []);
 
+  // --- FETCHERS ---
   const fetchSSOConfig = async () => {
     try {
-      const res = await axiosInstance.get("/sso/config");
+      const res = await axiosInstance.get("/api/sso/config");
       setSsoConfig(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchSPMetadata = async () => {
+    try {
+      const res = await axiosInstance.get("/api/sso/sp-metadata");
+      setSpMetadata(res.data);
     } catch (err) {
       console.error(err);
     }
@@ -71,7 +131,7 @@ export default function EnterpriseSettings() {
 
   const fetchBilling = async () => {
     try {
-      const res = await axiosInstance.get("/billing/metrics");
+      const res = await axiosInstance.get("/api/billing/metrics");
       setBillingData(res.data);
     } catch (err) {
       console.error(err);
@@ -80,8 +140,17 @@ export default function EnterpriseSettings() {
 
   const fetchApiKeys = async () => {
     try {
-      const res = await axiosInstance.get("/api-keys");
+      const res = await axiosInstance.get("/api/api-keys");
       setApiKeys(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchWebhooks = async () => {
+    try {
+      const res = await axiosInstance.get("/api/webhooks");
+      setWebhooks(res.data);
     } catch (err) {
       console.error(err);
     }
@@ -89,7 +158,7 @@ export default function EnterpriseSettings() {
 
   const fetchBranding = async () => {
     try {
-      const res = await axiosInstance.get("/branding");
+      const res = await axiosInstance.get("/api/branding");
       setBranding(res.data);
     } catch (err) {
       console.error(err);
@@ -98,32 +167,80 @@ export default function EnterpriseSettings() {
 
   const fetchSessions = async () => {
     try {
-      const res = await axiosInstance.get("/compliance/sessions");
+      const res = await axiosInstance.get("/api/compliance/sessions");
       setSessions(res.data);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleSaveSSO = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const fetchIPAllowlist = async () => {
     try {
-      const domains = typeof ssoConfig.domainWhitelist === "string"
-        ? ssoConfig.domainWhitelist.split(",").map((d: string) => d.trim())
-        : ssoConfig.domainWhitelist;
-      await axiosInstance.put("/sso/config", { ...ssoConfig, domainWhitelist: domains });
-      alert("SSO configuration saved successfully.");
+      const res = await axiosInstance.get("/api/compliance/ip-allowlist");
+      setIpAllowlist(res.data.ipAllowlist || []);
+      setIpAllowlistEnabled(res.data.ipAllowlistEnabled || false);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleUpgradePlan = async (plan: string) => {
+  const fetchAuditLogs = async (page = 1) => {
     try {
-      await axiosInstance.post("/billing/upgrade", { plan });
-      fetchBilling();
+      const params: any = { page, limit: 15 };
+      if (auditActionFilter) params.action = auditActionFilter;
+      if (auditTargetFilter) params.targetType = auditTargetFilter;
+      const res = await axiosInstance.get("/api/audit-logs", { params });
+      setAuditLogs(res.data.data || []);
+      setAuditTotal(res.data.pagination?.total || 0);
+      setAuditPage(page);
+      if (res.data.filters?.actions) {
+        setAuditActionsList(res.data.filters.actions);
+      }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  // --- TAB HANDLERS ---
+  const handleSaveSSO = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const domains = typeof ssoConfig.domainWhitelist === "string"
+        ? ssoConfig.domainWhitelist.split(",").map((d: string) => d.trim()).filter(Boolean)
+        : ssoConfig.domainWhitelist;
+      await axiosInstance.put("/api/sso/config", { ...ssoConfig, domainWhitelist: domains });
+      showToast("SSO configuration saved successfully.", "success");
+      fetchSSOConfig();
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to save SSO config", "error");
+    }
+  };
+
+  const handleTestSSO = async () => {
+    setIsTestingSso(true);
+    setSsoTestResult(null);
+    try {
+      const res = await axiosInstance.post("/api/sso/test-connection");
+      setSsoTestResult(res.data);
+      showToast(res.data.message, "success");
+    } catch (err: any) {
+      setSsoTestResult({
+        success: false,
+        message: err.response?.data?.message || "SSO Connection Test Failed",
+      });
+      showToast("SSO Connection Test Failed", "error");
+    } finally {
+      setIsTestingSso(false);
+    }
+  };
+
+  const handleUpgradePlan = async (plan: string) => {
+    try {
+      await axiosInstance.post("/api/billing/upgrade", { plan });
+      showToast(`Organization successfully updated to ${plan} Plan!`, "success");
+      fetchBilling();
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to upgrade plan", "error");
     }
   };
 
@@ -131,63 +248,195 @@ export default function EnterpriseSettings() {
     e.preventDefault();
     if (!keyName) return;
     try {
-      const res = await axiosInstance.post("/api-keys", { name: keyName });
+      const res = await axiosInstance.post("/api/api-keys", {
+        name: keyName,
+        scopes: keyScopes,
+        expirationDays: keyExpiration === "never" ? 0 : Number(keyExpiration),
+      });
       setNewSecretKey(res.data.secretKey);
       setKeyName("");
+      showToast("New API Key created successfully!", "success");
       fetchApiKeys();
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to create API key", "error");
     }
   };
 
   const handleRevokeApiKey = async (id: string) => {
+    if (!confirm("Are you sure you want to revoke this API Key? Any application using it will lose access immediately.")) return;
     try {
-      await axiosInstance.delete(`/api-keys/${id}`);
+      await axiosInstance.delete(`/api/api-keys/${id}`);
+      showToast("API key revoked successfully.", "info");
       fetchApiKeys();
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to revoke API key", "error");
+    }
+  };
+
+  const handleCreateWebhook = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!webhookName || !webhookUrl) return;
+    try {
+      await axiosInstance.post("/api/webhooks", {
+        name: webhookName,
+        url: webhookUrl,
+        events: webhookEvents,
+      });
+      setWebhookName("");
+      setWebhookUrl("");
+      showToast("Webhook endpoint registered successfully!", "success");
+      fetchWebhooks();
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to create webhook", "error");
+    }
+  };
+
+  const handleDeleteWebhook = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this webhook endpoint?")) return;
+    try {
+      await axiosInstance.delete(`/api/webhooks/${id}`);
+      showToast("Webhook endpoint deleted.", "info");
+      fetchWebhooks();
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to delete webhook", "error");
     }
   };
 
   const handleSaveBranding = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axiosInstance.put("/branding", branding);
-      alert("Branding settings updated.");
-    } catch (err) {
-      console.error(err);
+      await axiosInstance.put("/api/branding", branding);
+      showToast("Organization branding updated.", "success");
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to save branding", "error");
     }
   };
 
+  const handleResetBranding = () => {
+    setBranding({
+      logoUrl: "",
+      customFavicon: "",
+      primaryColor: "#6366F1",
+      accentColor: "#8B5CF6",
+      customTitle: "",
+      whiteLabelEnabled: false,
+    });
+  };
+
   const handleGDPRDownload = () => {
-    window.open(`${axiosInstance.defaults.baseURL}/compliance/export`, "_blank");
+    window.open(`${axiosInstance.defaults.baseURL}/api/compliance/export`, "_blank");
+    showToast("GDPR Data Export initiated", "info");
   };
 
   const handleSetup2FA = async () => {
     try {
-      const res = await axiosInstance.post("/compliance/2fa/setup");
+      const res = await axiosInstance.post("/api/compliance/2fa/setup");
       setTotpData(res.data);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to setup 2FA", "error");
+    }
+  };
+
+  const handleVerify2FA = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await axiosInstance.post("/api/compliance/2fa/verify", { code: totpCode });
+      showToast("Two-Factor Authentication successfully enabled!", "success");
+      setTotpData(null);
+      setTotpCode("");
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Invalid 2FA code", "error");
+    }
+  };
+
+  const handleRevokeSession = async (id: string) => {
+    try {
+      await axiosInstance.delete(`/api/compliance/sessions/${id}`);
+      showToast("Session revoked.", "info");
+      fetchSessions();
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to revoke session", "error");
+    }
+  };
+
+  const handleAddIPRange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newIpInput) return;
+    const updated = [...ipAllowlist, newIpInput.trim()];
+    try {
+      await axiosInstance.put("/api/compliance/ip-allowlist", {
+        ipAllowlist: updated,
+        ipAllowlistEnabled,
+      });
+      setIpAllowlist(updated);
+      setNewIpInput("");
+      showToast("IP range added to allowlist.", "success");
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to add IP range", "error");
+    }
+  };
+
+  const handleRemoveIPRange = async (ipToRemove: string) => {
+    const updated = ipAllowlist.filter((ip) => ip !== ipToRemove);
+    try {
+      await axiosInstance.put("/api/compliance/ip-allowlist", {
+        ipAllowlist: updated,
+        ipAllowlistEnabled,
+      });
+      setIpAllowlist(updated);
+      showToast("IP range removed.", "info");
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to update IP allowlist", "error");
+    }
+  };
+
+  const handleToggleIPEnforcement = async (enabled: boolean) => {
+    try {
+      await axiosInstance.put("/api/compliance/ip-allowlist", {
+        ipAllowlist,
+        ipAllowlistEnabled: enabled,
+      });
+      setIpAllowlistEnabled(enabled);
+      showToast(`IP Allowlist enforcement ${enabled ? "enabled" : "disabled"}.`, "info");
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to update IP enforcement", "error");
     }
   };
 
   const getCalendarFeedUrl = () => {
     const token = localStorage.getItem("token") || "";
-    return `${axiosInstance.defaults.baseURL}/integrations/calendar/ics?token=${token}`;
+    return `${axiosInstance.defaults.baseURL}/api/integrations/calendar/ics?token=${token}`;
   };
 
   return (
     <PageShell
       title={
-        <span className="flex items-center space-x-2">
+        <span className="flex items-center space-x-2.5">
           <ShieldCheck className="w-6 h-6 text-primary" />
           <span>Enterprise Center</span>
         </span>
       }
-      subtitle="SSO, Subscription Billing, API Keys, Custom Branding, and Security Compliance"
+      subtitle="SSO/SAML, Subscription Billing, API Keys & Webhooks, Custom Branding, Security & Audit Logs"
     >
-      <div className="space-y-6">
+      <div className="space-y-6 relative">
+        {/* Toast Alert Banner */}
+        {toast && (
+          <div
+            className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-xl shadow-lg border flex items-center space-x-3 text-xs font-semibold animate-fade-in ${
+              toast.type === "success"
+                ? "bg-emerald-50 border-emerald-300 text-emerald-900"
+                : toast.type === "error"
+                ? "bg-rose-50 border-rose-300 text-rose-900"
+                : "bg-blue-50 border-blue-300 text-blue-900"
+            }`}
+          >
+            {toast.type === "success" && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />}
+            {toast.type === "error" && <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />}
+            {toast.type === "info" && <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />}
+            <span>{toast.message}</span>
+          </div>
+        )}
+
         {/* KPI Overview Summary Header */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <StatCard
@@ -196,6 +445,11 @@ export default function EnterpriseSettings() {
             icon={CreditCard}
             colorTheme="slate"
             subtext="Active organization tier"
+            badge={
+              <span className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                {billingData?.plan || "Free"}
+              </span>
+            }
           />
 
           <StatCard
@@ -205,7 +459,7 @@ export default function EnterpriseSettings() {
             colorTheme={ssoConfig.enabled ? "emerald" : "slate"}
             badge={
               <span
-                className={`w-2 h-2 rounded-full ${
+                className={`w-2.5 h-2.5 rounded-full ${
                   ssoConfig.enabled ? "bg-emerald-500 animate-pulse" : "bg-slate-300"
                 }`}
               />
@@ -214,11 +468,11 @@ export default function EnterpriseSettings() {
           />
 
           <StatCard
-            title="Active API Keys"
-            value={apiKeys.length}
+            title="Active Keys & Webhooks"
+            value={`${apiKeys.length} Keys / ${webhooks.length} Hooks`}
             icon={Key}
             colorTheme="amber"
-            subtext="Issued access tokens"
+            subtext="Integrations & automated scripts"
           />
 
           <StatCard
@@ -231,13 +485,14 @@ export default function EnterpriseSettings() {
         </div>
 
         {/* Navigation Tabs */}
-        <NavTabs<'sso' | 'billing' | 'apikeys' | 'branding' | 'security'>
+        <NavTabs<'sso' | 'billing' | 'apikeys' | 'branding' | 'security' | 'audit'>
           tabs={[
             { id: "sso", label: "SSO / SAML", icon: ShieldCheck },
             { id: "billing", label: "Billing & Usage", icon: CreditCard },
-            { id: "apikeys", label: "API Keys & Feeds", icon: Key, badge: apiKeys.length },
-            { id: "branding", label: "Custom Branding", icon: Palette },
-            { id: "security", label: "Compliance & Security", icon: Lock },
+            { id: "apikeys", label: "API & Webhooks", icon: Key, badge: apiKeys.length + webhooks.length },
+            { id: "branding", label: "Branding", icon: Palette },
+            { id: "security", label: "Compliance & IP Security", icon: Lock },
+            { id: "audit", label: "Audit Logs", icon: FileText, badge: auditTotal },
           ]}
           activeTab={activeTab}
           onChange={setActiveTab}
@@ -245,350 +500,102 @@ export default function EnterpriseSettings() {
 
         {/* TAB 1: SSO / SAML */}
         {activeTab === "sso" && (
-          <form onSubmit={handleSaveSSO} className="card p-6 space-y-5">
-            <div className="flex items-center space-x-2.5 border-b border-slate-200/80 pb-4">
-              <div className="p-2 rounded-xl bg-primary/10 text-primary shrink-0">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-base font-bold text-slate-800">Single Sign-On (SSO / SAML 2.0)</h3>
-                <p className="text-slate-500 text-xs">Configure enterprise identity providers (Okta, Azure AD, Google Workspace).</p>
-              </div>
-              <label className="flex items-center cursor-pointer space-x-2 shrink-0">
-                <span className="text-xs font-semibold text-slate-700">Enable SSO</span>
-                <input
-                  type="checkbox"
-                  checked={ssoConfig.enabled}
-                  onChange={(e) => setSsoConfig({ ...ssoConfig, enabled: e.target.checked })}
-                  className="w-4 h-4 accent-primary rounded"
-                />
-              </label>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">SSO Provider</label>
-                <select
-                  value={ssoConfig.provider}
-                  onChange={(e) => setSsoConfig({ ...ssoConfig, provider: e.target.value })}
-                  className="input-field text-xs"
-                >
-                  <option value="saml">SAML 2.0</option>
-                  <option value="oidc">OIDC (OpenID Connect)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Whitelisted Domains (comma separated)</label>
-                <input
-                  type="text"
-                  placeholder="acme.com, enterprise.org"
-                  value={Array.isArray(ssoConfig.domainWhitelist) ? ssoConfig.domainWhitelist.join(", ") : ssoConfig.domainWhitelist}
-                  onChange={(e) => setSsoConfig({ ...ssoConfig, domainWhitelist: e.target.value })}
-                  className="input-field text-xs"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-slate-700 font-semibold mb-1">Identity Provider (IdP) Entry Point URL</label>
-                <input
-                  type="url"
-                  placeholder="https://sso.okta.com/app/v1/auth"
-                  value={ssoConfig.entryPoint || ""}
-                  onChange={(e) => setSsoConfig({ ...ssoConfig, entryPoint: e.target.value })}
-                  className="input-field text-xs"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="btn-primary text-xs py-2 px-4"
-            >
-              Save SSO Settings
-            </button>
-          </form>
+          <SsoSettingsTab
+            ssoConfig={ssoConfig}
+            setSsoConfig={setSsoConfig}
+            spMetadata={spMetadata}
+            ssoTestResult={ssoTestResult}
+            isTestingSso={isTestingSso}
+            onSaveSSO={handleSaveSSO}
+            onTestSSO={handleTestSSO}
+            onCopy={copyToClipboard}
+            copiedField={copiedField}
+          />
         )}
 
         {/* TAB 2: Billing & Usage */}
-        {activeTab === "billing" && billingData && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {["Free", "Pro", "Enterprise"].map((tier) => (
-                <div
-                  key={tier}
-                  className={`card p-5 flex flex-col justify-between ${
-                    billingData.plan === tier ? "border-primary ring-2 ring-primary/20" : ""
-                  }`}
-                >
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-base font-bold text-slate-800">{tier} Plan</span>
-                      {billingData.plan === tier && (
-                        <span className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold px-2 py-0.5 rounded">
-                          Current
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-2xl font-black text-slate-900 mb-3">
-                      {tier === "Enterprise" ? "$299/mo" : tier === "Pro" ? "$49/mo" : "$0/mo"}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => handleUpgradePlan(tier)}
-                    disabled={billingData.plan === tier}
-                    className={`w-full py-2 rounded-xl text-xs font-semibold transition-colors mt-4 ${
-                      billingData.plan === tier
-                        ? "bg-slate-100 text-slate-400 cursor-default"
-                        : "btn-primary"
-                    }`}
-                  >
-                    {billingData.plan === tier ? "Active Plan" : `Switch to ${tier}`}
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {/* Metered Usage */}
-            <div className="card p-5 space-y-4">
-              <h3 className="text-base font-bold text-slate-800">Organization Metered Usage</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                <div className="bg-slate-50 border border-slate-200/80 p-4 rounded-xl">
-                  <div className="text-slate-500 font-medium">Team Members</div>
-                  <div className="text-xl font-bold text-slate-900 mt-1">
-                    {billingData.usage?.members} / {billingData.limits?.maxMembers}
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 border border-slate-200/80 p-4 rounded-xl">
-                  <div className="text-slate-500 font-medium">Active Projects</div>
-                  <div className="text-xl font-bold text-slate-900 mt-1">
-                    {billingData.usage?.projects} / {billingData.limits?.maxProjects}
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 border border-slate-200/80 p-4 rounded-xl">
-                  <div className="text-slate-500 font-medium">AI Ops Quota</div>
-                  <div className="text-xl font-bold text-slate-900 mt-1">
-                    {billingData.usage?.aiOps} / {billingData.limits?.maxAIOperations}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        {activeTab === "billing" && (
+          <BillingSettingsTab
+            billingData={billingData}
+            onUpgradePlan={handleUpgradePlan}
+            onShowToast={showToast}
+          />
         )}
 
-        {/* TAB 3: API Keys & Integrations */}
+        {/* TAB 3: API Keys & Webhooks */}
         {activeTab === "apikeys" && (
-          <div className="space-y-6">
-            <div className="card p-5 space-y-4">
-              <div className="flex items-center space-x-2.5">
-                <div className="p-2 rounded-xl bg-primary/10 text-primary shrink-0">
-                  <Key className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-800">Generate API Key</h3>
-                  <p className="text-slate-500 text-xs">Issue org API keys for backend integrations and automated scripts.</p>
-                </div>
-              </div>
-
-              <form onSubmit={handleCreateApiKey} className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="API Key Name (e.g. Production CI Integration)"
-                  value={keyName}
-                  onChange={(e) => setKeyName(e.target.value)}
-                  className="input-field flex-1 text-xs"
-                  required
-                />
-                <button
-                  type="submit"
-                  className="btn-primary text-xs flex items-center space-x-1 py-2 px-4 shrink-0"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Create Key</span>
-                </button>
-              </form>
-
-              {newSecretKey && (
-                <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs space-y-1">
-                  <div className="font-bold">New API Key Created! Copy it now (it won't be shown again):</div>
-                  <div className="font-mono text-sm bg-white p-2.5 rounded-lg border border-emerald-300 text-emerald-900">{newSecretKey}</div>
-                </div>
-              )}
-            </div>
-
-            {/* Active API Keys */}
-            <div className="card p-5 space-y-3">
-              <h3 className="text-base font-bold text-slate-800">Active API Keys</h3>
-              <div className="space-y-2">
-                {apiKeys.map((k) => (
-                  <div key={k._id} className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl flex justify-between items-center text-xs text-slate-700 shadow-2xs">
-                    <div>
-                      <div className="font-bold text-slate-800">{k.name}</div>
-                      <div className="font-mono text-slate-500">{k.keyPrefix}...</div>
-                    </div>
-                    <button
-                      onClick={() => handleRevokeApiKey(k._id)}
-                      className="text-rose-600 hover:text-rose-800 text-xs font-semibold flex items-center space-x-1 transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Revoke</span>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* iCal Feed */}
-            <div className="card p-5 space-y-3">
-              <div className="flex items-center space-x-2.5">
-                <div className="p-2 rounded-xl bg-primary/10 text-primary shrink-0">
-                  <Calendar className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-800">iCal Calendar Subscription Feed</h3>
-                  <p className="text-slate-500 text-xs">Subscribe to your task due dates in Google Calendar, Outlook, or Apple Calendar.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={getCalendarFeedUrl()}
-                  className="input-field flex-1 text-xs font-mono text-slate-600"
-                />
-                <button
-                  onClick={() => window.open(getCalendarFeedUrl(), "_blank")}
-                  className="btn-secondary text-xs flex items-center space-x-1.5 py-2 px-3 shrink-0"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Open Feed</span>
-                </button>
-              </div>
-            </div>
-          </div>
+          <ApiWebhooksTab
+            apiKeys={apiKeys}
+            keyName={keyName}
+            setKeyName={setKeyName}
+            keyScopes={keyScopes}
+            setKeyScopes={setKeyScopes}
+            keyExpiration={keyExpiration}
+            setKeyExpiration={setKeyExpiration}
+            newSecretKey={newSecretKey}
+            webhooks={webhooks}
+            webhookName={webhookName}
+            setWebhookName={setWebhookName}
+            webhookUrl={webhookUrl}
+            setWebhookUrl={setWebhookUrl}
+            webhookEvents={webhookEvents}
+            setWebhookEvents={setWebhookEvents}
+            onCreateApiKey={handleCreateApiKey}
+            onRevokeApiKey={handleRevokeApiKey}
+            onCreateWebhook={handleCreateWebhook}
+            onDeleteWebhook={handleDeleteWebhook}
+            onCopy={copyToClipboard}
+            copiedField={copiedField}
+            calendarFeedUrl={getCalendarFeedUrl()}
+          />
         )}
 
         {/* TAB 4: Custom Branding */}
         {activeTab === "branding" && (
-          <form onSubmit={handleSaveBranding} className="card p-6 space-y-5">
-            <div className="flex items-center space-x-2.5 border-b border-slate-200/80 pb-4">
-              <div className="p-2 rounded-xl bg-primary/10 text-primary shrink-0">
-                <Palette className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-800">Organization Custom Branding</h3>
-                <p className="text-slate-500 text-xs">Customize logo, colors, and headers across your workspace.</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Logo URL</label>
-                <input
-                  type="text"
-                  value={branding.logoUrl}
-                  onChange={(e) => setBranding({ ...branding, logoUrl: e.target.value })}
-                  placeholder="https://example.com/logo.png"
-                  className="input-field text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Custom Application Title</label>
-                <input
-                  type="text"
-                  value={branding.customTitle}
-                  onChange={(e) => setBranding({ ...branding, customTitle: e.target.value })}
-                  placeholder="Acme WorkOS"
-                  className="input-field text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Primary Theme Color</label>
-                <input
-                  type="color"
-                  value={branding.primaryColor}
-                  onChange={(e) => setBranding({ ...branding, primaryColor: e.target.value })}
-                  className="w-full h-10 bg-white border border-slate-200 rounded-xl p-1 cursor-pointer"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Accent Theme Color</label>
-                <input
-                  type="color"
-                  value={branding.accentColor}
-                  onChange={(e) => setBranding({ ...branding, accentColor: e.target.value })}
-                  className="w-full h-10 bg-white border border-slate-200 rounded-xl p-1 cursor-pointer"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="btn-primary text-xs py-2 px-4"
-            >
-              Save Branding Changes
-            </button>
-          </form>
+          <BrandingSettingsTab
+            branding={branding}
+            setBranding={setBranding}
+            onSaveBranding={handleSaveBranding}
+            onResetBranding={handleResetBranding}
+          />
         )}
 
         {/* TAB 5: Compliance & Security */}
         {activeTab === "security" && (
-          <div className="space-y-6">
-            <div className="card p-5 flex justify-between items-center">
-              <div>
-                <h3 className="text-base font-bold text-slate-800">Full GDPR Data Export</h3>
-                <p className="text-slate-500 text-xs mt-0.5">Download all organization projects, tasks, members, and audit logs in JSON format.</p>
-              </div>
-              <button
-                onClick={handleGDPRDownload}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors shadow-xs"
-              >
-                <Download className="w-4 h-4" />
-                <span>Export JSON</span>
-              </button>
-            </div>
+          <ComplianceSecurityTab
+            ipAllowlist={ipAllowlist}
+            ipAllowlistEnabled={ipAllowlistEnabled}
+            newIpInput={newIpInput}
+            setNewIpInput={setNewIpInput}
+            onAddIPRange={handleAddIPRange}
+            onRemoveIPRange={handleRemoveIPRange}
+            onToggleIPEnforcement={handleToggleIPEnforcement}
+            onGDPRDownload={handleGDPRDownload}
+            totpData={totpData}
+            totpCode={totpCode}
+            setTotpCode={setTotpCode}
+            onSetup2FA={handleSetup2FA}
+            onVerify2FA={handleVerify2FA}
+            sessions={sessions}
+            onRevokeSession={handleRevokeSession}
+          />
+        )}
 
-            <div className="card p-5 space-y-3">
-              <h3 className="text-base font-bold text-slate-800">Two-Factor Authentication (2FA)</h3>
-              <p className="text-slate-500 text-xs">Secure account access with TOTP authenticator apps.</p>
-              <button
-                onClick={handleSetup2FA}
-                className="btn-primary text-xs py-2 px-4"
-              >
-                Setup 2FA Authenticator
-              </button>
-
-              {totpData && (
-                <div className="bg-slate-50 border border-slate-200/80 p-4 rounded-xl text-xs space-y-2 mt-3">
-                  <div className="text-slate-800 font-semibold">Scan QR code in Authenticator App:</div>
-                  <img src={totpData.qrCodeUrl} alt="2FA QR Code" className="w-36 h-36 bg-white border border-slate-200 p-1 rounded-lg" />
-                  <div className="font-mono text-slate-600">Secret: {totpData.secret}</div>
-                </div>
-              )}
-            </div>
-
-            <div className="card p-5 space-y-3">
-              <h3 className="text-base font-bold text-slate-800">Active User Sessions</h3>
-              <div className="space-y-2">
-                {sessions.map((s) => (
-                  <div key={s._id} className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl flex justify-between items-center text-xs text-slate-700 shadow-2xs">
-                    <div>
-                      <div className="font-bold text-slate-800">{s.userAgent}</div>
-                      <div className="text-slate-500 mt-0.5">IP: {s.ipAddress} • Last Active: {new Date(s.lastActive).toLocaleString()}</div>
-                    </div>
-                    <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 font-bold text-[10px] px-2.5 py-0.5 rounded-md">Active</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+        {/* TAB 6: Audit Logs */}
+        {activeTab === "audit" && (
+          <AuditLogsTab
+            auditLogs={auditLogs}
+            auditTotal={auditTotal}
+            auditPage={auditPage}
+            auditSearch={auditSearch}
+            setAuditSearch={setAuditSearch}
+            auditActionFilter={auditActionFilter}
+            setAuditActionFilter={setAuditActionFilter}
+            auditTargetFilter={auditTargetFilter}
+            setAuditTargetFilter={setAuditTargetFilter}
+            auditActionsList={auditActionsList}
+            onFetchAuditLogs={fetchAuditLogs}
+          />
         )}
       </div>
     </PageShell>
