@@ -12,61 +12,70 @@ import {
   Layers,
   Lock,
   ChevronRight,
-  Kanban
+  Kanban,
+  Building2,
+  CreditCard,
+  Bot,
+  Target,
+  Clock,
+  Briefcase
 } from 'lucide-react';
 import PublicLayout from '../../components/layouts/PublicLayout';
 
 function Landing() {
-  const [activeTab, setActiveTab] = useState<'kanban' | 'sprint' | 'roles' | 'analytics'>('kanban');
+  const [activeTab, setActiveTab] = useState<'kanban' | 'sprint' | 'billing' | 'ai'>('kanban');
 
   const mainFeatures = [
     {
-      icon: <ClipboardCheck className="w-6 h-6 text-primary" />,
-      title: 'Advanced Task Board',
+      icon: <Kanban className="w-6 h-6 text-primary" />,
+      title: 'Agile Kanban & Backlogs',
       description:
-        'Manage tasks with Kanban views, customizable statuses, priority levels, and instant task assignments.',
+        'Structure tasks with flexible Kanban boards, custom WIP limits, issue types, and real-time sprint backlogs.',
     },
     {
-      icon: <ShieldCheck className="w-6 h-6 text-primary" />,
-      title: 'Admin Role Governance',
+      icon: <CreditCard className="w-6 h-6 text-emerald-600" />,
+      title: 'Tiered Subscription Plans',
       description:
-        'Registration is strictly role-controlled by Administrators. Invite team members with precise access rights.',
+        'Choose Free, Pro (14-day trial), or Enterprise tiers. Integrated Telebirr payments and automated ETB invoicing.',
     },
     {
-      icon: <Zap className="w-6 h-6 text-amber-500" />,
-      title: 'Real-Time Sync & Sprints',
+      icon: <Bot className="w-6 h-6 text-indigo-600" />,
+      title: 'AI Intelligence Engine',
       description:
-        'Collaborate synchronously across agile sprints, gantt timelines, and project milestones.',
+        'Automated task effort estimation, smart impact scoring, velocity recommendations, and automated workflow runs.',
     },
     {
-      icon: <BarChart3 className="w-6 h-6 text-emerald-600" />,
+      icon: <BarChart3 className="w-6 h-6 text-amber-500" />,
       title: 'Executive Analytics',
       description:
-        'Track velocity, team workload, goal completion rates, and comprehensive audit logs.',
+        'Track burndown charts, team velocity, resource workloads, and export compliance audit logs.',
     },
   ];
 
-  const roleHighlights = [
+  const onboardingSteps = [
     {
-      role: 'System Administrator',
-      badge: 'Admin Only Registration',
+      step: '01',
+      title: 'Create Your Workspace',
+      badge: 'Instant Setup',
       color: 'bg-primary-light text-primary border-primary/30',
-      description: 'Creates workspace, manages team members, configures custom permissions, and monitors audit logs.',
-      perks: ['Register new workspace', 'Invite & manage users', 'Full role permissions', 'Audit trail access'],
+      description: 'Enter your name, work email, and company workspace name to get started immediately.',
+      perks: ['Workspace admin access', 'Custom workspace URL slug', 'No secret key needed'],
     },
     {
-      role: 'Project Manager',
-      badge: 'Assigned Role',
+      step: '02',
+      title: 'Choose Subscription Tier',
+      badge: 'Free & Paid Tiers',
       color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      description: 'Plans project sprints, sets milestones, manages team workloads, and reviews task progress.',
-      perks: ['Sprint planning', 'Gantt chart management', 'Resource allocation', 'Team analytics'],
+      description: 'Start on Free (up to 5 team members) or activate Pro with a 14-day free trial.',
+      perks: ['Free tier included', 'Telebirr express payment', 'Transparent usage limits'],
     },
     {
-      role: 'Team Member / Contributor',
-      badge: 'Invited Member',
-      color: 'bg-blue-50 text-blue-700 border-blue-200',
-      description: 'Executes assigned tasks, updates checklists, logs time, and collaborates in real-time.',
-      perks: ['Task execution', 'Checklist items', 'Comment threads', 'Personal dashboard'],
+      step: '03',
+      title: 'Invite & Scale Sprints',
+      badge: 'Team Onboarding',
+      color: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+      description: 'Send instant invitation links to team members and assign project roles seamlessly.',
+      perks: ['Granular role permissions', 'Sprint backlog planning', 'Real-time sync'],
     },
   ];
 
@@ -77,45 +86,45 @@ function Landing() {
         <section className="pt-2 pb-3 text-center">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary-light px-3 py-1 text-[11px] font-semibold text-primary shadow-2xs mb-3">
             <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-            <span>Role-Based Enterprise Security</span>
+            <span>Enterprise Workspace & Subscription Platform</span>
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-800 tracking-tight max-w-3xl mx-auto leading-tight">
-            Organize Work.{' '}
-            <span className="text-primary">
-              Execute with Precision.
+            Organize Projects.{' '}
+            <span className="bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">
+              Align Teams. Scale Faster.
             </span>
           </h1>
 
           <p className="mt-2.5 text-sm sm:text-base text-slate-600 mb-4 max-w-xl mx-auto leading-relaxed font-normal">
-            A high-performance task management system built with Admin-governed role access, agile sprints, and real-time collaboration.
+            The next-generation agile task workspace built for modern engineering & product teams. Launch your organization workspace in seconds with integrated AI intelligence and flexible subscription tiers.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-2.5 justify-center max-w-md mx-auto">
             <Link
               to="/signup"
-              className="inline-flex items-center justify-center gap-1.5 bg-primary hover:bg-primary-hover text-white font-semibold text-sm px-5 py-2.5 rounded-lg shadow transition-colors group"
+              className="inline-flex items-center justify-center gap-1.5 bg-primary hover:bg-primary-hover text-white font-semibold text-sm px-5 py-2.5 rounded-xl shadow-md transition-all hover:shadow-lg group"
             >
-              <Shield className="w-4 h-4 text-white/90" />
-              <span>Admin Registration</span>
+              <Zap className="w-4 h-4 text-white/90" />
+              <span>Start Free Workspace</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
             <Link
               to="/login"
-              className="btn-ghost inline-flex items-center justify-center gap-1.5 text-sm px-5 py-2.5 rounded-lg"
+              className="btn-ghost inline-flex items-center justify-center gap-1.5 text-sm px-5 py-2.5 rounded-xl border border-gray-200"
             >
               <span>Sign In to Workspace</span>
             </Link>
           </div>
 
           <div className="mt-3 text-[11px] text-slate-500 flex items-center justify-center gap-1.5">
-            <Lock className="w-3 h-3 text-slate-400" />
-            <span>Public registration restricted to Administrators. Team members register via invitation link.</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Instant setup • No admin key required • Upgrade anytime via Telebirr</span>
           </div>
 
           {/* Interactive Feature Demo Mockup */}
-          <div className="mt-5 max-w-4xl mx-auto rounded-xl border border-gray-200 bg-white shadow-card p-3 sm:p-4">
+          <div className="mt-5 max-w-4xl mx-auto rounded-2xl border border-gray-200 bg-white shadow-card p-3 sm:p-4">
             {/* Tab navigation */}
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-2.5 mb-3">
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
@@ -139,29 +148,29 @@ function Landing() {
                   }`}
                 >
                   <Layers className="w-3.5 h-3.5" />
-                  Sprint Planning
+                  Agile Sprints
                 </button>
                 <button
-                  onClick={() => setActiveTab('roles')}
+                  onClick={() => setActiveTab('billing')}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                    activeTab === 'roles'
+                    activeTab === 'billing'
                       ? 'bg-primary text-white shadow-xs'
                       : 'bg-gray-100 text-slate-600 hover:bg-gray-200/70'
                   }`}
                 >
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  Admin & Roles
+                  <CreditCard className="w-3.5 h-3.5" />
+                  Subscriptions & Billing
                 </button>
                 <button
-                  onClick={() => setActiveTab('analytics')}
+                  onClick={() => setActiveTab('ai')}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                    activeTab === 'analytics'
+                    activeTab === 'ai'
                       ? 'bg-primary text-white shadow-xs'
                       : 'bg-gray-100 text-slate-600 hover:bg-gray-200/70'
                   }`}
                 >
-                  <BarChart3 className="w-3.5 h-3.5" />
-                  Executive Analytics
+                  <Bot className="w-3.5 h-3.5" />
+                  AI Workflows
                 </button>
               </div>
 
@@ -172,7 +181,7 @@ function Landing() {
             </div>
 
             {/* Tab Preview Content */}
-            <div className="bg-slate-50 rounded-lg p-3.5 text-left font-sans text-slate-800 border border-gray-200 min-h-[190px] flex flex-col justify-between shadow-2xs">
+            <div className="bg-slate-50/80 rounded-xl p-3.5 text-left font-sans text-slate-800 border border-gray-200 min-h-[190px] flex flex-col justify-between shadow-2xs">
               {activeTab === 'kanban' && (
                 <div className="space-y-3">
                   <div className="flex justify-between items-center border-b border-gray-200 pb-2">
@@ -186,14 +195,14 @@ function Landing() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
                     <div className="bg-white rounded-lg p-2.5 border border-gray-200 shadow-2xs">
                       <div className="text-[11px] font-bold text-slate-500 uppercase mb-1.5 flex justify-between">
-                        <span>To Do</span>
+                        <span>Backlog</span>
                         <span className="text-slate-400">3</span>
                       </div>
                       <div className="bg-gray-50 p-2 rounded border border-gray-200 text-xs text-slate-700 space-y-1">
-                        <div className="font-semibold text-slate-800 text-[11px]">Setup Admin Role Permissions</div>
+                        <div className="font-semibold text-slate-800 text-[11px]">Setup Subscription Tier Limits</div>
                         <div className="text-[10px] text-slate-500 flex items-center gap-1.5">
                           <span className="px-1 py-0.2 rounded bg-rose-50 text-rose-600 font-semibold border border-rose-200">Critical</span>
-                          <span>Admin Suite</span>
+                          <span>Billing</span>
                         </div>
                       </div>
                     </div>
@@ -203,10 +212,10 @@ function Landing() {
                         <span className="text-primary">2</span>
                       </div>
                       <div className="bg-primary-light/40 p-2 rounded border border-primary/30 text-xs text-slate-700 space-y-1">
-                        <div className="font-semibold text-slate-800 text-[11px]">Role-Based Registration Enforcement</div>
+                        <div className="font-semibold text-slate-800 text-[11px]">Self-Service Onboarding Workflow</div>
                         <div className="text-[10px] text-slate-500 flex items-center gap-1.5">
                           <span className="px-1 py-0.2 rounded bg-amber-50 text-amber-600 font-semibold border border-amber-200">High</span>
-                          <span>Auth Module</span>
+                          <span>Auth & Workspace</span>
                         </div>
                       </div>
                     </div>
@@ -216,10 +225,10 @@ function Landing() {
                         <span className="text-emerald-600">5</span>
                       </div>
                       <div className="bg-emerald-50/50 p-2 rounded border border-emerald-200 text-xs text-slate-700 space-y-1">
-                        <div className="font-semibold text-slate-800 text-[11px]">Login & Dashboard Refresh</div>
+                        <div className="font-semibold text-slate-800 text-[11px]">Telebirr Payment Gateway</div>
                         <div className="text-[10px] text-slate-500 flex items-center gap-1.5">
                           <span className="px-1 py-0.2 rounded bg-emerald-100 text-emerald-700 font-semibold">Done</span>
-                          <span>UI Polish</span>
+                          <span>Billing</span>
                         </div>
                       </div>
                     </div>
@@ -231,96 +240,101 @@ function Landing() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center border-b border-gray-200 pb-2">
                     <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
-                      <Layers className="w-3.5 h-3.5 text-primary" /> Sprint Lifecycle & Gantt Timeline
+                      <Layers className="w-3.5 h-3.5 text-primary" /> Sprint Lifecycle & Roadmap Timeline
                     </span>
-                    <span className="text-[10px] text-slate-500 font-medium">Q3 Roadmap</span>
+                    <span className="text-[10px] text-slate-500 font-medium">Q3 Engineering Sprint</span>
                   </div>
                   <div className="space-y-2.5 text-xs">
                     <div className="space-y-1">
                       <div className="flex justify-between text-slate-700 font-medium text-[11px]">
-                        <span>Sprint 14: Core Auth & RBAC Security</span>
-                        <span className="text-primary font-bold">85% Complete</span>
+                        <span>Sprint 14: Onboarding & Subscription Plans</span>
+                        <span className="text-primary font-bold">92% Complete</span>
                       </div>
                       <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
-                        <div className="bg-primary h-full w-[85%]"></div>
+                        <div className="bg-primary h-full w-[92%]"></div>
                       </div>
                     </div>
                     <div className="space-y-1">
                       <div className="flex justify-between text-slate-700 font-medium text-[11px]">
-                        <span>Sprint 15: Analytics & Audit Log Export</span>
-                        <span className="text-slate-500 font-bold">40% Planned</span>
+                        <span>Sprint 15: AI Copilot Recommendations</span>
+                        <span className="text-slate-500 font-bold">45% Planned</span>
                       </div>
                       <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
-                        <div className="bg-primary/60 h-full w-[40%]"></div>
+                        <div className="bg-primary/60 h-full w-[45%]"></div>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {activeTab === 'roles' && (
+              {activeTab === 'billing' && (
                 <div className="space-y-3">
                   <div className="flex justify-between items-center border-b border-gray-200 pb-2">
                     <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-primary" /> Role-Based Access Control Matrix
+                      <CreditCard className="w-3.5 h-3.5 text-emerald-600" /> Organization Subscription & Usage
                     </span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary-light text-primary font-semibold border border-primary/30">
-                      Admin Restricted Registration
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
+                      Pro Plan Active (2,500 ETB/mo)
                     </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <div className="bg-white p-2.5 rounded-lg border border-gray-200 shadow-2xs">
+                      <div className="text-[10px] text-slate-500">Team Members</div>
+                      <div className="text-sm font-bold text-slate-800">12 / 25 Used</div>
+                      <div className="w-full bg-gray-100 h-1 rounded-full mt-1 overflow-hidden">
+                        <div className="bg-emerald-500 h-full w-[48%]"></div>
+                      </div>
+                    </div>
+                    <div className="bg-white p-2.5 rounded-lg border border-gray-200 shadow-2xs">
+                      <div className="text-[10px] text-slate-500">Active Projects</div>
+                      <div className="text-sm font-bold text-primary">8 / 20 Used</div>
+                      <div className="w-full bg-gray-100 h-1 rounded-full mt-1 overflow-hidden">
+                        <div className="bg-primary h-full w-[40%]"></div>
+                      </div>
+                    </div>
+                    <div className="bg-white p-2.5 rounded-lg border border-gray-200 shadow-2xs">
+                      <div className="text-[10px] text-slate-500">Telebirr Payment</div>
+                      <div className="text-sm font-bold text-slate-800">+251911***890</div>
+                      <div className="text-[10px] text-emerald-600 font-semibold mt-0.5">Auto-Renew Active</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'ai' && (
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center border-b border-gray-200 pb-2">
+                    <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                      <Bot className="w-3.5 h-3.5 text-indigo-600" /> AI Task Intelligence & Automation
+                    </span>
+                    <span className="text-[10px] text-indigo-600 font-bold">1,000 Ops / Month</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    <div className="bg-white p-2.5 rounded-lg border border-gray-200 shadow-2xs space-y-0.5">
-                      <div className="text-primary font-bold flex items-center justify-between text-[11px]">
-                        <span>Admin Key Registration</span>
-                        <Lock className="w-3 h-3 text-primary" />
+                    <div className="bg-white p-2.5 rounded-lg border border-gray-200 shadow-2xs space-y-1">
+                      <div className="text-indigo-600 font-bold text-[11px] flex items-center gap-1">
+                        <Bot className="w-3 h-3" /> Effort & Impact Score Prediction
                       </div>
                       <p className="text-slate-600 text-[10px]">
-                        Only users with valid Admin Keys can register a primary Administrator account.
+                        AI automatically calculates task impact score (8.5/10) and estimates 4.5 effort hours.
                       </p>
                     </div>
-                    <div className="bg-white p-2.5 rounded-lg border border-gray-200 shadow-2xs space-y-0.5">
-                      <div className="text-emerald-600 font-bold flex items-center justify-between text-[11px]">
-                        <span>Member Invitation Token</span>
-                        <Users className="w-3 h-3 text-emerald-600" />
+                    <div className="bg-white p-2.5 rounded-lg border border-gray-200 shadow-2xs space-y-1">
+                      <div className="text-emerald-600 font-bold text-[11px] flex items-center gap-1">
+                        <Zap className="w-3 h-3" /> Automated Risk Detection
                       </div>
                       <p className="text-slate-600 text-[10px]">
-                        Admins issue secure invitation links to onboarding team members with pre-assigned roles.
+                        Detects blocker dependencies before sprint launch to keep team velocity on track.
                       </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'analytics' && (
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-                    <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
-                      <BarChart3 className="w-3.5 h-3.5 text-emerald-600" /> Executive Productivity Metrics
-                    </span>
-                    <span className="text-[10px] text-emerald-600 font-bold">+24% Velocity</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-2xs">
-                      <div className="text-base font-bold text-slate-800">98.4%</div>
-                      <div className="text-[10px] text-slate-500">On-Time Delivery</div>
-                    </div>
-                    <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-2xs">
-                      <div className="text-base font-bold text-primary">142</div>
-                      <div className="text-[10px] text-slate-500">Tasks Completed</div>
-                    </div>
-                    <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-2xs">
-                      <div className="text-base font-bold text-emerald-600">0</div>
-                      <div className="text-[10px] text-slate-500">Security Violations</div>
                     </div>
                   </div>
                 </div>
               )}
 
               <div className="pt-1.5 flex justify-between items-center text-[10px] text-slate-500 border-t border-gray-200 mt-1.5">
-                <span>Cadence Platform Engine v2.4</span>
-                <span className="text-primary hover:underline cursor-pointer flex items-center gap-0.5 font-medium">
-                  Explore full features <ChevronRight className="w-3 h-3" />
-                </span>
+                <span>Cadence Agile Platform v2.5</span>
+                <Link to="/signup" className="text-primary hover:underline flex items-center gap-0.5 font-semibold">
+                  Launch Your Workspace <ChevronRight className="w-3 h-3" />
+                </Link>
               </div>
             </div>
           </div>
@@ -330,10 +344,10 @@ function Landing() {
         <section className="py-1">
           <div className="text-center mb-3">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
-              Built for Modern Enterprise Workflows
+              Built for Modern Agile Workspaces
             </h2>
             <p className="mt-1 text-slate-600 max-w-xl mx-auto text-xs sm:text-sm">
-              Everything your organization needs to maintain velocity, enforce security, and track progress.
+              Everything your organization needs to plan sprints, track velocity, and manage subscription billing.
             </p>
           </div>
 
@@ -353,37 +367,38 @@ function Landing() {
           </div>
         </section>
 
-        {/* Role-Based Access Governance Section */}
+        {/* Onboarding Flow Section */}
         <section className="py-1">
           <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-card">
-            <div className="max-w-3xl mb-3">
+            <div className="max-w-3xl mb-4">
               <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-light border border-primary/30 text-[11px] font-bold text-primary mb-2">
-                <Lock className="w-3 h-3" />
-                Role-Based Security Model
+                <Building2 className="w-3.5 h-3.5" />
+                Simple 3-Step Workspace Setup
               </div>
               <h2 className="text-xl sm:text-2xl font-extrabold text-slate-800 tracking-tight">
-                Admin-Controlled Account & Workspace Registration
+                Self-Service Workspace Onboarding
               </h2>
               <p className="mt-1 text-slate-600 text-xs sm:text-sm leading-relaxed">
-                Prevent unauthorized public access. Primary organization accounts are registered by Administrators with an Admin Key, while team members join securely via invitation links.
+                No complex server passcodes needed. Register your account, choose your subscription tier, and start collaborating with your team in minutes.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {roleHighlights.map((roleItem, idx) => (
-                <div key={idx} className="bg-gray-50/70 rounded-xl p-3.5 border border-gray-200 shadow-2xs flex flex-col justify-between">
+              {onboardingSteps.map((stepItem, idx) => (
+                <div key={idx} className="bg-gray-50/70 rounded-xl p-4 border border-gray-200 shadow-2xs flex flex-col justify-between">
                   <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${roleItem.color}`}>
-                        {roleItem.badge}
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-lg font-black text-primary/40 font-mono">{stepItem.step}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${stepItem.color}`}>
+                        {stepItem.badge}
                       </span>
                     </div>
-                    <h3 className="text-sm font-bold text-slate-800 mb-1">{roleItem.role}</h3>
-                    <p className="text-xs text-slate-600 leading-relaxed mb-3">{roleItem.description}</p>
+                    <h3 className="text-sm font-bold text-slate-800 mb-1">{stepItem.title}</h3>
+                    <p className="text-xs text-slate-600 leading-relaxed mb-3">{stepItem.description}</p>
                   </div>
 
                   <ul className="space-y-1.5 pt-2 border-t border-gray-200">
-                    {roleItem.perks.map((perk, pIdx) => (
+                    {stepItem.perks.map((perk, pIdx) => (
                       <li key={pIdx} className="flex items-center gap-1.5 text-xs text-slate-700">
                         <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                         <span>{perk}</span>
@@ -398,25 +413,25 @@ function Landing() {
 
         {/* CTA Banner */}
         <section className="py-2">
-          <div className="rounded-2xl bg-primary-light border border-primary/30 text-slate-800 p-4 sm:p-6 text-center shadow-card relative overflow-hidden">
-            <div className="relative z-10 max-w-2xl mx-auto space-y-2">
-              <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
-                Ready to Setup Your Enterprise Workspace?
+          <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-5 sm:p-7 text-center shadow-lg relative overflow-hidden">
+            <div className="relative z-10 max-w-2xl mx-auto space-y-2.5">
+              <h2 className="text-xl sm:text-3xl font-extrabold tracking-tight text-white">
+                Ready to Scale Your Team’s Workspace?
               </h2>
-              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                Register your Administrator account with your Admin Secret Key to start inviting team members and organizing tasks today.
+              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                Launch your organization workspace today. Start on our Free tier or activate a 14-day trial for Pro features.
               </p>
-              <div className="pt-2 flex flex-col sm:flex-row gap-2.5 justify-center">
+              <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
                   to="/signup"
-                  className="bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2.5 rounded-lg shadow transition-colors inline-flex items-center justify-center gap-1.5 text-xs"
+                  className="bg-primary hover:bg-primary-hover text-white font-bold px-6 py-3 rounded-xl shadow-md transition-all inline-flex items-center justify-center gap-2 text-xs"
                 >
-                  <Shield className="w-3.5 h-3.5" />
-                  <span>Register Admin Account</span>
+                  <ArrowRight className="w-4 h-4" />
+                  <span>Start Free Workspace</span>
                 </Link>
                 <Link
                   to="/login"
-                  className="btn-ghost inline-flex items-center justify-center gap-1.5 text-xs px-5 py-2.5 rounded-lg"
+                  className="bg-white/10 hover:bg-white/20 text-white font-semibold text-xs px-6 py-3 rounded-xl border border-white/20 transition-colors inline-flex items-center justify-center gap-1.5"
                 >
                   <span>Sign In</span>
                 </Link>
@@ -430,12 +445,12 @@ function Landing() {
           <div className="flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-slate-500">
             <div className="flex items-center gap-1.5">
               <Shield className="w-3.5 h-3.5 text-primary" />
-              <span className="font-semibold text-slate-800">Cadence Task Suite</span>
+              <span className="font-semibold text-slate-800">Cadence Workspace Platform</span>
               <span>&copy; {new Date().getFullYear()} All rights reserved.</span>
             </div>
             <div className="flex items-center gap-4">
               <Link to="/login" className="hover:text-primary transition-colors">Sign In</Link>
-              <Link to="/signup" className="hover:text-primary transition-colors">Admin Registration</Link>
+              <Link to="/signup" className="hover:text-primary transition-colors font-semibold text-primary">Start Workspace</Link>
             </div>
           </div>
         </footer>

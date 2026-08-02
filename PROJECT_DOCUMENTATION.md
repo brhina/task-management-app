@@ -526,11 +526,13 @@ The following improvements would transform Cadence from a solid foundation into 
 - [ ] SCIM for user lifecycle management
 
 #### 9.2 Billing & Subscription Management
-- [ ] Stripe integration for plan management
-- [ ] Usage-based billing (per user, per feature)
-- [ ] Invoices and payment history
-- [ ] Plan upgrade/downgrade flows
-- [ ] Feature gating based on plan (Free/Pro/Enterprise)
+- [x] Ethio Telecom Telebirr integration for instant subscription payments & USSD checkout
+- [x] Ethiopian Birr (ETB / ብር) currency pricing & annual billing discount support (20% off)
+- [x] Metered usage-based tracking (Members, Active Projects, AI Operations, Storage MB)
+- [x] Persistent DB Invoices with Telebirr transaction reference numbers & PDF receipt download
+- [x] Interactive Telebirr checkout modal (USSD *806# push & SuperApp QR code verification)
+- [x] Saved Telebirr account management & auto-renewal toggle
+- [x] Feature gating & quota enforcement based on plan (Free/Pro/Enterprise)
 
 #### 9.3 API Keys & External Integrations
 - [ ] API key management for org-level access

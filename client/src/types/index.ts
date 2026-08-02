@@ -228,9 +228,11 @@ export interface SignUpFormData {
   email: string;
   password: string;
   confirmPassword: string;
-  profileImageUrl: string;
-  adminInviteToken: string;
-  orgInviteToken: string;
+  profileImageUrl?: string;
+  adminInviteToken?: string;
+  orgInviteToken?: string;
+  workspaceName?: string;
+  plan?: 'Free' | 'Pro' | 'Enterprise';
 }
 
 export interface TaskFormData {
@@ -287,6 +289,7 @@ export interface UserContextType {
   loading: boolean;
   activeOrgBranding?: OrgBranding | null;
   activePlan?: string | null;
+  currency?: string;
   updateUser: (
     userData: User & { token?: string; activeOrgId?: string; orgs?: OrgMembership[] }
   ) => void;

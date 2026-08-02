@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Shield, Sparkles, LogIn, UserPlus } from 'lucide-react';
+import { Shield, LogIn, UserPlus } from 'lucide-react';
 
 interface PublicLayoutProps {
   children: ReactNode;
@@ -54,7 +54,7 @@ function PublicLayout({ children, showHeader = true }: PublicLayoutProps) {
                     className="inline-flex items-center gap-1 bg-primary hover:bg-primary-hover text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow transition-colors"
                   >
                     <UserPlus className="w-3.5 h-3.5" />
-                    <span>Admin Register</span>
+                    <span>Register</span>
                   </Link>
                 )}
               </nav>

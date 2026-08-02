@@ -17,6 +17,7 @@ import {
 
 import SsoSettingsTab from "../../components/settings/enterprise/SsoSettingsTab";
 import BillingSettingsTab from "../../components/settings/enterprise/BillingSettingsTab";
+import TelebirrPaymentModal from "../../components/settings/enterprise/TelebirrPaymentModal";
 import ApiWebhooksTab from "../../components/settings/enterprise/ApiWebhooksTab";
 import BrandingSettingsTab from "../../components/settings/enterprise/BrandingSettingsTab";
 import ComplianceSecurityTab from "../../components/settings/enterprise/ComplianceSecurityTab";
@@ -58,6 +59,10 @@ export default function EnterpriseSettings() {
 
   // --- TAB 2: Billing State ---
   const [billingData, setBillingData] = useState<any>(null);
+  const [isTelebirrModalOpen, setIsTelebirrModalOpen] = useState<boolean>(false);
+  const [selectedPlanForTelebirr, setSelectedPlanForTelebirr] = useState<"Pro" | "Enterprise">("Pro");
+  const [selectedCycleForTelebirr, setSelectedCycleForTelebirr] = useState<"monthly" | "yearly">("monthly");
+  const [selectedPriceForTelebirr, setSelectedPriceForTelebirr] = useState<number>(2500);
 
   // --- TAB 3: API Keys & Webhooks State ---
   const [apiKeys, setApiKeys] = useState<any[]>([]);
@@ -234,14 +239,15 @@ export default function EnterpriseSettings() {
     }
   };
 
-  const handleUpgradePlan = async (plan: string) => {
-    try {
-      await axiosInstance.post("/api/billing/upgrade", { plan });
-      showToast(`Organization successfully updated to ${plan} Plan!`, "success");
-      fetchBilling();
-    } catch (err: any) {
-      showToast(err.response?.data?.message || "Failed to upgrade plan", "error");
-    }
+  const handleOpenTelebirrModal = (plan: "Pro" | "Enterprise", cycle: "monthly" | "yearly", priceETB: number) => {
+    setSelectedPlanForTelebirr(plan);
+    setSelectedCycleForTelebirr(cycle);
+    setSelectedPriceForTelebirr(priceETB);
+    setIsTelebirrModalOpen(true);
+  };
+
+  const handleTelebirrSuccess = (updatedPlan: string) => {
+    fetchBilling();
   };
 
   const handleCreateApiKey = async (e: React.FormEvent) => {
@@ -517,8 +523,9 @@ export default function EnterpriseSettings() {
         {activeTab === "billing" && (
           <BillingSettingsTab
             billingData={billingData}
-            onUpgradePlan={handleUpgradePlan}
+            onUpgradePlan={handleOpenTelebirrModal}
             onShowToast={showToast}
+            onRefreshBilling={fetchBilling}
           />
         )}
 
@@ -598,6 +605,16 @@ export default function EnterpriseSettings() {
           />
         )}
       </div>
+
+      <TelebirrPaymentModal
+        isOpen={isTelebirrModalOpen}
+        onClose={() => setIsTelebirrModalOpen(false)}
+        targetPlan={selectedPlanForTelebirr}
+        billingCycle={selectedCycleForTelebirr}
+        priceETB={selectedPriceForTelebirr}
+        onSuccess={handleTelebirrSuccess}
+        onShowToast={showToast}
+      />
     </PageShell>
   );
 }

@@ -26,6 +26,10 @@ export interface IOrganization {
   billingEmail?: string;
   billingContact?: string;
   poNumber?: string;
+  billingCycle?: "monthly" | "yearly";
+  telebirrPhone?: string;
+  telebirrAutoRenew?: boolean;
+  currency?: string;
 }
 
 export interface IOrganizationDocument
@@ -75,6 +79,10 @@ const organizationSchema = new mongoose.Schema<IOrganizationDocument>(
     billingEmail: { type: String, default: "" },
     billingContact: { type: String, default: "" },
     poNumber: { type: String, default: "" },
+    billingCycle: { type: String, enum: ["monthly", "yearly"], default: "monthly" },
+    telebirrPhone: { type: String, default: "" },
+    telebirrAutoRenew: { type: Boolean, default: true },
+    currency: { type: String, default: "ETB" },
   },
   { timestamps: true },
 );

@@ -13,6 +13,8 @@ import { emailTemplate, sendEmail } from "../services/emailService.js";
 async function ensureDefaultOrgForUser(params: {
   userId: string;
   displayName: string;
+  workspaceName?: string;
+  plan?: "Free" | "Pro" | "Enterprise";
 }): Promise<{ orgId: string; membershipRole: string }> {
   const existingMembership = await OrgMembership.findOne({
     userId: params.userId,
@@ -25,7 +27,8 @@ async function ensureDefaultOrgForUser(params: {
     };
   }
 
-  const baseSlug = slugify(params.displayName) || `org-${shortRandomId(6)}`;
+  const name = params.workspaceName?.trim() || `${params.displayName}'s Workspace`;
+  const baseSlug = slugify(name) || `org-${shortRandomId(6)}`;
   let slug = baseSlug;
   // Ensure uniqueness.
   // eslint-disable-next-line no-constant-condition
@@ -37,8 +40,9 @@ async function ensureDefaultOrgForUser(params: {
   }
 
   const org = await Organization.create({
-    name: `${params.displayName}'s Workspace`,
+    name,
     slug,
+    plan: params.plan || "Free",
     createdBy: params.userId,
   });
 
@@ -64,6 +68,8 @@ export const registerUser = async (
     adminInviteToken,
     orgId: joinOrgId,
     orgInviteToken,
+    workspaceName,
+    plan,
   } = req.body;
   try {
     const existingUser = await User.findOne({ email });
@@ -77,25 +83,10 @@ export const registerUser = async (
     const isAdminRegistration = Boolean(
       adminInviteToken && adminInviteToken.trim() === expectedAdminToken
     );
-    const isInviteRegistration = Boolean(orgInviteToken);
-    const isAuthenticatedAdminRequest = Boolean(
-      req.user && req.user.role === "Admin"
-    );
 
-    if (
-      !isAdminRegistration &&
-      !isInviteRegistration &&
-      !isAuthenticatedAdminRequest
-    ) {
-      res.status(403).json({
-        message:
-          "Registration is restricted to Administrators or invited team members. Please provide a valid Admin Key or Invitation Token.",
-      });
-      return;
-    }
-
+    // Self-service workspace creators or explicit admin key holders receive Admin system role
     const role: "Admin" | "Member" =
-      isAdminRegistration || isAuthenticatedAdminRequest ? "Admin" : "Member";
+      isAdminRegistration || !orgInviteToken ? "Admin" : "Member";
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -173,6 +164,8 @@ export const registerUser = async (
         const result = await ensureDefaultOrgForUser({
           userId: String(newUser._id),
           displayName: newUser.name || newUser.email,
+          workspaceName,
+          plan: plan as "Free" | "Pro" | "Enterprise" | undefined,
         });
         orgId = result.orgId;
         membershipRole = result.membershipRole;

@@ -19,6 +19,7 @@ import {
 export const UserContext = createContext<UserContextType>({
   user: null,
   loading: true,
+  currency: "ETB",
   updateUser: () => {},
   clearUser: () => {},
   getEffectiveRole: () => null,
@@ -33,6 +34,7 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
   const [permissions, setPermissions] = useState<string[]>([]);
   const [activeOrgBranding, setActiveOrgBranding] = useState<any>(null);
   const [activePlan, setActivePlan] = useState<string | null>("Free");
+  const [currency, setCurrency] = useState<string>("ETB");
   const hasFetchedRef = useRef(false);
 
   const getEffectiveRole = useCallback((): OrgRole | null => {
@@ -52,6 +54,7 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
       ]);
       if (brandingRes?.data) setActiveOrgBranding(brandingRes.data);
       if (billingRes?.data?.plan) setActivePlan(billingRes.data.plan);
+      if (billingRes?.data?.currency) setCurrency(billingRes.data.currency);
     } catch {
       /* ignore default fallback */
     }
@@ -197,6 +200,7 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
       loading,
       activeOrgBranding,
       activePlan,
+      currency,
       updateUser,
       clearUser,
       getEffectiveRole,
@@ -209,6 +213,7 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
       loading,
       activeOrgBranding,
       activePlan,
+      currency,
       updateUser,
       clearUser,
       getEffectiveRole,

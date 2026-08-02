@@ -9,6 +9,8 @@ export const registerSchema = z.object({
   adminInviteToken: z.string().optional(),
   orgId: z.string().optional(),
   orgInviteToken: z.string().optional(),
+  workspaceName: z.string().max(100).optional(),
+  plan: z.enum(["Free", "Pro", "Enterprise"]).optional(),
 });
 
 export const loginSchema = z.object({
