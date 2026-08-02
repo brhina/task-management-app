@@ -266,10 +266,6 @@ function SignUp() {
       <div className="grid min-h-[calc(100vh-4rem)] lg:grid-cols-12 gap-6 items-center py-2 sm:py-4">
         {/* Left Side Info Panel */}
         <div className="lg:col-span-5 space-y-4 hidden lg:block pr-2">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary-light px-3 py-1 text-[11px] font-semibold text-primary shadow-2xs">
-            <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-            <span>Enterprise Workspace & Subscription Platform</span>
-          </div>
 
           <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight leading-tight">
             Launch Your Team’s <br />
@@ -326,9 +322,6 @@ function SignUp() {
           <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-card border border-gray-200 relative overflow-hidden">
             {/* Header & Stepper */}
             <div className="text-center mb-4">
-              <div className="mx-auto w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow mb-2">
-                <UserPlus className="w-5 h-5" />
-              </div>
               <h2 className="text-xl font-bold text-slate-800 tracking-tight">
                 {orgInviteToken ? 'Join Your Team Workspace' : step === 1 ? 'Create Your Account & Workspace' : 'Choose Your Subscription Plan'}
               </h2>

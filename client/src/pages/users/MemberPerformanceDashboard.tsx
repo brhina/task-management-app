@@ -78,7 +78,13 @@ interface MemberPerformanceData {
 export default function MemberPerformanceDashboard() {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
-  const { user: currentUser } = useContext(UserContext);
+  const { user: currentUser, canAccessAdminSuite } = useContext(UserContext);
+
+  useEffect(() => {
+    if (!canAccessAdminSuite() && id && currentUser?._id && id !== currentUser._id) {
+      navigate('/users/performance', { replace: true });
+    }
+  }, [id, currentUser, canAccessAdminSuite, navigate]);
 
   const [members, setMembers] = useState<any[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>(id || currentUser?._id || '');

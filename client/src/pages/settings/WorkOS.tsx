@@ -76,6 +76,13 @@ export default function WorkOS() {
 
   // Fetch available scopes (projects & members)
   useEffect(() => {
+    if (!isAdmin && user?._id) {
+      setScopeType('user');
+      setSelectedScopeId(user._id);
+    }
+  }, [isAdmin, user?._id]);
+
+  useEffect(() => {
     const fetchScopes = async () => {
       try {
         const res = await api.get(apiPaths.WORKOS.SCOPES);

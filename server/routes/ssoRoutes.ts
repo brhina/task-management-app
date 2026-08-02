@@ -1,5 +1,5 @@
 import { Router } from "express";
-import protect from "../middleware/authMiddleware.js";
+import protect, { orgAdminOnly } from "../middleware/authMiddleware.js";
 import {
   getSSOConfigHandler,
   updateSSOConfigHandler,
@@ -17,6 +17,7 @@ router.post("/login/callback", ssoCallbackHandler as any);
 
 // Protected routes for SSO configuration
 router.use(protect as any);
+router.use(orgAdminOnly as any);
 
 router.get("/config", getSSOConfigHandler as any);
 router.put("/config", updateSSOConfigHandler as any);

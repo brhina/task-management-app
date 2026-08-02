@@ -312,7 +312,7 @@ function ManageTasks() {
     },
     [filteredTasks]
   );
-  if (!user || !canAccessAdminSuite()) {
+  if (!user) {
     return (
       <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
     );

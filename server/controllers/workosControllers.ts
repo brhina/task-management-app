@@ -6,6 +6,7 @@ import {
   buildProjectWorkosSummary,
   buildUserWorkosSummary,
 } from "../services/workosSummary.js";
+import { isOrgOwnerRole } from "../constants/permissions.js";
 
 async function maybeGetCachedSnapshot(params: {
   orgId: any;
@@ -36,6 +37,12 @@ export const getOrgSummary = async (
       res
         .status(403)
         .json({ message: "Access denied. Organization mismatch." });
+      return;
+    }
+
+    if (!isOrgOwnerRole(req.membershipRole) && !req.permissions?.includes("org:manage")) {
+      const payload = await buildUserWorkosSummary({ orgId, userId: req.user._id });
+      res.status(200).json({ message: "WorkOS user summary", data: payload });
       return;
     }
 
@@ -77,6 +84,26 @@ export const getProjectSummary = async (
     }
     const orgId = req.orgId;
     const projectId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+    if (!isOrgOwnerRole(req.membershipRole) && !req.permissions?.includes("project:manage")) {
+      const Task = (await import("../models/Task.js")).default;
+      const Project = (await import("../models/Project.js")).default;
+      const proj = await Project.findOne({ _id: projectId, orgId }).select("ownerId");
+      const isOwner = proj && String(proj.ownerId) === String(req.user._id);
+      const hasTask = await Task.exists({
+        orgId,
+        projectId,
+        $or: [
+          { assignedTo: req.user._id },
+          { createdBy: req.user._id },
+          { collaborators: req.user._id },
+        ],
+      });
+      if (!isOwner && !hasTask) {
+        res.status(403).json({ message: "Access denied to this project summary" });
+        return;
+      }
+    }
 
     const cached = await maybeGetCachedSnapshot({
       orgId,
@@ -120,6 +147,13 @@ export const getUserSummary = async (
     const orgId = req.orgId;
     const userId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
+    if (!isOrgOwnerRole(req.membershipRole) && !req.permissions?.includes("member:manage")) {
+      if (String(userId) !== String(req.user._id)) {
+        res.status(403).json({ message: "Access denied to this user summary" });
+        return;
+      }
+    }
+
     const cached = await maybeGetCachedSnapshot({
       orgId,
       scopeType: "User",
@@ -160,11 +194,34 @@ export const getWorkosScopes = async (
       return;
     }
     const Project = (await import("../models/Project.js")).default;
+    const Task = (await import("../models/Task.js")).default;
     const OrgMembership = (await import("../models/OrgMembership.js")).default;
 
+    let projectFilter: any = { orgId: req.orgId };
+    let memberFilter: any = { orgId: req.orgId, status: "Active" };
+
+    if (!isOrgOwnerRole(req.membershipRole)) {
+      memberFilter.userId = req.user._id;
+
+      const userTasks = await Task.find({
+        orgId: req.orgId,
+        $or: [
+          { assignedTo: req.user._id },
+          { createdBy: req.user._id },
+          { collaborators: req.user._id },
+        ],
+      }).select("projectId");
+      const projectIdsFromTasks = userTasks.map((t) => t.projectId).filter(Boolean);
+
+      projectFilter.$or = [
+        { ownerId: req.user._id },
+        ...(projectIdsFromTasks.length > 0 ? [{ _id: { $in: projectIdsFromTasks } }] : []),
+      ];
+    }
+
     const [projects, memberships] = await Promise.all([
-      Project.find({ orgId: req.orgId }).select("_id name key status").sort({ name: 1 }),
-      OrgMembership.find({ orgId: req.orgId, status: "Active" })
+      Project.find(projectFilter).select("_id name key status").sort({ name: 1 }),
+      OrgMembership.find(memberFilter)
         .populate("userId", "name email")
         .select("userId role capacityHoursPerWeek"),
     ]);

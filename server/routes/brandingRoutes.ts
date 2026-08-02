@@ -1,5 +1,5 @@
 import { Router } from "express";
-import protect from "../middleware/authMiddleware.js";
+import protect, { orgAdminOnly } from "../middleware/authMiddleware.js";
 import { getOrgBrandingHandler, updateOrgBrandingHandler } from "../controllers/brandingControllers.js";
 
 const router = Router();
@@ -7,6 +7,6 @@ const router = Router();
 router.use(protect as any);
 
 router.get("/", getOrgBrandingHandler as any);
-router.put("/", updateOrgBrandingHandler as any);
+router.put("/", orgAdminOnly as any, updateOrgBrandingHandler as any);
 
 export default router;

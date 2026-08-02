@@ -1,5 +1,5 @@
 import { Router } from "express";
-import protect from "../middleware/authMiddleware.js";
+import protect, { orgAdminOnly } from "../middleware/authMiddleware.js";
 import {
   createApiKeyHandler,
   getApiKeysHandler,
@@ -9,6 +9,7 @@ import {
 const router = Router();
 
 router.use(protect as any);
+router.use(orgAdminOnly as any);
 
 router.post("/", createApiKeyHandler as any);
 router.get("/", getApiKeysHandler as any);

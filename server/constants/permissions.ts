@@ -45,7 +45,6 @@ const VIEWER: Permission[] = [
   "task:view",
   "project:view",
   "goal:view",
-  "report:view",
   "team:view",
 ];
 
@@ -56,6 +55,7 @@ const MEMBER: Permission[] = [
 
 const MANAGER: Permission[] = [
   ...MEMBER,
+  "report:view",
   "task:create",
   "task:delete",
   "task:assign",

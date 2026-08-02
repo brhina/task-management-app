@@ -7,6 +7,7 @@ import OrgMembership from "../models/OrgMembership.js";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { AuthRequest } from "../middleware/authMiddleware.js";
+import { isOrgOwnerRole } from "../constants/permissions.js";
 
 export const getAllUsers = async (
   req: AuthRequest,
@@ -49,27 +50,38 @@ export const getAllUsers = async (
       .limit(limit)
       .select("-password");
 
+    const isAdmin = isOrgOwnerRole(req.membershipRole) || Boolean(req.permissions?.includes("member:manage"));
+
     const usersWithTaskCounts = await Promise.all(
       users.map(async (user) => {
         const userId = (user._id as any).toString();
         const membership = memberships.find(
           (m) => m.userId.toString() === userId,
         );
-        const pendingTasks = await Task.countDocuments({
-          orgId: req.orgId,
-          assignedTo: user._id,
-          status: "Pending",
-        });
-        const inProgressTasks = await Task.countDocuments({
-          orgId: req.orgId,
-          assignedTo: user._id,
-          status: "In Progress",
-        });
-        const completedTasks = await Task.countDocuments({
-          orgId: req.orgId,
-          assignedTo: user._id,
-          status: "Completed",
-        });
+        const isSelf = userId === req.user._id.toString();
+
+        let pendingTasks = 0;
+        let inProgressTasks = 0;
+        let completedTasks = 0;
+
+        if (isAdmin || isSelf) {
+          pendingTasks = await Task.countDocuments({
+            orgId: req.orgId,
+            assignedTo: user._id,
+            status: "Pending",
+          });
+          inProgressTasks = await Task.countDocuments({
+            orgId: req.orgId,
+            assignedTo: user._id,
+            status: "In Progress",
+          });
+          completedTasks = await Task.countDocuments({
+            orgId: req.orgId,
+            assignedTo: user._id,
+            status: "Completed",
+          });
+        }
+
         return {
           ...user.toObject(),
           role: membership?.role || "OrgMember",
@@ -190,6 +202,13 @@ export const getUserPerformance = async (
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       res.status(400).json({ message: "Invalid user ID" });
       return;
+    }
+
+    if (!isOrgOwnerRole(req.membershipRole) && !req.permissions?.includes("member:manage")) {
+      if (String(userId) !== String(req.user._id)) {
+        res.status(403).json({ message: "Access denied. You can only view your own performance dashboard." });
+        return;
+      }
     }
 
     const user = await User.findById(userId).select("-password");

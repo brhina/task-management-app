@@ -17,6 +17,24 @@ import { isOrgOwnerRole } from "../constants/permissions.js";
 
 const isOrgElevated = (role: string | undefined) => isOrgOwnerRole(role);
 
+async function canAccessTask(req: AuthRequest, task: any): Promise<boolean> {
+  if (isOrgElevated(req.membershipRole)) return true;
+  if (!req.user?._id) return false;
+  const userIdStr = req.user._id.toString();
+
+  if (task.assignedTo && (task.assignedTo._id || task.assignedTo).toString() === userIdStr) return true;
+  if (task.createdBy && (task.createdBy._id || task.createdBy).toString() === userIdStr) return true;
+  if (Array.isArray(task.collaborators) && task.collaborators.some((c: any) => (c._id || c).toString() === userIdStr)) return true;
+
+  if (task.projectId) {
+    const Project = (await import("../models/Project.js")).default;
+    const project = await Project.findOne({ _id: task.projectId, orgId: req.orgId }).select("ownerId");
+    if (project && project.ownerId && project.ownerId.toString() === userIdStr) return true;
+  }
+
+  return false;
+}
+
 const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const {
@@ -66,9 +84,21 @@ const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
       filter.$text = { $search: search as string };
     }
 
-    const userFilter = !isOrgElevated(req.membershipRole)
-      ? { $or: [{ assignedTo: req.user._id }, { assignedTo: null }, { createdBy: req.user._id }] }
-      : {};
+    let userFilter: any = {};
+    if (!isOrgElevated(req.membershipRole)) {
+      const Project = (await import("../models/Project.js")).default;
+      const userProjects = await Project.find({ orgId: req.orgId, ownerId: req.user._id }).select("_id");
+      const userProjectIds = userProjects.map((p) => p._id);
+
+      userFilter = {
+        $or: [
+          { assignedTo: req.user._id },
+          { createdBy: req.user._id },
+          { collaborators: req.user._id },
+          ...(userProjectIds.length > 0 ? [{ projectId: { $in: userProjectIds } }] : []),
+        ],
+      };
+    }
 
     let baseFilter = { ...filter, ...userFilter };
 
@@ -164,6 +194,11 @@ const getTaskById = async (req: AuthRequest, res: Response): Promise<void> => {
 
     if (!task) {
       res.status(404).json({ message: "Task not found" });
+      return;
+    }
+
+    if (!(await canAccessTask(req, task))) {
+      res.status(403).json({ message: "Access denied to this task" });
       return;
     }
 
@@ -326,6 +361,11 @@ const updateTask = async (req: AuthRequest, res: Response): Promise<void> => {
 
     if (!task) {
       res.status(404).json({ message: "Task not found" });
+      return;
+    }
+
+    if (!(await canAccessTask(req, task))) {
+      res.status(403).json({ message: "Access denied to update this task" });
       return;
     }
 
@@ -739,6 +779,11 @@ const deleteTask = async (req: AuthRequest, res: Response): Promise<void> => {
 
     if (!task) {
       res.status(404).json({ message: "Task not found" });
+      return;
+    }
+
+    if (!(await canAccessTask(req, task))) {
+      res.status(403).json({ message: "Access denied to delete this task" });
       return;
     }
 

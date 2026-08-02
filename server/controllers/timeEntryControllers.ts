@@ -18,7 +18,11 @@ export const listTimeEntries = async (
 
     const filter: Record<string, unknown> = { orgId: req.orgId };
     if (req.query.taskId) filter.taskId = req.query.taskId;
-    if (req.query.userId) filter.userId = req.query.userId;
+    if (req.query.userId && isOrgOwnerRole(req.membershipRole)) {
+      filter.userId = req.query.userId;
+    } else if (!isOrgOwnerRole(req.membershipRole)) {
+      filter.userId = req.user._id;
+    }
 
     const entries = await TimeEntry.find(filter)
       .sort({ startTime: -1 })
@@ -259,8 +263,10 @@ export const timeReport = async (
     if (req.query.taskId) {
       match.taskId = new mongoose.Types.ObjectId(req.query.taskId as string);
     }
-    if (req.query.userId) {
+    if (req.query.userId && isOrgOwnerRole(req.membershipRole)) {
       match.userId = new mongoose.Types.ObjectId(req.query.userId as string);
+    } else if (!isOrgOwnerRole(req.membershipRole)) {
+      match.userId = new mongoose.Types.ObjectId(req.user._id.toString());
     }
     if (req.query.from || req.query.to) {
       match.startTime = {};

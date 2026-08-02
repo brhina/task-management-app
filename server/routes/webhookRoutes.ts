@@ -1,5 +1,5 @@
 import { Router } from "express";
-import protect from "../middleware/authMiddleware.js";
+import protect, { orgAdminOnly } from "../middleware/authMiddleware.js";
 import {
   getWebhooksHandler,
   createWebhookHandler,
@@ -9,6 +9,7 @@ import {
 const router = Router();
 
 router.use(protect as any);
+router.use(orgAdminOnly as any);
 
 router.get("/", getWebhooksHandler as any);
 router.post("/", createWebhookHandler as any);

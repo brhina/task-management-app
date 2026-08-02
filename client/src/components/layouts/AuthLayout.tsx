@@ -102,6 +102,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
       { name: 'Dashboard', path: '/dashboard', icon: NavIcons.dashboard },
       { name: 'WorkOS', path: '/settings/workos', icon: NavIcons.workos },
       { name: 'My Tasks', path: '/tasks', icon: NavIcons.tasks },
+      { name: 'My Projects', path: '/projects', icon: NavIcons.projects },
       {
         name: 'Notifications',
         path: '/settings/notifications',

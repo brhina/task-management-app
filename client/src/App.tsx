@@ -218,11 +218,11 @@ function App() {
         <Route
           path="/projects"
           element={
-            <AdminRouteWrapper>
+            <UserRouteWrapper>
               <AuthLayout>
                 <Projects />
               </AuthLayout>
-            </AdminRouteWrapper>
+            </UserRouteWrapper>
           }
         />
         <Route

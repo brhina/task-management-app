@@ -4,6 +4,7 @@ import GoalLink from "../models/GoalLink.js";
 import Task from "../models/Task.js";
 import Project from "../models/Project.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
+import { isOrgOwnerRole } from "../constants/permissions.js";
 
 export const listGoals = async (
   req: AuthRequest,
@@ -20,7 +21,35 @@ export const listGoals = async (
     const limit = Math.min(100, Math.max(1, parseInt(limitStr as string, 10) || 50));
     const skip = (page - 1) * limit;
 
-    const filter: any = { orgId: req.orgId };
+    let filter: any = { orgId: req.orgId };
+
+    if (!isOrgOwnerRole(req.membershipRole) && !req.permissions?.includes("goal:manage")) {
+      const links = await GoalLink.find({ orgId: req.orgId }).select("goalId projectId taskId");
+      const userTasks = await Task.find({
+        orgId: req.orgId,
+        $or: [
+          { assignedTo: req.user._id },
+          { createdBy: req.user._id },
+          { collaborators: req.user._id },
+        ],
+      }).select("_id projectId");
+      const userTaskIds = userTasks.map((t) => t._id.toString());
+      const userProjectIdsFromTasks = userTasks.map((t) => t.projectId?.toString()).filter(Boolean);
+
+      const accessibleGoalIds = links
+        .filter(
+          (l) =>
+            (l.taskId && userTaskIds.includes(l.taskId.toString())) ||
+            (l.projectId && userProjectIdsFromTasks.includes(l.projectId.toString())),
+        )
+        .map((l) => l.goalId);
+
+      filter.$or = [
+        { ownerId: req.user._id },
+        ...(accessibleGoalIds.length > 0 ? [{ _id: { $in: accessibleGoalIds } }] : []),
+      ];
+    }
+
     const isSearch = Boolean(search);
 
     if (isSearch) {

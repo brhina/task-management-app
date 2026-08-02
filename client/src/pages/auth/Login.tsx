@@ -102,10 +102,6 @@ function Login() {
       <div className="grid min-h-[calc(100vh-4rem)] lg:grid-cols-12 gap-6 items-center py-2 sm:py-4">
         {/* Left Side Branding & Hero Info */}
         <div className="lg:col-span-6 space-y-3.5 hidden lg:block pr-4">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary-light px-3 py-1 text-[11px] font-semibold text-primary shadow-2xs">
-            <Shield className="w-3.5 h-3.5 text-primary" />
-            <span>Secure Enterprise Workspace</span>
-          </div>
 
           <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight leading-tight">
             Welcome back to your{' '}
@@ -149,9 +145,6 @@ function Login() {
         <div className="lg:col-span-6 max-w-md mx-auto w-full">
           <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-card border border-gray-200 relative overflow-hidden">
             <div className="text-center mb-3">
-              <div className="mx-auto w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow mb-2">
-                <LogIn className="w-5 h-5" />
-              </div>
               <h2 className="text-xl font-bold text-slate-800 tracking-tight">Sign In</h2>
               <p className="text-[11px] text-slate-500 mt-0.5">Enter your credentials to access your account</p>
             </div>

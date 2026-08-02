@@ -93,7 +93,7 @@ function Projects({ initialEditingProjectId, onModalClose }: ProjectsProps = {})
     return { total, active, completed, totalTasks, completedTasks, overdueTasks, overallProgress };
   }, [projects]);
 
-  if (!user || !canAccessAdminSuite()) {
+  if (!user) {
     return (
       <PageShell title="Access Denied" subtitle="You don't have permission to access this page." />
     );

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import protect from "../middleware/authMiddleware.js";
+import protect, { orgAdminOnly } from "../middleware/authMiddleware.js";
 import {
   exportGDPRDataHandler,
   setup2FAHandler,
@@ -15,13 +15,16 @@ const router = Router();
 
 router.use(protect as any);
 
-router.get("/export", exportGDPRDataHandler as any);
+// User-level security
 router.post("/2fa/setup", setup2FAHandler as any);
 router.post("/2fa/verify", verify2FAHandler as any);
-router.get("/sessions", getActiveSessionsHandler as any);
-router.delete("/sessions/:id", revokeSessionHandler as any);
-router.get("/ip-allowlist", getIPAllowlistHandler as any);
-router.put("/ip-allowlist", updateIPAllowlistHandler as any);
-router.put("/security-policy", updateSecurityPolicyHandler as any);
+
+// Enterprise compliance endpoints
+router.get("/export", orgAdminOnly as any, exportGDPRDataHandler as any);
+router.get("/sessions", orgAdminOnly as any, getActiveSessionsHandler as any);
+router.delete("/sessions/:id", orgAdminOnly as any, revokeSessionHandler as any);
+router.get("/ip-allowlist", orgAdminOnly as any, getIPAllowlistHandler as any);
+router.put("/ip-allowlist", orgAdminOnly as any, updateIPAllowlistHandler as any);
+router.put("/security-policy", orgAdminOnly as any, updateSecurityPolicyHandler as any);
 
 export default router;

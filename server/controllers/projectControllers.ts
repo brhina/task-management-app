@@ -4,6 +4,27 @@ import Task from "../models/Task.js";
 import Organization from "../models/Organization.js";
 import { PLAN_LIMITS } from "../services/billingService.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
+import { isOrgOwnerRole } from "../constants/permissions.js";
+
+async function userCanAccessProject(req: AuthRequest, projectId: any, ownerId: any): Promise<boolean> {
+  if (isOrgOwnerRole(req.membershipRole) || req.permissions?.includes("project:manage")) {
+    return true;
+  }
+  const userIdStr = req.user._id.toString();
+  if (ownerId && ownerId.toString() === userIdStr) {
+    return true;
+  }
+  const hasTask = await Task.exists({
+    orgId: req.orgId,
+    projectId,
+    $or: [
+      { assignedTo: req.user._id },
+      { createdBy: req.user._id },
+      { collaborators: req.user._id },
+    ],
+  });
+  return Boolean(hasTask);
+}
 
 export const listProjects = async (
   req: AuthRequest,
@@ -20,7 +41,27 @@ export const listProjects = async (
     const limit = Math.min(100, Math.max(1, parseInt(limitStr as string, 10) || 50));
     const skip = (page - 1) * limit;
 
-    const filter: any = { orgId: req.orgId };
+    let filter: any = { orgId: req.orgId };
+
+    if (!isOrgOwnerRole(req.membershipRole) && !req.permissions?.includes("project:manage")) {
+      const userTasks = await Task.find({
+        orgId: req.orgId,
+        $or: [
+          { assignedTo: req.user._id },
+          { createdBy: req.user._id },
+          { collaborators: req.user._id },
+        ],
+      }).select("projectId");
+      const projectIdsFromTasks = userTasks
+        .map((t) => t.projectId)
+        .filter((id) => id != null);
+
+      filter.$or = [
+        { ownerId: req.user._id },
+        ...(projectIdsFromTasks.length > 0 ? [{ _id: { $in: projectIdsFromTasks } }] : []),
+      ];
+    }
+
     const isSearch = Boolean(search);
 
     if (isSearch) {
@@ -46,8 +87,17 @@ export const listProjects = async (
 
     const projectsWithMetrics = await Promise.all(
       rawProjects.map(async (p) => {
+        const taskQuery: any = { orgId: req.orgId, projectId: p._id };
+        if (!isOrgOwnerRole(req.membershipRole) && !req.permissions?.includes("project:manage")) {
+          taskQuery.$or = [
+            { assignedTo: req.user._id },
+            { createdBy: req.user._id },
+            { collaborators: req.user._id },
+          ];
+        }
+
         const [tasks, activeSprints, milestones] = await Promise.all([
-          Task.find({ orgId: req.orgId, projectId: p._id }).select("status dueDate progress"),
+          Task.find(taskQuery).select("status dueDate progress"),
           Sprint.countDocuments({ projectId: p._id, status: "Active" }),
           Milestone.find({ projectId: p._id }).select("status targetDate"),
         ]);
@@ -113,7 +163,21 @@ export const getProjectById = async (
       return;
     }
 
-    const tasks = await Task.find({ orgId: req.orgId, projectId: project._id })
+    if (!(await userCanAccessProject(req, project._id, project.ownerId))) {
+      res.status(403).json({ message: "Access denied to this project" });
+      return;
+    }
+
+    const taskQuery: any = { orgId: req.orgId, projectId: project._id };
+    if (!isOrgOwnerRole(req.membershipRole) && !req.permissions?.includes("project:manage")) {
+      taskQuery.$or = [
+        { assignedTo: req.user._id },
+        { createdBy: req.user._id },
+        { collaborators: req.user._id },
+      ];
+    }
+
+    const tasks = await Task.find(taskQuery)
       .sort({ createdAt: -1 })
       .select("title status priority dueDate assignedTo progress createdAt");
 
@@ -196,6 +260,13 @@ export const updateProject = async (
       return;
     }
 
+    if (!isOrgOwnerRole(req.membershipRole) && !req.permissions?.includes("project:manage")) {
+      if (String(project.ownerId) !== String(req.user._id)) {
+        res.status(403).json({ message: "Access denied. Only project owner or admins can update this project." });
+        return;
+      }
+    }
+
     project.name = req.body.name ?? project.name;
     project.description = req.body.description ?? project.description;
     project.status = req.body.status ?? project.status;
@@ -229,6 +300,13 @@ export const deleteProject = async (
     if (!project) {
       res.status(404).json({ message: "Project not found" });
       return;
+    }
+
+    if (!isOrgOwnerRole(req.membershipRole) && !req.permissions?.includes("project:delete")) {
+      if (String(project.ownerId) !== String(req.user._id)) {
+        res.status(403).json({ message: "Access denied. Only project owner or admins can delete this project." });
+        return;
+      }
     }
 
     await Task.updateMany(
