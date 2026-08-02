@@ -3,12 +3,15 @@ import mongoose from "mongoose";
 import Organization from "../models/Organization.js";
 import OrgMembership from "../models/OrgMembership.js";
 import User from "../models/User.js";
+import Invoice from "../models/Invoice.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
 import { slugify, shortRandomId } from "../utils/slugUtils.js";
 import {
   applyWorkspaceTemplate,
   WORKSPACE_TEMPLATES,
 } from "../services/workspaceTemplateService.js";
+import { getWorkspaceTemplate } from "../constants/workspaceTemplates.js";
+import { PLAN_LIMITS } from "../services/billingService.js";
 import { auditAsync } from "../services/auditService.js";
 import { ELEVATED_ROLES } from "../constants/permissions.js";
 
@@ -30,6 +33,7 @@ export const listWorkspaceTemplates = async (
       description: t.description,
       projectCount: t.projects.length,
       teamCount: t.teams.length,
+      recommendedPlan: t.projects.length > 3 ? "Pro" : "Free",
     })),
   });
 };
@@ -39,11 +43,43 @@ export const createOrg = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const { name, plan = "Free", templateId } = req.body;
+    const { name, plan = "Free", billingCycle = "monthly", telebirrPhone, templateId } = req.body;
 
     if (!name || !name.trim()) {
       res.status(400).json({ message: "Organization name is required" });
       return;
+    }
+
+    const validPlan = ["Free", "Pro", "Enterprise"].includes(plan) ? plan : "Free";
+    const limits = PLAN_LIMITS[validPlan] || PLAN_LIMITS.Free;
+
+    // Enforce 1 Free organization workspace limit per user
+    if (validPlan === "Free") {
+      const userFreeOrgCount = await Organization.countDocuments({
+        createdBy: req.user._id,
+        plan: "Free",
+      });
+      if (userFreeOrgCount >= 1) {
+        res.status(403).json({
+          message:
+            "Limit reached: Accounts are limited to 1 Free organization workspace. Please upgrade to a Pro or Enterprise plan to create additional workspaces.",
+          upgradeRequired: true,
+          userFreeOrgCount,
+        });
+        return;
+      }
+    }
+
+    // Check workspace template compatibility with plan limits
+    if (templateId) {
+      const templateSeed = getWorkspaceTemplate(templateId);
+      if (templateSeed && templateSeed.projects.length > limits.maxProjects) {
+        res.status(400).json({
+          message: `Selected template '${templateSeed.name}' requires ${templateSeed.projects.length} projects, which exceeds your ${validPlan} plan limit of ${limits.maxProjects} projects. Please upgrade your subscription tier.`,
+          upgradeRequired: true,
+        });
+        return;
+      }
     }
 
     const baseSlug = slugify(name.trim()) || `org-${shortRandomId(6)}`;
@@ -57,7 +93,9 @@ export const createOrg = async (
     const org = await Organization.create({
       name: name.trim(),
       slug,
-      plan,
+      plan: validPlan,
+      billingCycle: ["monthly", "yearly"].includes(billingCycle) ? billingCycle : "monthly",
+      telebirrPhone: telebirrPhone || "",
       createdBy: req.user._id,
     });
 
@@ -67,6 +105,33 @@ export const createOrg = async (
       role: "OrgAdmin",
       status: "Active",
     });
+
+    // Create initial invoice record for paid subscriptions
+    if (validPlan !== "Free") {
+      const amount = billingCycle === "yearly" ? limits.priceETBYearly : limits.priceETBMonthly;
+      await Invoice.create({
+        orgId: org._id,
+        invoiceNumber: `INV-ETB-${Math.floor(10000 + Math.random() * 90000)}`,
+        plan: validPlan,
+        billingCycle: org.billingCycle,
+        amount,
+        currency: "ETB",
+        paymentMethod: "Telebirr",
+        telebirrReference: `TB-${Math.floor(100000 + Math.random() * 900000)}`,
+        telebirrPhone: telebirrPhone || "+251911000000",
+        status: "Paid",
+        billingDate: new Date(),
+        dueDate: new Date(),
+        items: [
+          {
+            description: `${validPlan} Plan Workspace Subscription (${org.billingCycle === "yearly" ? "Annual" : "Monthly"})`,
+            unitPrice: amount,
+            quantity: 1,
+            total: amount,
+          },
+        ],
+      });
+    }
 
     let appliedTemplate: string | null = null;
     if (templateId) {
@@ -83,7 +148,7 @@ export const createOrg = async (
       "org.created",
       "Organization",
       org._id,
-      { name: org.name, templateId: appliedTemplate },
+      { name: org.name, plan: org.plan, templateId: appliedTemplate },
     );
 
     res.status(201).json({
@@ -91,6 +156,7 @@ export const createOrg = async (
       name: org.name,
       slug: org.slug,
       plan: org.plan,
+      billingCycle: org.billingCycle,
       role: "OrgAdmin",
       templateId: appliedTemplate,
     });
@@ -286,6 +352,25 @@ export const addMemberByEmail = async (
     const user = await User.findOne({ email: email.trim().toLowerCase() });
     if (!user) {
       res.status(404).json({ message: "User not found with this email" });
+      return;
+    }
+
+    // Check organization subscription member limit
+    const org = await Organization.findById(orgId);
+    const plan = org?.plan || "Free";
+    const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.Free;
+    const currentMemberCount = await OrgMembership.countDocuments({
+      orgId,
+      status: "Active",
+    });
+
+    if (currentMemberCount >= limits.maxMembers) {
+      res.status(403).json({
+        message: `Plan limit reached: Your organization is on the ${plan} plan which allows a maximum of ${limits.maxMembers} members. Upgrade your plan in Enterprise Settings to add more team members.`,
+        upgradeRequired: true,
+        currentMemberCount,
+        maxMembers: limits.maxMembers,
+      });
       return;
     }
 

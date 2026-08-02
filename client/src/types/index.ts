@@ -11,6 +11,7 @@ export interface OrgMembership {
   name: string;
   slug: string;
   plan?: string;
+  billingCycle?: string;
   membershipId: string;
   role: OrgRole;
   customRoleId?: string | null;

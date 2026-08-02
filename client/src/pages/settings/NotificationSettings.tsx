@@ -29,6 +29,7 @@ import {
   Filter,
   Check,
   X,
+  Settings,
 } from 'lucide-react';
 
 type Channel = 'in_app' | 'email' | 'both' | 'none';
@@ -120,7 +121,7 @@ export default function NotificationSettings() {
     refreshNotifications,
   } = useSocket();
 
-  const [activeTab, setActiveTab] = useState<'inbox' | 'settings'>('inbox');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [page, setPage] = useState(1);
@@ -129,7 +130,8 @@ export default function NotificationSettings() {
   const [localNotifications, setLocalNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Preference State
+  // Preference State & Modal State
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [prefs, setPrefs] = useState<Prefs | null>(null);
   const [savingPrefs, setSavingPrefs] = useState(false);
   const [prefsMessage, setPrefsMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -271,58 +273,12 @@ export default function NotificationSettings() {
       subtitle="View all activity, manage alerts, and customize notification preferences"
     >
       <div className="space-y-6">
-        {/* Tab Navigation & Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-          <NavTabs<'inbox' | 'settings'>
-            tabs={[
-              { id: 'inbox', label: 'Notification Inbox', icon: Inbox, badge: unreadCount || undefined },
-              { id: 'settings', label: 'Preferences & Delivery', icon: Sliders },
-            ]}
-            activeTab={activeTab}
-            onChange={setActiveTab}
-          />
-
-          {/* Action buttons straight on the tabs bar */}
-          <div className="flex items-center gap-2 pb-2 sm:pb-0">
-            <button
-              type="button"
-              onClick={() => {
-                refreshNotifications();
-                fetchList();
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
-              title="Refresh list"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
-            {unreadCount > 0 && (
-              <button
-                type="button"
-                onClick={handleMarkAllRead}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-cyan-700 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200/60 rounded-xl transition-colors"
-              >
-                <CheckCheck className="w-3.5 h-3.5" />
-                Mark all read
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={handleClearRead}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/60 rounded-xl transition-colors"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              Clear read
-            </button>
-          </div>
-        </div>
-
-        {/* TAB 1: NOTIFICATIONS INBOX */}
-        {activeTab === 'inbox' && (
-          <div className="space-y-5">
-            {/* Search & Filter Pills */}
-            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-              {/* Filter Pills */}
+        {/* NOTIFICATIONS INBOX */}
+        <div className="space-y-4">
+          {/* Row 1: Category Filter Tabs & Top Quick Actions (Side-by-side on Mobile) */}
+          <div className="flex flex-row items-center justify-between gap-2">
+            {/* Filter Pills (Inbox Tabs) */}
+            <div className="min-w-0 flex-1 overflow-x-auto scrollbar-none pb-0.5">
               <NavTabs
                 size="sm"
                 tabs={categories.map((cat) => ({
@@ -336,37 +292,86 @@ export default function NotificationSettings() {
                   setPage(1);
                 }}
               />
-
-              {/* Search Bar */}
-              <div className="relative min-w-[240px]">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Search notifications..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full pl-9 pr-8 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/40 transition-all shadow-2xs"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchQuery('');
-                      setPage(1);
-                    }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 transition-colors"
-                    title="Clear search"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
             </div>
 
-            {/* List View */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  refreshNotifications();
+                  fetchList();
+                }}
+                className="inline-flex items-center gap-1 px-2 sm:px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors whitespace-nowrap"
+                title="Refresh list"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 shrink-0 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setSettingsModalOpen(true)}
+                className="inline-flex items-center gap-1 px-2 sm:px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/60 rounded-xl transition-all shadow-2xs group whitespace-nowrap"
+                title="Configure Event Notifications & Delivery Preferences"
+              >
+                <Settings className="w-3.5 h-3.5 text-indigo-600 group-hover:rotate-45 transition-transform duration-300 shrink-0" />
+                <span>Configure</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Row 2: Search Input & Action Buttons (Mark all read & Clear read) - Side-by-side on Mobile */}
+          <div className="flex flex-row items-center justify-between gap-2 pt-1">
+            {/* Search Bar */}
+            <div className="relative min-w-0 flex-1 max-w-md">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full pl-9 pr-8 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/40 transition-all shadow-2xs"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setPage(1);
+                  }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 transition-colors"
+                  title="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Second Row Action Buttons: Mark all read & Clear read (Side-by-side on mobile) */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleMarkAllRead}
+                  className="inline-flex items-center gap-1 px-2 sm:px-3 py-1.5 text-xs font-semibold text-cyan-700 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200/60 rounded-xl transition-colors whitespace-nowrap"
+                >
+                  <CheckCheck className="w-3.5 h-3.5 shrink-0" />
+                  <span>Mark all read</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleClearRead}
+                className="inline-flex items-center gap-1 px-2 sm:px-3 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/60 rounded-xl transition-colors whitespace-nowrap"
+              >
+                <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                <span>Clear read</span>
+              </button>
+            </div>
+          </div>
+
+          {/* List View */}
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
               {loading && localNotifications.length === 0 ? (
                 <div className="p-12 text-center text-slate-400 text-sm flex items-center justify-center gap-2">
@@ -506,225 +511,270 @@ export default function NotificationSettings() {
                 </div>
               )}
             </div>
-          </div>
-        )}
+        </div>
 
-        {/* TAB 2: PREFERENCES & SETTINGS */}
-        {activeTab === 'settings' && (
-          <form onSubmit={handleSavePrefs} className="space-y-6">
-            {!prefs ? (
-              <div className="p-8 text-center text-slate-400">Loading preferences…</div>
-            ) : (
-              <>
-                {/* Save Feedback Alert */}
-                {prefsMessage && (
-                  <div
-                    className={`p-4 rounded-xl text-xs font-semibold flex items-center gap-2 ${
-                      prefsMessage.type === 'success'
-                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                        : 'bg-rose-50 text-rose-800 border border-rose-200'
-                    }`}
-                  >
-                    <Check className="w-4 h-4 shrink-0" />
-                    {prefsMessage.text}
-                  </div>
-                )}
+      </div>
 
-                {/* Event Delivery Channels Grid */}
-                <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-6">
-                  <div>
-                    <h3 className="text-base font-bold text-slate-800">Event Notifications</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Configure how you would like to be alerted for each specific event type.
-                    </p>
-                  </div>
-
-                  <div className="space-y-5">
-                    {[
-                      { key: 'taskAssigned', label: 'Task Assignment', desc: 'When a task is assigned to you or transferred' },
-                      { key: 'mentions', label: 'Direct Mentions', desc: 'When someone @mentions you in a task or comment' },
-                      { key: 'statusChanged', label: 'Status Updates', desc: 'When a task you follow changes status' },
-                      { key: 'comments', label: 'Comments', desc: 'When new comments are posted on your tasks' },
-                      { key: 'dueDateReminder', label: 'Due Date Reminders', desc: 'When task due dates are approaching' },
-                    ].map((item) => (
-                      <div
-                        key={item.key}
-                        className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl bg-slate-50/50 border border-slate-100"
-                      >
-                        <div>
-                          <h4 className="text-sm font-semibold text-slate-800">{item.label}</h4>
-                          <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
-                        </div>
-
-                        {/* Channel selector pills */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                          {CHANNELS.map((ch) => {
-                            const isSelected = prefs[item.key as keyof Prefs] === ch.id;
-                            return (
-                              <button
-                                key={ch.id}
-                                type="button"
-                                onClick={() =>
-                                  setPrefs({
-                                    ...prefs,
-                                    [item.key]: ch.id,
-                                  })
-                                }
-                                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all text-center ${
-                                  isSelected
-                                    ? 'bg-cyan-600 text-white border-cyan-600 shadow-xs'
-                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-                                }`}
-                                title={ch.desc}
-                              >
-                                {ch.label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+      {/* EVENT NOTIFICATIONS CONFIGURATION MODAL */}
+      {settingsModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setSettingsModalOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden my-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 bg-slate-50/80 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100/80">
+                  <Settings className="w-5 h-5" />
                 </div>
+                <div>
+                  <h2 className="text-base font-bold text-slate-800">Event Notifications & Delivery Preferences</h2>
+                  <p className="text-xs text-slate-500">Configure alert channels, email digests, and quiet hours</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSettingsModalOpen(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors"
+                title="Close configuration modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-                {/* Email Digest & Sound Settings Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Email Digest Settings */}
-                  <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
-                        <Mail className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-800">Email Digest</h3>
-                        <p className="text-xs text-slate-500">Summary of missed activity</p>
-                      </div>
+            {/* Modal Content - Preferences Form */}
+            <form
+              onSubmit={async (e) => {
+                await handleSavePrefs(e);
+                setTimeout(() => setSettingsModalOpen(false), 600);
+              }}
+              className="p-6 space-y-6 max-h-[75vh] overflow-y-auto"
+            >
+              {!prefs ? (
+                <div className="p-8 text-center text-slate-400">Loading preferences…</div>
+              ) : (
+                <>
+                  {/* Save Feedback Alert */}
+                  {prefsMessage && (
+                    <div
+                      className={`p-4 rounded-xl text-xs font-semibold flex items-center gap-2 ${
+                        prefsMessage.type === 'success'
+                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                          : 'bg-rose-50 text-rose-800 border border-rose-200'
+                      }`}
+                    >
+                      <Check className="w-4 h-4 shrink-0" />
+                      {prefsMessage.text}
+                    </div>
+                  )}
+
+                  {/* Event Delivery Channels Grid */}
+                  <div className="bg-slate-50/60 rounded-2xl border border-slate-200/80 p-5 space-y-4">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-800">Event Notifications Channels</h3>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Configure how you would like to be alerted for each specific event type.
+                      </p>
                     </div>
 
-                    <div className="space-y-2 pt-2">
+                    <div className="space-y-3">
                       {[
-                        { id: 'none', label: 'No Digest', desc: 'Do not send periodic email summaries' },
-                        { id: 'daily', label: 'Daily Summary', desc: 'Receive a daily recap every morning' },
-                        { id: 'weekly', label: 'Weekly Summary', desc: 'Receive a digest every Monday' },
-                      ].map((d) => (
-                        <label
-                          key={d.id}
-                          className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                            prefs.digestFrequency === d.id
-                              ? 'bg-blue-50/40 border-blue-300 text-blue-950'
-                              : 'bg-slate-50/50 border-slate-200 text-slate-700 hover:border-slate-300'
-                          }`}
+                        { key: 'taskAssigned', label: 'Task Assignment', desc: 'When a task is assigned to you or transferred' },
+                        { key: 'mentions', label: 'Direct Mentions', desc: 'When someone @mentions you in a task or comment' },
+                        { key: 'statusChanged', label: 'Status Updates', desc: 'When a task you follow changes status' },
+                        { key: 'comments', label: 'Comments', desc: 'When new comments are posted on your tasks' },
+                        { key: 'dueDateReminder', label: 'Due Date Reminders', desc: 'When task due dates are approaching' },
+                      ].map((item) => (
+                        <div
+                          key={item.key}
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs"
                         >
-                          <input
-                            type="radio"
-                            name="digestFrequency"
-                            value={d.id}
-                            checked={prefs.digestFrequency === d.id}
-                            onChange={(e) =>
-                              setPrefs({
-                                ...prefs,
-                                digestFrequency: e.target.value as Digest,
-                              })
-                            }
-                            className="mt-0.5 text-cyan-600 focus:ring-cyan-500"
-                          />
                           <div>
-                            <div className="text-xs font-bold">{d.label}</div>
-                            <div className="text-[11px] text-slate-500">{d.desc}</div>
+                            <h4 className="text-xs font-bold text-slate-800">{item.label}</h4>
+                            <p className="text-[11px] text-slate-500 mt-0.5">{item.desc}</p>
                           </div>
-                        </label>
+
+                          {/* Channel selector pills */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 shrink-0">
+                            {CHANNELS.map((ch) => {
+                              const isSelected = prefs[item.key as keyof Prefs] === ch.id;
+                              return (
+                                <button
+                                  key={ch.id}
+                                  type="button"
+                                  onClick={() =>
+                                    setPrefs({
+                                      ...prefs,
+                                      [item.key]: ch.id,
+                                    })
+                                  }
+                                  className={`px-2 py-1.5 rounded-lg text-[11px] font-semibold border transition-all text-center ${
+                                    isSelected
+                                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
+                                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300'
+                                  }`}
+                                  title={ch.desc}
+                                >
+                                  {ch.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Sound & Do Not Disturb */}
-                  <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className="p-2 rounded-lg bg-purple-50 text-purple-600">
-                        <Volume2 className="w-5 h-5" />
+                  {/* Email Digest & Audio Settings Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Email Digest Settings */}
+                    <div className="bg-slate-50/60 rounded-2xl border border-slate-200/80 p-5 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
+                          <Mail className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h3 className="text-xs font-bold text-slate-800">Email Digest</h3>
+                          <p className="text-[11px] text-slate-500">Summary frequency</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-800">Audio & Quiet Hours</h3>
-                        <p className="text-xs text-slate-500">Manage sound chime and DND mode</p>
+
+                      <div className="space-y-2 pt-1">
+                        {[
+                          { id: 'none', label: 'No Digest', desc: 'Do not send email summaries' },
+                          { id: 'daily', label: 'Daily Summary', desc: 'Recap sent every morning' },
+                          { id: 'weekly', label: 'Weekly Summary', desc: 'Digest sent every Monday' },
+                        ].map((d) => (
+                          <label
+                            key={d.id}
+                            className={`flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-all ${
+                              prefs.digestFrequency === d.id
+                                ? 'bg-blue-50/60 border-blue-300 text-blue-950'
+                                : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="digestFrequency"
+                              value={d.id}
+                              checked={prefs.digestFrequency === d.id}
+                              onChange={(e) =>
+                                setPrefs({
+                                  ...prefs,
+                                  digestFrequency: e.target.value as Digest,
+                                })
+                              }
+                              className="mt-0.5 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <div>
+                              <div className="text-xs font-bold">{d.label}</div>
+                              <div className="text-[10px] text-slate-500">{d.desc}</div>
+                            </div>
+                          </label>
+                        ))}
                       </div>
                     </div>
 
-                    <div className="space-y-4 pt-2">
-                      {/* Audio Toggle */}
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50/50 border border-slate-200">
-                        <div className="flex items-center gap-2.5">
-                          {prefs.soundEnabled ? (
-                            <Volume2 className="w-4 h-4 text-emerald-600" />
-                          ) : (
-                            <VolumeX className="w-4 h-4 text-slate-400" />
-                          )}
-                          <div>
-                            <div className="text-xs font-bold text-slate-800">In-App Chime Sound</div>
-                            <div className="text-[11px] text-slate-500">Play audio chime on new notification</div>
+                    {/* Sound & Do Not Disturb */}
+                    <div className="bg-slate-50/60 rounded-2xl border border-slate-200/80 p-5 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600">
+                          <Volume2 className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h3 className="text-xs font-bold text-slate-800">Sound & Quiet Hours</h3>
+                          <p className="text-[11px] text-slate-500">Manage audio & DND</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3 pt-1">
+                        {/* Audio Chime */}
+                        <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200">
+                          <div className="flex items-center gap-2">
+                            {prefs.soundEnabled ? (
+                              <Volume2 className="w-4 h-4 text-emerald-600" />
+                            ) : (
+                              <VolumeX className="w-4 h-4 text-slate-400" />
+                            )}
+                            <div>
+                              <div className="text-xs font-bold text-slate-800">Audio Chime</div>
+                              <div className="text-[10px] text-slate-500">Play sound on alert</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => playNotificationChime()}
+                              className="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-slate-700"
+                            >
+                              Test
+                            </button>
+                            <input
+                              type="checkbox"
+                              checked={prefs.soundEnabled ?? true}
+                              onChange={(e) =>
+                                setPrefs({
+                                  ...prefs,
+                                  soundEnabled: e.target.checked,
+                                })
+                              }
+                              className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer"
+                            />
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => playNotificationChime()}
-                            className="text-[10px] font-semibold px-2 py-1 bg-slate-200 hover:bg-slate-300 rounded text-slate-700"
-                          >
-                            Test
-                          </button>
+
+                        {/* Do Not Disturb */}
+                        <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200">
+                          <div className="flex items-center gap-2">
+                            <Moon className={`w-4 h-4 ${prefs.doNotDisturb ? 'text-indigo-600' : 'text-slate-400'}`} />
+                            <div>
+                              <div className="text-xs font-bold text-slate-800">Do Not Disturb</div>
+                              <div className="text-[10px] text-slate-500">Silence popups</div>
+                            </div>
+                          </div>
                           <input
                             type="checkbox"
-                            checked={prefs.soundEnabled ?? true}
+                            checked={prefs.doNotDisturb ?? false}
                             onChange={(e) =>
                               setPrefs({
                                 ...prefs,
-                                soundEnabled: e.target.checked,
+                                doNotDisturb: e.target.checked,
                               })
                             }
-                            className="w-4 h-4 text-cyan-600 rounded focus:ring-cyan-500 cursor-pointer"
+                            className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer"
                           />
                         </div>
                       </div>
-
-                      {/* Do Not Disturb Toggle */}
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50/50 border border-slate-200">
-                        <div className="flex items-center gap-2.5">
-                          <Moon className={`w-4 h-4 ${prefs.doNotDisturb ? 'text-indigo-600' : 'text-slate-400'}`} />
-                          <div>
-                            <div className="text-xs font-bold text-slate-800">Do Not Disturb Mode</div>
-                            <div className="text-[11px] text-slate-500">Silence popups and audio alerts</div>
-                          </div>
-                        </div>
-                        <input
-                          type="checkbox"
-                          checked={prefs.doNotDisturb ?? false}
-                          onChange={(e) =>
-                            setPrefs({
-                              ...prefs,
-                              doNotDisturb: e.target.checked,
-                            })
-                          }
-                          className="w-4 h-4 text-cyan-600 rounded focus:ring-cyan-500 cursor-pointer"
-                        />
-                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Submit button */}
-                <div className="flex justify-end pt-2">
-                  <button
-                    type="submit"
-                    disabled={savingPrefs}
-                    className="inline-flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 rounded-xl shadow-md transition-all disabled:opacity-50"
-                  >
-                    {savingPrefs ? 'Saving Changes…' : 'Save Notification Preferences'}
-                  </button>
-                </div>
-              </>
-            )}
-          </form>
-        )}
-      </div>
+                  {/* Submit Button */}
+                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200/80">
+                    <button
+                      type="button"
+                      onClick={() => setSettingsModalOpen(false)}
+                      className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingPrefs}
+                      className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 rounded-xl shadow-md transition-all disabled:opacity-50"
+                    >
+                      {savingPrefs ? 'Saving…' : 'Save Preferences'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
 
       <ConfirmModal
         isOpen={confirmClearModal}

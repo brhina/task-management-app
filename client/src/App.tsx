@@ -352,6 +352,14 @@ function App() {
 
         {/* Settings */}
         <Route
+          path="/settings"
+          element={
+            <UserRouteWrapper>
+              <Navigate to="/settings/workos" replace />
+            </UserRouteWrapper>
+          }
+        />
+        <Route
           path="/settings/workos"
           element={
             <UserRouteWrapper>

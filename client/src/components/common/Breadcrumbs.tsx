@@ -33,7 +33,13 @@ const getBreadcrumbIcon = (label?: string | null, index?: number): LucideIcon | 
   if (lower.includes('user') || lower.includes('team')) return Users;
   if (lower.includes('role')) return Shield;
   if (lower.includes('report')) return BarChart3;
-  if (lower.includes('workos') || lower.includes('setting')) return Settings;
+  if (
+    lower.includes('workos') ||
+    lower.includes('setting') ||
+    lower.includes('enterprise') ||
+    lower.includes('notification')
+  )
+    return Settings;
   if (lower.includes('template')) return FileText;
   if (lower.includes('audit')) return ScrollText;
   if (lower.includes('resource')) return UsersRound;
@@ -46,106 +52,131 @@ function Breadcrumbs() {
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
 
   useEffect(() => {
-    const buildBreadcrumbs = async () => {
-      const items: BreadcrumbItem[] = [
-        { label: 'Home', path: '/dashboard' },
-      ];
+    let isSubscribed = true;
 
+    const buildBreadcrumbs = async () => {
+      const items: BreadcrumbItem[] = [{ label: 'Home', path: '/dashboard' }];
       const path = location.pathname;
 
-      // /projects
-      if (path === '/projects') {
-        items.push({ label: 'Projects', path: '/projects' });
-        setBreadcrumbs(items);
+      // 1. Settings Routes - Direct, clean hierarchy without intermediate dummy links
+      if (path.startsWith('/settings')) {
+        if (path === '/settings/workos' || path === '/settings') {
+          items.push({ label: 'WorkOS', path: '/settings/workos' });
+        } else if (path === '/settings/roles') {
+          items.push({ label: 'Roles & Permissions', path: '/settings/roles' });
+        } else if (path === '/settings/notifications') {
+          items.push({ label: 'Notifications', path: '/settings/notifications' });
+        } else if (path === '/settings/enterprise') {
+          items.push({ label: 'Enterprise Center', path: '/settings/enterprise' });
+        } else {
+          const seg = path.replace('/settings/', '');
+          const formatted = seg.charAt(0).toUpperCase() + seg.slice(1);
+          items.push({ label: formatted, path });
+        }
+        if (isSubscribed) setBreadcrumbs(items);
         return;
       }
 
-      // /projects/:id/*
+      // 2. Projects Routes
+      if (path === '/projects') {
+        items.push({ label: 'Projects', path: '/projects' });
+        if (isSubscribed) setBreadcrumbs(items);
+        return;
+      }
+
       const projectMatch = path.match(/^\/projects\/([a-f0-9]{24})/i);
       if (projectMatch) {
         items.push({ label: 'Projects', path: '/projects' });
         try {
           const res = await api.get(`/api/projects/${projectMatch[1]}`);
-          const project = res.data.data.project;
+          const project = res.data?.data?.project || res.data?.data;
           const sub = path.replace(`/projects/${projectMatch[1]}`, '').replace(/^\//, '');
           const subLabels: Record<string, string> = { edit: 'Edit', sprints: 'Sprints', gantt: 'Gantt' };
-          items.push({ label: project.name, path: `/tasks?projectId=${projectMatch[1]}` });
+          items.push({ label: project?.name || 'Project Details', path: `/tasks?projectId=${projectMatch[1]}` });
           if (sub && subLabels[sub]) {
             items.push({ label: subLabels[sub], path });
           }
         } catch {
           items.push({ label: 'Project', path });
         }
-        setBreadcrumbs(items);
+        if (isSubscribed) setBreadcrumbs(items);
         return;
       }
 
-      // /tasks (with optional projectId query param)
-      if (path === '/tasks' || location.pathname === '/tasks') {
+      // 3. Tasks Routes
+      if (path === '/tasks') {
         const projectId = new URLSearchParams(location.search).get('projectId');
         if (projectId) {
           try {
             const res = await api.get(`/api/projects/${projectId}`);
-            items.push({ label: res.data.data.project.name, path: `/tasks?projectId=${projectId}` });
-            items.push({ label: 'Tasks', path });
+            const project = res.data?.data?.project || res.data?.data;
+            items.push({ label: 'Projects', path: '/projects' });
+            items.push({ label: project?.name || 'Project', path: `/tasks?projectId=${projectId}` });
+            items.push({ label: 'Tasks', path: `/tasks?projectId=${projectId}` });
           } catch {
-            items.push({ label: 'Tasks', path });
+            items.push({ label: 'Tasks', path: '/tasks' });
           }
         } else {
           items.push({ label: 'Tasks', path: '/tasks' });
         }
-        setBreadcrumbs(items);
+        if (isSubscribed) setBreadcrumbs(items);
         return;
       }
 
-      // /tasks/create
       if (path === '/tasks/create') {
         items.push({ label: 'Tasks', path: '/tasks' });
-        items.push({ label: 'Create', path });
-        setBreadcrumbs(items);
+        items.push({ label: 'Create Task', path });
+        if (isSubscribed) setBreadcrumbs(items);
         return;
       }
 
-      // /tasks/templates
       if (path === '/tasks/templates') {
         items.push({ label: 'Tasks', path: '/tasks' });
-        items.push({ label: 'Templates', path });
-        setBreadcrumbs(items);
+        items.push({ label: 'Task Templates', path });
+        if (isSubscribed) setBreadcrumbs(items);
         return;
       }
 
-      // /tasks/:id or /tasks/:id/edit
       const taskMatch = path.match(/^\/tasks\/([a-f0-9]{24})/i);
       if (taskMatch) {
         try {
           const res = await api.get(apiPaths.TASKS.GET_TASK_BY_ID.replace(':id', taskMatch[1]));
-          const task = res.data.data;
+          const task = res.data?.data;
 
-          // If subtask, add project > parent > current
-          if (task.parentTaskId) {
+          if (task?.parentTaskId) {
             const parentId = task.parentTaskId._id || task.parentTaskId;
             const parentRes = await api.get(apiPaths.TASKS.GET_TASK_BY_ID.replace(':id', parentId));
-            const parentTask = parentRes.data.data;
+            const parentTask = parentRes.data?.data;
 
-            // Add project if parent has one
-            if (parentTask.projectId) {
+            if (parentTask?.projectId) {
               const projId = parentTask.projectId._id || parentTask.projectId;
               try {
                 const projRes = await api.get(`/api/projects/${projId}`);
-                items.push({ label: projRes.data.data.project.name, path: `/tasks?projectId=${projId}` });
-              } catch {}
+                const proj = projRes.data?.data?.project || projRes.data?.data;
+                items.push({ label: 'Projects', path: '/projects' });
+                items.push({ label: proj.name, path: `/tasks?projectId=${projId}` });
+              } catch {
+                items.push({ label: 'Tasks', path: '/tasks' });
+              }
+            } else {
+              items.push({ label: 'Tasks', path: '/tasks' });
             }
 
             items.push({ label: parentTask.title, path: `/tasks/${parentId}` });
             items.push({ label: task.title, path: `/tasks/${taskMatch[1]}` });
           } else {
-            // Top-level task: project > task
-            if (task.projectId) {
+            if (task?.projectId) {
               const projId = task.projectId._id || task.projectId;
               try {
                 const projRes = await api.get(`/api/projects/${projId}`);
-                items.push({ label: projRes.data.data.project.name, path: `/tasks?projectId=${projId}` });
-              } catch {}
+                const proj = projRes.data?.data?.project || projRes.data?.data;
+                items.push({ label: 'Projects', path: '/projects' });
+                items.push({ label: proj.name, path: `/tasks?projectId=${projId}` });
+              } catch {
+                items.push({ label: 'Tasks', path: '/tasks' });
+              }
+            } else {
+              items.push({ label: 'Tasks', path: '/tasks' });
             }
             items.push({ label: task.title, path: `/tasks/${taskMatch[1]}` });
           }
@@ -155,68 +186,170 @@ function Breadcrumbs() {
           }
         } catch {
           items.push({ label: 'Tasks', path: '/tasks' });
-          items.push({ label: 'Task', path });
+          items.push({ label: 'Task Details', path });
         }
-        setBreadcrumbs(items);
+        if (isSubscribed) setBreadcrumbs(items);
         return;
       }
 
-      // /goals
+      // 4. Goals Routes
       if (path === '/goals') {
         items.push({ label: 'Goals', path: '/goals' });
-        setBreadcrumbs(items);
+        if (isSubscribed) setBreadcrumbs(items);
         return;
       }
 
-      // /goals/:id or /goals/:id/edit
+      if (path === '/goals/create') {
+        items.push({ label: 'Goals', path: '/goals' });
+        items.push({ label: 'Create Goal', path });
+        if (isSubscribed) setBreadcrumbs(items);
+        return;
+      }
+
       const goalMatch = path.match(/^\/goals\/([a-f0-9]{24})/i);
       if (goalMatch) {
         items.push({ label: 'Goals', path: '/goals' });
         try {
           const res = await api.get(`/api/goals/${goalMatch[1]}`);
-          items.push({ label: res.data.data.title, path });
+          const goal = res.data?.data;
+          items.push({ label: goal?.title || 'Goal Details', path: `/goals/${goalMatch[1]}` });
+          if (path.endsWith('/edit')) {
+            items.push({ label: 'Edit', path });
+          }
         } catch {
-          items.push({ label: 'Goal', path });
+          items.push({ label: 'Goal Details', path });
         }
-        setBreadcrumbs(items);
+        if (isSubscribed) setBreadcrumbs(items);
         return;
       }
 
-      // /sprints/:id/board
+      // 5. Sprint Board Route
       const sprintMatch = path.match(/^\/sprints\/([a-f0-9]{24})/i);
       if (sprintMatch) {
-        items.push({ label: 'Tasks', path: '/tasks' });
         try {
-          const res = await api.get(`/api/sprints/${sprintMatch[1]}`);
-          items.push({ label: res.data.data.name, path });
+          const res = await api.get(apiPaths.SPRINTS.GET.replace(':id', sprintMatch[1]));
+          const sprint = res.data?.data?.sprint || res.data?.data;
+          if (sprint?.projectId) {
+            const projId = typeof sprint.projectId === 'object' ? sprint.projectId._id : sprint.projectId;
+            try {
+              const projRes = await api.get(`/api/projects/${projId}`);
+              const proj = projRes.data?.data?.project || projRes.data?.data;
+              items.push({ label: 'Projects', path: '/projects' });
+              items.push({ label: proj?.name || 'Project', path: `/tasks?projectId=${projId}` });
+              items.push({ label: 'Sprints', path: `/projects/${projId}/sprints` });
+            } catch {
+              items.push({ label: 'Tasks', path: '/tasks' });
+            }
+          } else {
+            items.push({ label: 'Tasks', path: '/tasks' });
+          }
+          items.push({ label: sprint?.name || 'Sprint Board', path });
         } catch {
-          items.push({ label: 'Sprint', path });
+          items.push({ label: 'Tasks', path: '/tasks' });
+          items.push({ label: 'Sprint Board', path });
         }
-        setBreadcrumbs(items);
+        if (isSubscribed) setBreadcrumbs(items);
         return;
       }
 
-      // Other pages
-      const routeLabels: Record<string, string> = {
-        dashboard: 'Dashboard', users: 'Users', profile: 'Profile',
-        settings: 'Settings', workos: 'WorkOS', roles: 'Roles',
-        notifications: 'Notifications',
-        teams: 'Teams', reports: 'Reports', resources: 'Resources',
-        audit: 'Audit Log',
-      };
-      const segments = path.split('/').filter(Boolean);
-      let currentPath = '';
-      for (const seg of segments) {
-        currentPath += `/${seg}`;
-        const label = routeLabels[seg.toLowerCase()] || seg.charAt(0).toUpperCase() + seg.slice(1);
-        items.push({ label, path: currentPath });
+      // 6. Users & Profile Routes
+      if (path === '/users') {
+        const tab = new URLSearchParams(location.search).get('tab');
+        if (tab === 'teams') {
+          items.push({ label: 'Users & Teams', path: '/users?tab=teams' });
+        } else {
+          items.push({ label: 'Users & Teams', path: '/users' });
+        }
+        if (isSubscribed) setBreadcrumbs(items);
+        return;
       }
 
-      setBreadcrumbs(items);
+      if (path === '/users/profile') {
+        items.push({ label: 'Profile', path });
+        if (isSubscribed) setBreadcrumbs(items);
+        return;
+      }
+
+      if (path === '/users/performance') {
+        items.push({ label: 'My Performance', path });
+        if (isSubscribed) setBreadcrumbs(items);
+        return;
+      }
+
+      const userPerfMatch = path.match(/^\/users\/([a-f0-9]{24})\/performance/i);
+      if (userPerfMatch) {
+        items.push({ label: 'Users & Teams', path: '/users' });
+        try {
+          const res = await api.get(apiPaths.USERS.GET_USER_BY_ID.replace(':id', userPerfMatch[1]));
+          const u = res.data?.data;
+          const name = u?.name || u?.fullName || u?.email || 'User';
+          items.push({ label: `${name}'s Performance`, path });
+        } catch {
+          items.push({ label: 'User Performance', path });
+        }
+        if (isSubscribed) setBreadcrumbs(items);
+        return;
+      }
+
+      // 7. Teams Routes
+      if (path === '/teams') {
+        items.push({ label: 'Users & Teams', path: '/users?tab=teams' });
+        if (isSubscribed) setBreadcrumbs(items);
+        return;
+      }
+
+      if (path === '/teams/performance') {
+        items.push({ label: 'Users & Teams', path: '/users?tab=teams' });
+        items.push({ label: 'Team Performance', path });
+        if (isSubscribed) setBreadcrumbs(items);
+        return;
+      }
+
+      const teamPerfMatch = path.match(/^\/teams\/([a-f0-9]{24})\/performance/i);
+      if (teamPerfMatch) {
+        items.push({ label: 'Users & Teams', path: '/users?tab=teams' });
+        try {
+          const res = await api.get(apiPaths.TEAMS.GET.replace(':id', teamPerfMatch[1]));
+          const team = res.data?.data;
+          items.push({ label: `${team?.name || 'Team'} Performance`, path });
+        } catch {
+          items.push({ label: 'Team Performance', path });
+        }
+        if (isSubscribed) setBreadcrumbs(items);
+        return;
+      }
+
+      // 8. Other Static Routes
+      const routeLabels: Record<string, string> = {
+        reports: 'Reports',
+        resources: 'Resources',
+        audit: 'Audit Log',
+      };
+
+      const seg = path.replace(/^\//, '').toLowerCase();
+      if (routeLabels[seg]) {
+        items.push({ label: routeLabels[seg], path });
+      } else {
+        const segments = path.split('/').filter(Boolean);
+        let currentPath = '';
+        for (const segment of segments) {
+          // Skip raw hex IDs in fallback labels
+          if (/^[a-f0-9]{24}$/i.test(segment)) continue;
+          currentPath += `/${segment}`;
+          const label = routeLabels[segment.toLowerCase()] || segment.charAt(0).toUpperCase() + segment.slice(1);
+          items.push({ label, path: currentPath });
+        }
+      }
+
+      if (isSubscribed) setBreadcrumbs(items);
     };
 
     buildBreadcrumbs();
-  }, [location.pathname]);
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [location.pathname, location.search]);
 
   if (breadcrumbs.length <= 1) return null;
 
