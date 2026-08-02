@@ -42,7 +42,7 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-88 max-h-[480px] flex flex-col rounded-2xl border border-slate-200/90 bg-white shadow-2xl z-50 overflow-hidden text-slate-800">
+        <div className="absolute right-0 mt-2 w-[340px] sm:w-[440px] max-h-[520px] flex flex-col rounded-2xl border border-slate-200/90 bg-white shadow-2xl z-50 overflow-hidden text-slate-800">
           {/* Popover Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/50">
             <div className="flex items-center gap-2">
