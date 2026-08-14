@@ -210,11 +210,6 @@ function AuthLayout({ children }: { children: ReactNode }) {
 
         {/* Navigation Links List */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
-          {!isSidebarCollapsed && (
-            <div className="px-2 pb-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              Navigation
-            </div>
-          )}
           {getNavLinks.map((link) => {
             const active = isActive(link.path);
             return (

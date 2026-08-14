@@ -9,7 +9,7 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from '@dnd-kit/core';
-import { LayoutGrid, List, Users, ClipboardList, GanttChart, Timer, RefreshCw, Plus, Pencil, CornerDownRight, CheckCircle2, Clock, AlertTriangle, Layers } from 'lucide-react';
+import { LayoutGrid, List, ClipboardList, GanttChart, Timer, RefreshCw, Plus, Pencil, CornerDownRight, CheckCircle2, Clock, AlertTriangle, Layers } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../utils/axios';
@@ -21,7 +21,6 @@ import FilterToolbar from '../../components/common/FilterToolbar';
 import AdvancedTable, { RowActions, type Column, type ActionItem } from '../../components/common/AdvancedTable';
 import TaskBoard from '../../components/tasks/TaskBoard';
 import TaskCard from '../../components/tasks/TaskCard';
-import UserDropZone from '../../components/tasks/UserDropZone';
 import CreateTask from './CreateTask';
 import { EditProjectModal } from '../projects/EditProject';
 import { getStatusColor, getPriorityColor } from '../../constants/taskStatus';
@@ -80,7 +79,6 @@ function ManageTasks() {
   const [searchParams] = useSearchParams();
   const urlProjectId = searchParams.get('projectId') || '';
   const [tasks, setTasks] = useState<TaskWithAssignee[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -88,7 +86,6 @@ function ManageTasks() {
   const [projectFilter, setProjectFilter] = useState(urlProjectId);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'board' | 'list'>('board');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'status' | 'assignee'>('dueDate');
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
@@ -108,7 +105,6 @@ function ManageTasks() {
 
   useEffect(() => {
     fetchTasks();
-    fetchUsers();
     fetchProjects();
   }, [statusFilter, projectFilter]);
 
@@ -164,14 +160,7 @@ function ManageTasks() {
     }
   };
 
-  const fetchUsers = async () => {
-    try {
-      const response = await api.get(apiPaths.USERS.GET_ALL_USERS);
-      setUsers(response.data?.users || response.data);
-    } catch (err) {
-      console.error('Error fetching users:', err);
-    }
-  };
+
 
   const fetchProjects = async () => {
     try {
@@ -269,14 +258,7 @@ function ManageTasks() {
     });
   }, [tasks, searchTerm, sortBy]);
 
-  const tasksByUser = useMemo(() => {
-    const map: Record<string, number> = {};
-    filteredTasks.forEach((task) => {
-      const id = task.assignedTo?._id;
-      if (id) map[id] = (map[id] || 0) + 1;
-    });
-    return map;
-  }, [filteredTasks]);
+
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const [activeTask, setActiveTask] = useState<Task | null>(null);
@@ -298,11 +280,7 @@ function ManageTasks() {
       const taskId = String(active.id);
       const overId = String(over.id);
 
-      if (overId.startsWith('user-')) {
-        const userId = overId.replace('user-', '');
-        await handleAssigneeUpdate(taskId, userId);
-        return;
-      }
+
 
       const newStatus = overId as TaskStatus;
       const task = filteredTasks.find((t) => t._id === taskId);
@@ -537,19 +515,6 @@ function ManageTasks() {
               <List className="w-3.5 h-3.5" />
               List
             </button>
-
-            <button
-              type="button"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-                sidebarOpen
-                  ? 'border-primary/40 bg-primary/10 text-primary'
-                  : 'border-gray-200 bg-white text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              <Users className="w-3.5 h-3.5" />
-              {sidebarOpen ? 'Hide' : 'Show'} Team
-            </button>
           </div>
         </div>
 
@@ -569,34 +534,11 @@ function ManageTasks() {
           </div>
         ) : viewMode === 'board' ? (
           <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-            <div className="flex flex-col gap-4 overflow-hidden lg:flex-row">
-              <div className="flex-1 min-w-0 overflow-x-hidden">
-                <TaskBoard
-                  tasks={filteredTasks}
-                  onTaskClick={(taskId) => navigate(`/tasks/${taskId}`)}
-                />
-              </div>
-              {sidebarOpen && (
-                <div className="hidden lg:block w-48 xl:w-56 shrink-0">
-                  <div className="sticky top-4">
-                    <div className="card p-3">
-                      <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 px-1">
-                        Assign to
-                      </h3>
-                      <div className="space-y-1.5">
-                        {users.map((u) => (
-                          <UserDropZone key={u._id} user={u} taskCount={tasksByUser[u._id] || 0} />
-                        ))}
-                        {users.length === 0 && (
-                          <div className="text-xs text-slate-500 text-center py-4">
-                            No users found
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+            <div className="flex-1 min-w-0 overflow-x-hidden">
+              <TaskBoard
+                tasks={filteredTasks}
+                onTaskClick={(taskId) => navigate(`/tasks/${taskId}`)}
+              />
             </div>
             <DragOverlay>
               {activeTask ? (
