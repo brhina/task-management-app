@@ -572,9 +572,9 @@ function Dashboard() {
                                 >
                                   <div className="flex items-center gap-2 min-w-0 flex-1">
                                     <CornerDownRight className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                                    <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider shrink-0">
+                                    {/* <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider shrink-0">
                                       Subtask
-                                    </span>
+                                    </span> */}
                                     <button
                                       type="button"
                                       disabled={stUpdating}
