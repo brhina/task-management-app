@@ -39,7 +39,6 @@ import Reports from './pages/reports/Reports';
 import Resources from './pages/resources/Resources';
 import Teams from './pages/teams/Teams';
 import TeamPerformanceDashboard from './pages/teams/TeamPerformanceDashboard';
-import AuditLog from './pages/audit/AuditLog';
 
 import AuthLayout from './components/layouts/AuthLayout';
 import UserProvider from './context/UserContext';
@@ -446,16 +445,7 @@ function App() {
             </AdminRouteWrapper>
           }
         />
-        <Route
-          path="/audit"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <AuditLog />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
-        />
+
 
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<CatchAllRoute user={user} />} />

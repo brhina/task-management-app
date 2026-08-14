@@ -18,7 +18,6 @@ import {
   UsersRound,
   Bell,
   Shield,
-  ScrollText,
   Menu,
   X,
   Sparkles,
@@ -39,7 +38,6 @@ const NavIcons: Record<string, ReactNode> = {
   notifications: <Bell className="w-5 h-5" />,
   teams: <UsersRound className="w-5 h-5" />,
   roles: <Shield className="w-5 h-5" />,
-  audit: <ScrollText className="w-5 h-5" />,
   ai: <Sparkles className="w-5 h-5" />,
   enterprise: <ShieldCheck className="w-5 h-5" />,
 };
@@ -77,24 +75,21 @@ function AuthLayout({ children }: { children: ReactNode }) {
         { name: 'Projects', path: '/projects', icon: NavIcons.projects },
         { name: 'Goals', path: '/goals', icon: NavIcons.goals },
         { name: 'Resources', path: '/resources', icon: NavIcons.resources },
-      ];
-      links.push(
         { name: 'Templates', path: '/tasks/templates', icon: NavIcons.templates },
-        { name: 'Notifications', path: '/settings/notifications', icon: NavIcons.notifications },
-        { name: 'Enterprise Center', path: '/settings/enterprise', icon: NavIcons.enterprise }
-      );
+      ];
       if (hasPermission('member:manage') || hasPermission('member:invite') || hasPermission('team:view')) {
         links.push({ name: 'Users & Teams', path: '/users', icon: NavIcons.users });
       }
       if (hasPermission('role:manage')) {
         links.push({ name: 'Roles', path: '/settings/roles', icon: NavIcons.roles });
       }
-      if (hasPermission('org:audit')) {
-        links.push({ name: 'Audit Log', path: '/audit', icon: NavIcons.audit });
-      }
       if (hasPermission('report:view')) {
         links.push({ name: 'Reports', path: '/reports', icon: NavIcons.reports });
       }
+      links.push(
+        { name: 'Notifications', path: '/settings/notifications', icon: NavIcons.notifications },
+        { name: 'Enterprise Center', path: '/settings/enterprise', icon: NavIcons.enterprise }
+      );
       return links;
     }
 
