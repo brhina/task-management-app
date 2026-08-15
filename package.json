@@ -6,14 +6,17 @@
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
     "server:dev": "cd server && npm run dev",
     "client:dev": "cd client && npm run dev",
-    "build": "cd client && npm run build",
-    "build:prod": "cd client && npm run build:prod",
-    "start": "cd server && npm start",
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
-    "docker:build": "docker build -t task-manager .",
-    "docker:run": "docker run -p 3001:3001 task-manager",
-    "docker:compose": "docker-compose up -d",
-    "deploy:heroku": "git subtree push --prefix server heroku main"
+
+    "docker:build:server": "docker build -t task-manager-server ./server",
+    "docker:build:client": "docker build -t task-manager-client ./client",
+    "docker:build": "npm run docker:build:server && npm run docker:build:client",
+
+    "docker:run:server": "docker run -d --name task-manager-server -p 3001:3001 task-manager-server",
+    "docker:run:client": "docker run -d --name task-manager-client -p 80:80 task-manager-client",
+
+    "docker:compose": "docker-compose up -d --build",
+    "docker:compose:prod": "docker-compose -f docker-compose.prod.yml up -d --build"
   },
   "keywords": ["task-manager", "react", "nodejs", "mongodb"],
   "author": "Your Name",

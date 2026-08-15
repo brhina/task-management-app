@@ -1,9 +1,21 @@
 version: '3.8'
 
+# ──────────────────────────────────────────────────────────────────
+# Local Development / Integration Compose
+#
+# Runs the API server, the React client (Nginx), MongoDB, and Redis
+# as four separate services.
+#
+# Usage:
+#   docker-compose up -d --build
+# ──────────────────────────────────────────────────────────────────
+
 services:
-  app:
+
+  # ── Backend API ────────────────────────────────────────────────
+  server:
     build:
-      context: .
+      context: ./server
       dockerfile: Dockerfile
     ports:
       - "3001:3001"
@@ -14,7 +26,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET:-dev_super_secret_jwt_key_12345}
       - ADMIN_INVITE_TOKEN=${ADMIN_INVITE_TOKEN:-admin_invite_token_123}
-      - CLIENT_URL=${CLIENT_URL:-http://localhost:3001}
+      - CLIENT_URL=${CLIENT_URL:-http://localhost}
     depends_on:
       mongo:
         condition: service_healthy
@@ -24,6 +36,21 @@ services:
       - uploads_data:/app/uploads
     restart: unless-stopped
 
+  # ── Frontend Client ────────────────────────────────────────────
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        # Points the SPA at the API server
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3001}
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    restart: unless-stopped
+
+  # ── MongoDB ────────────────────────────────────────────────────
   mongo:
     image: mongo:6.0
     ports:
@@ -37,6 +64,7 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # ── Redis ──────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
     ports:

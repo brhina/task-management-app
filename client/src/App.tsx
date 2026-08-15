@@ -123,7 +123,8 @@ const SignUpRoute = React.memo(({ user }: RouteComponentProps) => {
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
-  return <SignUp />;
+  // Signup is disabled; redirect to login
+  return <Navigate to="/login" replace />;
 }, userEqual);
 
 const HomeRoute = React.memo(({ user }: RouteComponentProps) => {
