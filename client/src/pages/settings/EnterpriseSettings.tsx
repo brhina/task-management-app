@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import PageShell from "../../components/common/PageShell";
 import StatCard from "../../components/common/StatCard";
 import NavTabs from "../../components/common/NavTabs";
 import axiosInstance from "../../utils/axios";
+import { UserContext } from "../../context/UserContext";
 import {
   ShieldCheck,
   CreditCard,
@@ -30,6 +31,7 @@ const PLAN_PRICES: Record<string, { monthly: number; yearly: number }> = {
 };
 
 export default function EnterpriseSettings() {
+  const { refreshOrgDetails } = useContext(UserContext);
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<"sso" | "billing" | "apikeys" | "branding" | "security" | "audit">("sso");
 
@@ -124,6 +126,8 @@ export default function EnterpriseSettings() {
   }, []);
 
   // Deep-link from workspace create: ?tab=billing&upgrade=Pro&cycle=monthly&phone=
+  // Run once per upgrade query — do not re-fire when billingData object identity changes.
+  const handledUpgradeRef = useRef<string | null>(null);
   useEffect(() => {
     const tab = searchParams.get("tab");
     const upgrade = searchParams.get("upgrade");
@@ -134,21 +138,35 @@ export default function EnterpriseSettings() {
       setActiveTab("billing");
     }
 
-    if (upgrade === "Pro" || upgrade === "Enterprise") {
-      const billingCycle = cycle === "yearly" ? "yearly" : "monthly";
-      const price =
-        PLAN_PRICES[upgrade][
-          billingCycle === "yearly" ? "yearly" : "monthly"
-        ];
-      setActiveTab("billing");
-      setSelectedPlanForTelebirr(upgrade);
-      setSelectedCycleForTelebirr(billingCycle);
-      setSelectedPriceForTelebirr(price);
-      if (phone) setTelebirrInitialPhone(phone);
-      setIsTelebirrModalOpen(true);
-      setSearchParams({}, { replace: true });
+    if (upgrade !== "Pro" && upgrade !== "Enterprise") {
+      return;
     }
-  }, [searchParams, setSearchParams]);
+
+    // Wait until metrics loaded so we know if Telebirr is configured
+    if (!billingData) return;
+
+    const key = `${upgrade}:${cycle || "monthly"}:${phone || ""}`;
+    if (handledUpgradeRef.current === key) return;
+    handledUpgradeRef.current = key;
+
+    if (billingData.telebirrConfigured !== true) {
+      setActiveTab("billing");
+      setSearchParams({}, { replace: true });
+      return;
+    }
+
+    const billingCycle = cycle === "yearly" ? "yearly" : "monthly";
+    const price =
+      PLAN_PRICES[upgrade][billingCycle === "yearly" ? "yearly" : "monthly"];
+    setActiveTab("billing");
+    setSelectedPlanForTelebirr(upgrade);
+    setSelectedCycleForTelebirr(billingCycle);
+    setSelectedPriceForTelebirr(price);
+    if (phone) setTelebirrInitialPhone(phone);
+    setIsTelebirrModalOpen(true);
+    setSearchParams({}, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, billingData?.telebirrConfigured]);
 
   // --- FETCHERS ---
   const fetchSSOConfig = async () => {
@@ -275,14 +293,18 @@ export default function EnterpriseSettings() {
   };
 
   const handleOpenTelebirrModal = (plan: "Pro" | "Enterprise", cycle: "monthly" | "yearly", priceETB: number) => {
+    if (billingData && billingData.telebirrConfigured !== true) {
+      return;
+    }
     setSelectedPlanForTelebirr(plan);
     setSelectedCycleForTelebirr(cycle);
     setSelectedPriceForTelebirr(priceETB);
     setIsTelebirrModalOpen(true);
   };
 
-  const handleTelebirrSuccess = (updatedPlan: string) => {
-    fetchBilling();
+  const handleTelebirrSuccess = async (_updatedPlan: string) => {
+    await fetchBilling();
+    await refreshOrgDetails();
   };
 
   const handleCreateApiKey = async (e: React.FormEvent) => {

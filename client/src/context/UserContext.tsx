@@ -12,7 +12,6 @@ import { apiPaths } from '../utils/apiPaths';
 import type { User, UserContextType, OrgMembership, OrgRole } from '../types';
 import {
   canAccessAdminSuite as roleCanAccessAdmin,
-  getPermissionsForRole,
   type Permission,
 } from '../constants/permissions';
 
@@ -26,6 +25,7 @@ export const UserContext = createContext<UserContextType>({
   permissions: [],
   hasPermission: () => false,
   canAccessAdminSuite: () => false,
+  refreshOrgDetails: async () => {},
 });
 
 const UserProvider = ({ children }: { children: ReactNode }) => {
@@ -46,15 +46,43 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   const refreshOrgDetails = useCallback(async () => {
-    if (!user?.activeOrgId) return;
+    const activeOrgId = user?.activeOrgId;
+    if (!activeOrgId) return;
     try {
-      const [brandingRes, billingRes] = await Promise.all([
+      const [brandingRes, billingRes, orgsRes] = await Promise.all([
         api.get("/api/branding").catch(() => null),
         api.get("/api/billing/metrics").catch(() => null),
+        api.get(apiPaths.ORG_MEMBERSHIP.MY_ORGS).catch(() => null),
       ]);
       if (brandingRes?.data) setActiveOrgBranding(brandingRes.data);
       if (billingRes?.data?.plan) setActivePlan(billingRes.data.plan);
       if (billingRes?.data?.currency) setCurrency(billingRes.data.currency);
+
+      // Only write user when org plan/list actually changed — avoids effect loops
+      if (Array.isArray(orgsRes?.data)) {
+        const nextOrgs = orgsRes.data as OrgMembership[];
+        const nextPlan = billingRes?.data?.plan as string | undefined;
+        setUser((prev) => {
+          if (!prev) return prev;
+          const mapped = nextOrgs.map((o) =>
+            o._id === activeOrgId || o.orgId === activeOrgId
+              ? { ...o, plan: nextPlan || o.plan }
+              : o
+          );
+          const prevKey = JSON.stringify(
+            (prev.orgs || []).map((o) => ({
+              id: o._id,
+              plan: o.plan,
+              role: o.role,
+            }))
+          );
+          const nextKey = JSON.stringify(
+            mapped.map((o) => ({ id: o._id, plan: o.plan, role: o.role }))
+          );
+          if (prevKey === nextKey) return prev;
+          return { ...prev, orgs: mapped };
+        });
+      }
     } catch {
       /* ignore default fallback */
     }
@@ -65,19 +93,12 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
       const response = await api.get(apiPaths.ROLES.ME);
       setPermissions(response.data?.data?.permissions || []);
     } catch {
-      const role = (() => {
-        if (!user?.orgs || !user.activeOrgId) return null;
-        const membership = user.orgs.find(
-          (o) => o._id === user.activeOrgId || o.orgId === user.activeOrgId
-        );
-        return membership?.role || null;
-      })();
-      setPermissions(getPermissionsForRole(role));
+      setPermissions((prev) => prev);
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
-    if (!user) {
+    if (!user?._id) {
       setPermissions([]);
       setActiveOrgBranding(null);
       setActivePlan("Free");
@@ -85,7 +106,9 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
     }
     void refreshPermissions();
     void refreshOrgDetails();
-  }, [user?.activeOrgId, user?._id, refreshPermissions, refreshOrgDetails]);
+    // Intentionally only re-run on identity/org switch — not on every user object rewrite
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.activeOrgId, user?._id]);
 
   useEffect(() => {
     if (hasFetchedRef.current) return;
@@ -207,6 +230,7 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
       permissions,
       hasPermission: hasPermissionFn,
       canAccessAdminSuite: canAccessAdminSuiteFn,
+      refreshOrgDetails,
     }),
     [
       user,
@@ -220,6 +244,7 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
       permissions,
       hasPermissionFn,
       canAccessAdminSuiteFn,
+      refreshOrgDetails,
     ]
   );
 

@@ -87,7 +87,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   >({});
 
   const refreshNotifications = useCallback(async () => {
-    if (!user) return;
+    if (!localStorage.getItem('token')) return;
     try {
       const res = await api.get(apiPaths.NOTIFICATIONS.LIST);
       setNotifications(res.data.data?.notifications || []);
@@ -95,16 +95,16 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.error(err);
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
-    if (!user) {
+    if (!user?._id) {
       setNotifications([]);
       setUnreadCount(0);
       return;
     }
-    refreshNotifications();
-  }, [user, refreshNotifications]);
+    void refreshNotifications();
+  }, [user?._id, user?.activeOrgId, refreshNotifications]);
 
   useEffect(() => {
     if (!user) {

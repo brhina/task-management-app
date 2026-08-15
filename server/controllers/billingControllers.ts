@@ -80,7 +80,9 @@ export async function initiateTelebirrHandler(
     );
     res.status(200).json(result);
   } catch (error: any) {
-    const status = error.message?.includes("Invalid Ethiopian") ? 400 : 500;
+    const status =
+      error.statusCode ||
+      (error.message?.includes("Invalid Ethiopian") ? 400 : 500);
     res
       .status(status)
       .json({ message: error.message || "Failed to initiate Telebirr payment" });
@@ -128,6 +130,14 @@ export async function telebirrNotifyHandler(
   res: Response
 ): Promise<void> {
   try {
+    const { isTelebirrConfigured } = await import("../services/telebirrProvider.js");
+    if (!isTelebirrConfigured()) {
+      res.status(503).json({
+        message:
+          "Telebirr is not configured on this server. Payment notifications are rejected.",
+      });
+      return;
+    }
     const signature =
       (req.headers["x-telebirr-signature"] as string) ||
       (req.headers["x-signature"] as string) ||

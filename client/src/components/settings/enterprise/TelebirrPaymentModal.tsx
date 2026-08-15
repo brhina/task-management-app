@@ -40,7 +40,9 @@ export default function TelebirrPaymentModal({
   const [txnRef, setTxnRef] = useState<string>("");
   const [ussdCode, setUssdCode] = useState<string>("");
   const [qrData, setQrData] = useState<string>("");
-  const [mode, setMode] = useState<"sandbox" | "live">("sandbox");
+  const [mode, setMode] = useState<"sandbox" | "live">("live");
+  const [sandboxSimulationAllowed, setSandboxSimulationAllowed] =
+    useState(false);
   const [status, setStatus] = useState<string>("Pending");
   const [completedInvoice, setCompletedInvoice] = useState<any>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -82,6 +84,18 @@ export default function TelebirrPaymentModal({
   };
 
   const handlePaid = (data: any) => {
+    const verified =
+      data?.verifiedPaid === true ||
+      (data?.status === "Paid" &&
+        data?.invoice?.status === "Paid" &&
+        data?.org?.plan === targetPlan);
+    if (!verified) {
+      onShowToast(
+        "Payment not verified yet. Invoice and plan are still unsettled.",
+        "error"
+      );
+      return;
+    }
     stopPolling();
     setStatus("Paid");
     const invoice = data.invoice || null;
@@ -94,13 +108,38 @@ export default function TelebirrPaymentModal({
     );
   };
 
+  const waitForVerifiedPaid = async (orderId: string, attempts = 8) => {
+    for (let i = 0; i < attempts; i++) {
+      const res = await api.get(`/api/billing/telebirr/status/${orderId}`);
+      setStatus(res.data.status);
+      if (
+        res.data.verifiedPaid ||
+        (res.data.status === "Paid" &&
+          res.data.invoice?.status === "Paid" &&
+          res.data.org?.plan === targetPlan)
+      ) {
+        return res.data;
+      }
+      if (res.data.status === "Failed" || res.data.status === "Expired") {
+        throw new Error(`Payment ${res.data.status.toLowerCase()}`);
+      }
+      await new Promise((r) => setTimeout(r, 600));
+    }
+    return null;
+  };
+
   const startPolling = (orderId: string) => {
     stopPolling();
     pollRef.current = setInterval(async () => {
       try {
         const res = await api.get(`/api/billing/telebirr/status/${orderId}`);
         setStatus(res.data.status);
-        if (res.data.status === "Paid") {
+        if (
+          res.data.verifiedPaid ||
+          (res.data.status === "Paid" &&
+            res.data.invoice?.status === "Paid" &&
+            res.data.org?.plan === targetPlan)
+        ) {
           handlePaid(res.data);
         } else if (
           res.data.status === "Failed" ||
@@ -135,7 +174,8 @@ export default function TelebirrPaymentModal({
       setTxnRef(res.data.transactionRef);
       setUssdCode(res.data.ussdCode);
       setQrData(res.data.qrData || "");
-      setMode(res.data.mode === "live" ? "live" : "sandbox");
+      setMode(res.data.mode === "sandbox" ? "sandbox" : "live");
+      setSandboxSimulationAllowed(res.data.sandboxSimulationAllowed === true);
       setStatus("Pending");
       setStep(3);
       startPolling(res.data.merchantOrderId);
@@ -149,26 +189,37 @@ export default function TelebirrPaymentModal({
     }
   };
 
+  /**
+   * Sandbox: fire the same signed provider notify production uses, then
+   * poll until the server reports verifiedPaid (txn + invoice + org plan).
+   */
   const handleSandboxComplete = async () => {
     if (!merchantOrderId) return;
     setLoading(true);
     try {
-      const res = await api.post("/api/billing/telebirr/sandbox/complete", {
+      await api.post("/api/billing/telebirr/sandbox/complete", {
         merchantOrderId,
       });
-      if (res.data.status === "Paid" || res.data.success) {
-        handlePaid(res.data);
+      const verified = await waitForVerifiedPaid(merchantOrderId);
+      if (verified) {
+        handlePaid(verified);
       } else {
-        const statusRes = await api.get(
-          `/api/billing/telebirr/status/${merchantOrderId}`
+        onShowToast(
+          "Provider callback sent but payment is not settled yet. Use Check Status.",
+          "error"
         );
-        if (statusRes.data.status === "Paid") {
-          handlePaid(statusRes.data);
-        } else {
-          onShowToast("Payment still pending", "info");
-        }
       }
     } catch (err: any) {
+      // Still poll — notify may have partially applied
+      try {
+        const verified = await waitForVerifiedPaid(merchantOrderId, 4);
+        if (verified) {
+          handlePaid(verified);
+          return;
+        }
+      } catch {
+        /* fall through */
+      }
       onShowToast(
         err.response?.data?.message || "Sandbox payment confirmation failed",
         "error"
@@ -186,10 +237,22 @@ export default function TelebirrPaymentModal({
         `/api/billing/telebirr/status/${merchantOrderId}`
       );
       setStatus(res.data.status);
-      if (res.data.status === "Paid") {
+      if (
+        res.data.verifiedPaid ||
+        (res.data.status === "Paid" &&
+          res.data.invoice?.status === "Paid" &&
+          res.data.org?.plan === targetPlan)
+      ) {
         handlePaid(res.data);
       } else {
-        onShowToast(`Payment status: ${res.data.status}`, "info");
+        onShowToast(
+          `Payment status: ${res.data.status}` +
+            (res.data.invoice
+              ? ` · Invoice: ${res.data.invoice.status}`
+              : "") +
+            (res.data.org?.plan ? ` · Plan: ${res.data.org.plan}` : ""),
+          "info"
+        );
       }
     } catch (err: any) {
       onShowToast(
@@ -457,13 +520,16 @@ export default function TelebirrPaymentModal({
                 <div className="flex items-center gap-2 text-xs bg-amber-50 text-amber-900 p-3 rounded-xl border border-amber-200">
                   <Clock className="w-4 h-4 shrink-0" />
                   <span>
-                    Waiting for payment confirmation… Status:{" "}
+                    Waiting for Telebirr confirmation… Status:{" "}
                     <strong>{status}</strong>
+                    {sandboxSimulationAllowed
+                      ? " · Sandbox sim enabled — callback still requires configured notify secret."
+                      : " · Pay on Telebirr, then Check Status queries the provider."}
                   </span>
                 </div>
 
                 <div className="pt-2 flex flex-col gap-2">
-                  {mode === "sandbox" && (
+                  {sandboxSimulationAllowed && (
                     <button
                       onClick={handleSandboxComplete}
                       disabled={loading}
@@ -474,7 +540,7 @@ export default function TelebirrPaymentModal({
                       ) : (
                         <>
                           <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Simulate Telebirr Payment (Sandbox)</span>
+                          <span>Send provider callback &amp; verify</span>
                         </>
                       )}
                     </button>

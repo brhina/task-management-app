@@ -11,11 +11,15 @@ import PaymentTransaction, {
   PaymentPlan,
 } from "../models/PaymentTransaction.js";
 import {
+  assertTelebirrConfigured,
   buildNotifyUrl,
   createTelebirrOrder,
+  getTelebirrConfigStatus,
   getTelebirrMode,
-  isSandboxMode,
+  isSandboxSimulationAllowed,
+  isTelebirrConfigured,
   normalizeEthiopianPhone,
+  queryTelebirrOrderStatus,
   signNotify,
   TelebirrNotifyPayload,
   verifyNotifySignature,
@@ -138,6 +142,8 @@ export async function getOrgBillingMetrics(orgId: mongoose.Types.ObjectId) {
     currentPeriodStart: org?.currentPeriodStart || null,
     currentPeriodEnd: org?.currentPeriodEnd || null,
     telebirrMode: getTelebirrMode(),
+    telebirrConfigured: isTelebirrConfigured(),
+    telebirrConfig: getTelebirrConfigStatus(),
     telebirrPaymentMethod: {
       phone: org?.telebirrPhone || "",
       autoRenew: org?.telebirrAutoRenew ?? true,
@@ -163,6 +169,8 @@ export async function initiateTelebirrPayment(
   phone: string
 ) {
   assertPaidPlan(plan);
+  assertTelebirrConfigured();
+
   const cycle: PaymentBillingCycle =
     billingCycle === "yearly" ? "yearly" : "monthly";
   const planInfo = PLAN_LIMITS[plan];
@@ -246,6 +254,7 @@ export async function initiateTelebirrPayment(
     paymentUrl: order.paymentUrl,
     expiresInSeconds: Math.floor(PAYMENT_TTL_MS / 1000),
     mode: order.mode,
+    sandboxSimulationAllowed: isSandboxSimulationAllowed(),
     invoiceNumber: invoice.invoiceNumber,
   };
 }
@@ -316,13 +325,46 @@ export async function confirmPaymentFromProvider(
   const now = new Date();
   const periodEnd = periodEndFromNow(txn.billingCycle);
 
-  const updatedOrg = await Organization.findByIdAndUpdate(
-    txn.orgId,
+  // Atomic claim — prevents double-activation races
+  const claimed = await PaymentTransaction.findOneAndUpdate(
+    { _id: txn._id, status: "Pending" },
     {
       $set: {
-        plan: txn.plan,
-        billingCycle: txn.billingCycle,
-        telebirrPhone: opts.phone || txn.phone,
+        status: "Paid",
+        paidAt: now,
+        ...(opts.providerRef ? { providerRef: opts.providerRef } : {}),
+      },
+    },
+    { new: true }
+  );
+
+  if (!claimed) {
+    // Another worker confirmed concurrently
+    const again = await PaymentTransaction.findById(txn._id);
+    if (again?.status === "Paid") {
+      const invoice = again.invoiceId
+        ? await Invoice.findById(again.invoiceId)
+        : null;
+      const org = await Organization.findById(again.orgId);
+      return {
+        success: true,
+        alreadyProcessed: true,
+        message: "Payment already confirmed",
+        org,
+        invoice,
+        transaction: again,
+      };
+    }
+    throw new Error("Unable to claim payment transaction");
+  }
+
+  const updatedOrg = await Organization.findByIdAndUpdate(
+    claimed.orgId,
+    {
+      $set: {
+        plan: claimed.plan,
+        billingCycle: claimed.billingCycle,
+        telebirrPhone: opts.phone || claimed.phone,
         currency: "ETB",
         subscriptionStatus: "active",
         currentPeriodStart: now,
@@ -333,34 +375,45 @@ export async function confirmPaymentFromProvider(
     { new: true }
   );
 
-  txn.status = "Paid";
-  txn.paidAt = now;
-  if (opts.providerRef) {
-    txn.providerRef = opts.providerRef;
-  }
-  await txn.save();
-
   let invoice = null;
-  if (txn.invoiceId) {
+  if (claimed.invoiceId) {
     invoice = await Invoice.findByIdAndUpdate(
-      txn.invoiceId,
+      claimed.invoiceId,
       {
         status: "Paid",
-        telebirrReference: txn.providerRef || opts.providerRef || "",
-        telebirrPhone: opts.phone || txn.phone,
+        telebirrReference: claimed.providerRef || opts.providerRef || "",
+        telebirrPhone: opts.phone || claimed.phone,
         billingDate: now,
       },
       { new: true }
     );
   }
 
+  if (!invoice || invoice.status !== "Paid" || updatedOrg?.plan !== claimed.plan) {
+    // Roll payment claim back if settlement incomplete
+    await PaymentTransaction.findByIdAndUpdate(claimed._id, {
+      $set: { status: "Pending" },
+      $unset: { paidAt: 1 },
+    });
+    if (updatedOrg) {
+      await Organization.findByIdAndUpdate(claimed.orgId, {
+        $set: { plan: "Free", subscriptionStatus: "none" },
+        $unset: {
+          currentPeriodStart: 1,
+          currentPeriodEnd: 1,
+        },
+      });
+    }
+    throw new Error("Failed to settle invoice or activate plan after payment");
+  }
+
   return {
     success: true,
     alreadyProcessed: false,
-    message: `Payment of ${txn.amount.toLocaleString()} ETB confirmed. Upgraded to ${txn.plan}.`,
+    message: `Payment of ${claimed.amount.toLocaleString()} ETB confirmed. Upgraded to ${claimed.plan}.`,
     org: updatedOrg,
     invoice,
-    transaction: txn,
+    transaction: claimed,
   };
 }
 
@@ -368,6 +421,8 @@ export async function handleTelebirrNotify(
   payload: TelebirrNotifyPayload,
   signature: string | undefined
 ) {
+  assertTelebirrConfigured();
+
   if (!verifyNotifySignature(payload, signature)) {
     const err = new Error("Invalid Telebirr notify signature");
     (err as any).statusCode = 401;
@@ -388,7 +443,7 @@ export async function handleTelebirrNotify(
   });
 }
 
-export async function getPaymentStatus(
+async function buildPaymentStatusResponse(
   orgId: mongoose.Types.ObjectId,
   merchantOrderId: string
 ) {
@@ -397,18 +452,15 @@ export async function getPaymentStatus(
     throw new Error("Payment transaction not found");
   }
 
-  if (txn.status === "Pending" && txn.expiresAt.getTime() < Date.now()) {
-    txn.status = "Expired";
-    await txn.save();
-    if (txn.invoiceId) {
-      await Invoice.findByIdAndUpdate(txn.invoiceId, { status: "Failed" });
-    }
-  }
-
   const invoice = txn.invoiceId ? await Invoice.findById(txn.invoiceId) : null;
   const org = await Organization.findById(orgId).select(
     "plan billingCycle subscriptionStatus currentPeriodStart currentPeriodEnd telebirrPhone"
   );
+
+  const paid =
+    txn.status === "Paid" &&
+    invoice?.status === "Paid" &&
+    org?.plan === txn.plan;
 
   return {
     merchantOrderId: txn.merchantOrderId,
@@ -422,6 +474,7 @@ export async function getPaymentStatus(
     expiresAt: txn.expiresAt,
     paidAt: txn.paidAt,
     mode: getTelebirrMode(),
+    verifiedPaid: paid,
     invoice: invoice
       ? {
           invoiceNumber: invoice.invoiceNumber,
@@ -443,42 +496,116 @@ export async function getPaymentStatus(
 }
 
 /**
- * Sandbox-only: org admin completes payment by having the server
- * issue a signed notify against itself (never trusts unsigned client claims).
+ * Production-style status check: expire stale Pending, optionally query Telebirr
+ * (live), and only report Paid after DB settlement.
+ */
+export async function getPaymentStatus(
+  orgId: mongoose.Types.ObjectId,
+  merchantOrderId: string
+) {
+  let txn = await PaymentTransaction.findOne({ merchantOrderId, orgId });
+  if (!txn) {
+    throw new Error("Payment transaction not found");
+  }
+
+  if (txn.status === "Pending" && txn.expiresAt.getTime() < Date.now()) {
+    txn.status = "Expired";
+    await txn.save();
+    if (txn.invoiceId) {
+      await Invoice.findByIdAndUpdate(txn.invoiceId, { status: "Failed" });
+    }
+  }
+
+  // Ask Telebirr whether the order settled, then confirm via same path as notify
+  if (txn.status === "Pending" && isTelebirrConfigured()) {
+    try {
+      const provider = await queryTelebirrOrderStatus({
+        merchantOrderId: txn.merchantOrderId,
+        providerRef: txn.providerRef,
+      });
+      if (provider.status === "Paid") {
+        await confirmPaymentFromProvider(txn.merchantOrderId, {
+          amount: provider.amount ?? txn.amount,
+          status: "Paid",
+          providerRef: txn.providerRef,
+          phone: txn.phone,
+        });
+      } else if (provider.status === "Failed") {
+        await confirmPaymentFromProvider(txn.merchantOrderId, {
+          amount: txn.amount,
+          status: "Failed",
+          providerRef: txn.providerRef,
+          phone: txn.phone,
+        });
+      }
+    } catch (err) {
+      console.warn("[telebirr] queryOrder sync failed:", (err as Error).message);
+    }
+  }
+
+  return buildPaymentStatusResponse(orgId, merchantOrderId);
+}
+
+/**
+ * Optional local simulation — only when Telebirr is fully configured AND
+ * TELEBIRR_ALLOW_SANDBOX_SIMULATION=true. Never activates plans without env.
  */
 export async function completeSandboxPayment(
   orgId: mongoose.Types.ObjectId,
   merchantOrderId: string
 ) {
-  if (!isSandboxMode()) {
-    const err = new Error("Sandbox complete is only available when TELEBIRR_MODE=sandbox");
+  if (!isSandboxSimulationAllowed()) {
+    const err = new Error(
+      "Sandbox payment simulation is disabled. Configure Telebirr API credentials and set TELEBIRR_ALLOW_SANDBOX_SIMULATION=true only for local testing. Production payments require a real Telebirr notify/query."
+    );
     (err as any).statusCode = 403;
     throw err;
   }
+
+  assertTelebirrConfigured();
 
   const txn = await PaymentTransaction.findOne({ merchantOrderId, orgId });
   if (!txn) {
     throw new Error("Payment transaction not found");
   }
-  if (txn.status !== "Pending") {
-    return getPaymentStatus(orgId, merchantOrderId);
+
+  if (txn.status === "Pending") {
+    if (txn.expiresAt.getTime() < Date.now()) {
+      txn.status = "Expired";
+      await txn.save();
+      if (txn.invoiceId) {
+        await Invoice.findByIdAndUpdate(txn.invoiceId, { status: "Failed" });
+      }
+      const err = new Error("Payment session expired — initiate a new payment");
+      (err as any).statusCode = 410;
+      throw err;
+    }
+
+    const payload: TelebirrNotifyPayload = {
+      merchantOrderId: txn.merchantOrderId,
+      amount: Number(txn.amount),
+      status: "Paid",
+      providerRef: txn.providerRef || undefined,
+      phone: txn.phone,
+    };
+    const signature = signNotify(payload);
+    await handleTelebirrNotify(payload, signature);
   }
 
-  const payload: TelebirrNotifyPayload = {
-    merchantOrderId: txn.merchantOrderId,
-    amount: txn.amount,
-    status: "Paid",
-    providerRef: txn.providerRef,
-    phone: txn.phone,
-  };
-  const signature = signNotify(payload);
-  const result = await handleTelebirrNotify(payload, signature);
-  const statusPayload = await getPaymentStatus(orgId, merchantOrderId);
+  const statusPayload = await buildPaymentStatusResponse(orgId, merchantOrderId);
+
+  if (!statusPayload.verifiedPaid) {
+    const err = new Error(
+      "Telebirr notify processed but payment is not settled (invoice/plan mismatch). Retry Check Status."
+    );
+    (err as any).statusCode = 409;
+    throw err;
+  }
+
   return {
-    ...result,
     ...statusPayload,
     success: true,
-    status: statusPayload.status,
+    message: `Payment of ${statusPayload.amount.toLocaleString()} ETB verified. Plan is ${statusPayload.org?.plan}.`,
   };
 }
 

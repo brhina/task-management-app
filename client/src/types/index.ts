@@ -299,6 +299,7 @@ export interface UserContextType {
   permissions: string[];
   hasPermission: (permission: string) => boolean;
   canAccessAdminSuite: () => boolean;
+  refreshOrgDetails: () => Promise<void>;
 }
 
 export type ProjectStatus = 'Planned' | 'Active' | 'Paused' | 'Completed' | 'Archived';

@@ -30,35 +30,65 @@ export interface TelebirrNotifyPayload {
   phone?: string;
 }
 
+const REQUIRED_TELEBIRR_VARS = [
+  "TELEBIRR_APP_ID",
+  "TELEBIRR_APP_KEY",
+  "TELEBIRR_SHORT_CODE",
+  "TELEBIRR_NOTIFY_SECRET",
+] as const;
+
+/** True only when merchant API credentials + notify secret are set in env. */
+export function isTelebirrConfigured(): boolean {
+  return REQUIRED_TELEBIRR_VARS.every((key) => {
+    const value = process.env[key];
+    return typeof value === "string" && value.trim().length > 0;
+  });
+}
+
+export function getMissingTelebirrEnvVars(): string[] {
+  return REQUIRED_TELEBIRR_VARS.filter((key) => {
+    const value = process.env[key];
+    return !(typeof value === "string" && value.trim().length > 0);
+  });
+}
+
+/**
+ * Paid billing requires a real Telebirr merchant configuration.
+ * Do not fall back to JWT or invent payments when credentials are missing.
+ */
+export function assertTelebirrConfigured(): void {
+  if (isTelebirrConfigured()) return;
+  const missing = getMissingTelebirrEnvVars();
+  const err = new Error(
+    `Telebirr is not configured. Set ${missing.join(", ")} in server environment before accepting payments.`
+  );
+  (err as any).statusCode = 503;
+  throw err;
+}
+
 function getMode(): TelebirrMode {
-  const mode = (process.env.TELEBIRR_MODE || "sandbox").toLowerCase();
-  if (mode === "live") {
-    const hasCreds =
-      process.env.TELEBIRR_APP_ID &&
-      process.env.TELEBIRR_APP_KEY &&
-      process.env.TELEBIRR_SHORT_CODE;
-    if (!hasCreds) {
-      console.warn(
-        "[telebirr] TELEBIRR_MODE=live but credentials missing; falling back to sandbox"
-      );
-      return "sandbox";
-    }
-    return "live";
-  }
-  return "sandbox";
+  const mode = (process.env.TELEBIRR_MODE || "live").toLowerCase();
+  return mode === "sandbox" ? "sandbox" : "live";
 }
 
 export function isSandboxMode(): boolean {
   return getMode() === "sandbox";
 }
 
-export function getNotifySecret(): string {
+/**
+ * Explicit allow-list for local simulation. Still requires full Telebirr env
+ * (notify secret) — never invents payment without configuration.
+ */
+export function isSandboxSimulationAllowed(): boolean {
   return (
-    process.env.TELEBIRR_NOTIFY_SECRET ||
-    (process.env.NODE_ENV === "production"
-      ? ""
-      : process.env.JWT_SECRET || "dev_telebirr_notify_secret")
+    isSandboxMode() &&
+    isTelebirrConfigured() &&
+    process.env.TELEBIRR_ALLOW_SANDBOX_SIMULATION === "true"
   );
+}
+
+export function getNotifySecret(): string {
+  return (process.env.TELEBIRR_NOTIFY_SECRET || "").trim();
 }
 
 /** Normalize Ethiopian mobiles to +2519XXXXXXXX */
@@ -89,10 +119,8 @@ export function buildNotifyUrl(): string {
 
 /** HMAC-SHA256 of merchantOrderId|amount|status */
 export function signNotify(payload: TelebirrNotifyPayload): string {
+  assertTelebirrConfigured();
   const secret = getNotifySecret();
-  if (!secret) {
-    throw new Error("TELEBIRR_NOTIFY_SECRET is required to sign notify payloads");
-  }
   const message = `${payload.merchantOrderId}|${payload.amount}|${payload.status}`;
   return crypto.createHmac("sha256", secret).update(message).digest("hex");
 }
@@ -102,8 +130,7 @@ export function verifyNotifySignature(
   signature: string | undefined
 ): boolean {
   if (!signature || typeof signature !== "string") return false;
-  const secret = getNotifySecret();
-  if (!secret) return false;
+  if (!isTelebirrConfigured()) return false;
   const expected = signNotify(payload);
   try {
     const a = Buffer.from(expected, "hex");
@@ -115,39 +142,19 @@ export function verifyNotifySignature(
   }
 }
 
-function sandboxCreateOrder(
-  input: TelebirrCreateOrderInput
-): TelebirrCreateOrderResult {
-  const phoneDigits = input.phone.replace(/\+/g, "");
-  const providerRef = `TB-SBX-${Date.now().toString(36).toUpperCase()}-${crypto
-    .randomBytes(3)
-    .toString("hex")
-    .toUpperCase()}`;
-  const ussdCode = `*806*1*${phoneDigits}*${input.amount}#`;
-  const qrData = `telebirr://pay?merchant=${encodeURIComponent(
-    process.env.TELEBIRR_SHORT_CODE || "TASKMGMT_SANDBOX"
-  )}&ref=${providerRef}&order=${input.merchantOrderId}&amount=${input.amount}&currency=${input.currency}`;
-
-  return {
-    providerRef,
-    ussdCode,
-    qrData,
-    mode: "sandbox",
-    raw: { sandbox: true, merchantOrderId: input.merchantOrderId },
-  };
-}
-
 async function liveCreateOrder(
   input: TelebirrCreateOrderInput
 ): Promise<TelebirrCreateOrderResult> {
+  assertTelebirrConfigured();
+
   const apiBase = (
     process.env.TELEBIRR_API_BASE ||
     "https://app.ethiomobilemoney.et:38443/apiaccess/payment/v1"
   ).replace(/\/$/, "");
 
-  const appId = process.env.TELEBIRR_APP_ID!;
-  const appKey = process.env.TELEBIRR_APP_KEY!;
-  const shortCode = process.env.TELEBIRR_SHORT_CODE!;
+  const appId = process.env.TELEBIRR_APP_ID!.trim();
+  const appKey = process.env.TELEBIRR_APP_KEY!.trim();
+  const shortCode = process.env.TELEBIRR_SHORT_CODE!.trim();
   const timestamp = Date.now().toString();
   const nonce = crypto.randomBytes(8).toString("hex");
 
@@ -210,20 +217,90 @@ async function liveCreateOrder(
     ussdCode: String(ussdCode),
     qrData: String(qrData),
     paymentUrl: data.toPayUrl ? String(data.toPayUrl) : undefined,
-    mode: "live",
+    mode: getMode(),
     raw: data,
   };
 }
 
+/**
+ * Always hits Telebirr createOrder when configured.
+ * Refuses to invent local fake orders — unpaid upgrades are impossible without API.
+ */
 export async function createTelebirrOrder(
   input: TelebirrCreateOrderInput
 ): Promise<TelebirrCreateOrderResult> {
-  if (getMode() === "live") {
-    return liveCreateOrder(input);
+  assertTelebirrConfigured();
+  return liveCreateOrder(input);
+}
+
+export type ProviderOrderStatus = "Pending" | "Paid" | "Failed" | "Unknown";
+
+/**
+ * Query provider for order settlement. Requires configured Telebirr API.
+ */
+export async function queryTelebirrOrderStatus(opts: {
+  merchantOrderId: string;
+  providerRef?: string;
+}): Promise<{ status: ProviderOrderStatus; amount?: number; raw?: Record<string, unknown> }> {
+  assertTelebirrConfigured();
+
+  const apiBase = (
+    process.env.TELEBIRR_API_BASE ||
+    "https://app.ethiomobilemoney.et:38443/apiaccess/payment/v1"
+  ).replace(/\/$/, "");
+  const appKey = process.env.TELEBIRR_APP_KEY!.trim();
+  const appId = process.env.TELEBIRR_APP_ID!.trim();
+
+  const response = await fetch(`${apiBase}/queryOrder`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-APP-Key": appKey,
+    },
+    body: JSON.stringify({
+      appId,
+      outTradeNo: opts.merchantOrderId,
+      tradeNo: opts.providerRef,
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    throw new Error(
+      `Telebirr queryOrder failed (${response.status}): ${text || response.statusText}`
+    );
   }
-  return sandboxCreateOrder(input);
+
+  const data = (await response.json()) as Record<string, any>;
+  const rawStatus = String(
+    data.tradeStatus || data.status || data.paymentStatus || ""
+  ).toUpperCase();
+
+  let status: ProviderOrderStatus = "Unknown";
+  if (
+    ["SUCCESS", "PAID", "COMPLETED", "TRADE_SUCCESS"].includes(rawStatus) ||
+    data.status === "Paid"
+  ) {
+    status = "Paid";
+  } else if (["FAILED", "CANCELLED", "CANCELED", "CLOSED"].includes(rawStatus)) {
+    status = "Failed";
+  } else if (["PENDING", "WAIT_BUYER_PAY", "PROCESSING", "INIT"].includes(rawStatus)) {
+    status = "Pending";
+  }
+
+  const amount = data.totalAmount != null ? Number(data.totalAmount) : undefined;
+  return { status, amount, raw: data };
 }
 
 export function getTelebirrMode(): TelebirrMode {
   return getMode();
+}
+
+export function getTelebirrConfigStatus() {
+  return {
+    configured: isTelebirrConfigured(),
+    mode: getMode(),
+    missingEnv: getMissingTelebirrEnvVars(),
+    sandboxSimulationAllowed: isSandboxSimulationAllowed(),
+  };
 }
