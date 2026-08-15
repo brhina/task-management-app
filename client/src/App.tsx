@@ -5,7 +5,8 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import LoadingSpinner from './components/common/LoadingSpinner';
 
 import Login from './pages/auth/Login';
-import SignUp from './pages/auth/SignUp';
+// Signup disabled — self-service registration is turned off.
+// import SignUp from './pages/auth/SignUp';
 import Landing from './pages/public/Landing';
 import NotFound from './pages/public/NotFound';
 
@@ -147,7 +148,9 @@ function App() {
       <Routes>
         <Route path="/" element={<HomeRoute user={user} />} />
         <Route path="/login" element={<LoginRoute user={user} />} />
+        {/* Signup disabled — self-service registration is turned off.
         <Route path="/signup" element={<SignUpRoute user={user} />} />
+        */}
 
         {/* Dashboard - accessible by all authenticated users */}
         <Route

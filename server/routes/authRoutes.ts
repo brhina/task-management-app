@@ -1,7 +1,8 @@
 import express from "express";
 import {
   loginUser,
-  registerUser,
+  // Signup disabled — registerUser is turned off.
+  // registerUser,
   getUserProfile,
   updateUserProfile,
 } from "../controllers/authControllers.js";
@@ -11,7 +12,8 @@ import { AuthRequest } from "../middleware/authMiddleware.js";
 import { Response } from "express";
 import {
   validate,
-  registerSchema,
+  // Signup disabled — registerSchema is unused.
+  // registerSchema,
   loginSchema,
   updateProfileSchema,
 } from "../middleware/validate.js";
@@ -19,7 +21,8 @@ import {
 const router = express.Router();
 
 router.post("/login", validate(loginSchema), loginUser);
-router.post("/register", validate(registerSchema), registerUser);
+// Signup disabled — self-service registration is turned off.
+// router.post("/register", validate(registerSchema), registerUser);
 router.get("/profile", protect, getUserProfile);
 router.put(
   "/profile/:id",

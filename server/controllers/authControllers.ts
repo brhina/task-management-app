@@ -57,152 +57,86 @@ async function ensureDefaultOrgForUser(params: {
   return { orgId: String(org._id), membershipRole: membership.role };
 }
 
-export const registerUser = async (
-  req: AuthRequest,
-  res: Response,
-): Promise<void> => {
-  const {
-    name,
-    email,
-    password,
-    profileImageUrl,
-    adminInviteToken,
-    orgId: joinOrgId,
-    orgInviteToken,
-    workspaceName,
-  } = req.body;
-  try {
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      res.status(400).json({ message: "User already exists" });
-      return;
-    }
-
-    const expectedAdminToken =
-      process.env.ADMIN_INVITE_TOKEN || "ADMIN-SECRET-KEY-2026";
-    const isAdminRegistration = Boolean(
-      adminInviteToken && adminInviteToken.trim() === expectedAdminToken
-    );
-
-    // Self-service workspace creators or explicit admin key holders receive Admin system role
-    const role: "Admin" | "Member" =
-      isAdminRegistration || !orgInviteToken ? "Admin" : "Member";
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const newUser = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      profileImageUrl,
-      role,
-    });
-
-    if (newUser) {
-      let orgId: string;
-      let membershipRole: string;
-
-      if (orgInviteToken) {
-        const invite = await Invite.findOne({
-          token: orgInviteToken,
-          expiresAt: { $gt: new Date() },
-        });
-
-        if (!invite) {
-          res.status(400).json({ message: "Invalid or expired invite token" });
-          return;
-        }
-
-        const existingMembership = await OrgMembership.findOne({
-          orgId: invite.orgId,
-          userId: newUser._id,
-        });
-
-        if (existingMembership) {
-          existingMembership.status = "Active";
-          existingMembership.role = invite.role;
-          await existingMembership.save();
-        } else {
-          await OrgMembership.create({
-            orgId: invite.orgId,
-            userId: newUser._id,
-            role: invite.role,
-            status: "Active",
-          });
-        }
-
-        await Invite.deleteOne({ _id: invite._id });
-
-        orgId = String(invite.orgId);
-        membershipRole = invite.role;
-      } else if (joinOrgId) {
-        const existingOrg = await Organization.findById(joinOrgId);
-        if (!existingOrg) {
-          res.status(400).json({ message: "Organization not found" });
-          return;
-        }
-
-        const existingMembership = await OrgMembership.findOne({
-          orgId: joinOrgId,
-          userId: newUser._id,
-        });
-        if (existingMembership) {
-          orgId = String(joinOrgId);
-          membershipRole = existingMembership.role;
-        } else {
-          const membership = await OrgMembership.create({
-            orgId: joinOrgId,
-            userId: newUser._id,
-            role: "OrgMember",
-            status: "Active",
-          });
-          orgId = String(joinOrgId);
-          membershipRole = membership.role;
-        }
-      } else {
-        const result = await ensureDefaultOrgForUser({
-          userId: String(newUser._id),
-          displayName: newUser.name || newUser.email,
-          workspaceName,
-        });
-        orgId = result.orgId;
-        membershipRole = result.membershipRole;
-      }
-
-      // Welcome email (no-op if SMTP not configured; logs in dev)
-      void sendEmail({
-        to: newUser.email,
-        subject: "Welcome to Cadence",
-        html: emailTemplate({
-          title: `Welcome, ${newUser.name}!`,
-          body: `<p>Your Cadence account is ready. Start organizing projects, tasks, and goals with your team.</p>`,
-          ctaLabel: "Open Cadence",
-          ctaUrl: process.env.CLIENT_URL || "http://localhost:5173",
-        }),
-        text: `Welcome to Cadence, ${newUser.name}!`,
-      });
-
-      res.status(201).json({
-        message: "User created successfully",
-        token: generateToken(String(newUser._id)),
-        activeOrgId: orgId,
-        user: {
-          _id: newUser._id,
-          name: newUser.name,
-          email: newUser.email,
-          role: newUser.role,
-          profileImageUrl: newUser.profileImageUrl,
-        },
-      });
-    } else {
-      res.status(400).json({ message: "Invalid user data" });
-    }
-  } catch (error: any) {
-    console.error("Registration error:", error.message);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+// Signup disabled — self-service registration is turned off.
+// export const registerUser = async (
+//   req: AuthRequest,
+//   res: Response,
+// ): Promise<void> => {
+//   const {
+//     name,
+//     email,
+//     password,
+//     profileImageUrl,
+//     adminInviteToken,
+//     orgId: joinOrgId,
+//     orgInviteToken,
+//     workspaceName,
+//   } = req.body;
+//   try {
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//       res.status(400).json({ message: "User already exists" });
+//       return;
+//     }
+//
+//     const expectedAdminToken =
+//       process.env.ADMIN_INVITE_TOKEN || "ADMIN-SECRET-KEY-2026";
+//     const isAdminRegistration = Boolean(
+//       adminInviteToken && adminInviteToken.trim() === expectedAdminToken
+//     );
+//
+//     const role: "Admin" | "Member" =
+//       isAdminRegistration || !orgInviteToken ? "Admin" : "Member";
+//
+//     const salt = await bcrypt.genSalt(10);
+//     const hashedPassword = await bcrypt.hash(password, salt);
+//
+//     const newUser = await User.create({
+//       name,
+//       email,
+//       password: hashedPassword,
+//       profileImageUrl,
+//       role,
+//     });
+//
+//     if (newUser) {
+//       let orgId: string;
+//       let membershipRole: string;
+//
+//       if (orgInviteToken) {
+//         const invite = await Invite.findOne({
+//           token: orgInviteToken,
+//           expiresAt: { $gt: new Date() },
+//         });
+//         if (!invite) {
+//           res.status(400).json({ message: "Invalid or expired invite token" });
+//           return;
+//         }
+//         // ... membership creation + invite deletion ...
+//         orgId = String(invite.orgId);
+//         membershipRole = invite.role;
+//       } else if (joinOrgId) {
+//         // ... join existing org by ID ...
+//       } else {
+//         const result = await ensureDefaultOrgForUser({
+//           userId: String(newUser._id),
+//           displayName: newUser.name || newUser.email,
+//           workspaceName,
+//         });
+//         orgId = result.orgId;
+//         membershipRole = result.membershipRole;
+//       }
+//
+//       void sendEmail({ ... welcome email ... });
+//       res.status(201).json({ message: "User created successfully", token, activeOrgId, user });
+//     } else {
+//       res.status(400).json({ message: "Invalid user data" });
+//     }
+//   } catch (error: any) {
+//     console.error("Registration error:", error.message);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
 
 export const loginUser = async (
   req: AuthRequest,

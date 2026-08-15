@@ -265,6 +265,7 @@ function Login() {
               */}
             </form>
 
+            {/* Signup disabled — self-service registration is turned off.
             <div className="mt-4 pt-3 border-t border-gray-200 text-center">
               <p className="text-[11px] text-slate-500 mb-2">
                 Need to register a new Administrator workspace?
@@ -277,6 +278,7 @@ function Login() {
                 <span>Admin Workspace Setup</span>
               </Link>
             </div>
+            */}
           </div>
         </div>
       </div>
