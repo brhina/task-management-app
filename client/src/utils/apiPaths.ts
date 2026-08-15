@@ -75,11 +75,6 @@ export const apiPaths = {
     UPDATE: '/api/key-results/:id',
     DELETE: '/api/key-results/:id',
   },
-  RESOURCES: {
-    ALLOCATION: '/api/resources/allocation',
-    CONFLICTS: '/api/resources/conflicts',
-    UPDATE_CAPACITY: '/api/resources/capacity/:userId',
-  },
   PROJECTS: {
     LIST: '/api/projects',
     GET_BY_ID: '/api/projects/:id',

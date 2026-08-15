@@ -43,7 +43,7 @@ export default function FilterToolbar({
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         {/* Search & Main Filter Controls */}
         <div className="flex flex-1 items-center gap-2.5 flex-wrap sm:flex-nowrap">
-          {/* Search Bar matching Resources Page style */}
+          {/* Search Bar */}
           <div className="relative flex-1 min-w-[200px]">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
@@ -65,7 +65,7 @@ export default function FilterToolbar({
             )}
           </div>
 
-          {/* Inline Filter Selects matching Resources Page style (Desktop/Tablet) */}
+          {/* Inline Filter Selects (Desktop/Tablet) */}
           {filters.length > 0 && (
             <div className="hidden md:flex items-center gap-2 flex-wrap">
               {filters.map((filter) => (

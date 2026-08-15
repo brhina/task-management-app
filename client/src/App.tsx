@@ -36,7 +36,6 @@ import NotificationSettings from './pages/settings/NotificationSettings';
 import EnterpriseSettings from './pages/settings/EnterpriseSettings';
 
 import Reports from './pages/reports/Reports';
-import Resources from './pages/resources/Resources';
 import Teams from './pages/teams/Teams';
 import TeamPerformanceDashboard from './pages/teams/TeamPerformanceDashboard';
 
@@ -435,18 +434,6 @@ function App() {
             </AdminRouteWrapper>
           }
         />
-        <Route
-          path="/resources"
-          element={
-            <AdminRouteWrapper>
-              <AuthLayout>
-                <Resources />
-              </AuthLayout>
-            </AdminRouteWrapper>
-          }
-        />
-
-
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<CatchAllRoute user={user} />} />
       </Routes>

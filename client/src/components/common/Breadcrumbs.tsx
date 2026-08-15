@@ -322,7 +322,6 @@ function Breadcrumbs() {
       // 8. Other Static Routes
       const routeLabels: Record<string, string> = {
         reports: 'Reports',
-        resources: 'Resources',
         audit: 'Audit Log',
       };
 

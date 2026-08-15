@@ -34,7 +34,6 @@ const NavIcons: Record<string, ReactNode> = {
   goals: <Target className="w-5 h-5" />,
   workos: <Settings className="w-5 h-5" />,
   templates: <FileText className="w-5 h-5" />,
-  resources: <UsersRound className="w-5 h-5" />,
   notifications: <Bell className="w-5 h-5" />,
   teams: <UsersRound className="w-5 h-5" />,
   roles: <Shield className="w-5 h-5" />,
@@ -74,7 +73,6 @@ function AuthLayout({ children }: { children: ReactNode }) {
         { name: 'WorkOS', path: '/settings/workos', icon: NavIcons.workos },
         { name: 'Projects', path: '/projects', icon: NavIcons.projects },
         { name: 'Goals', path: '/goals', icon: NavIcons.goals },
-        { name: 'Resources', path: '/resources', icon: NavIcons.resources },
         { name: 'Templates', path: '/tasks/templates', icon: NavIcons.templates },
       ];
       if (hasPermission('member:manage') || hasPermission('member:invite') || hasPermission('team:view')) {
