@@ -66,8 +66,9 @@ function Breadcrumbs() {
           items.push({ label: 'Roles & Permissions', path: '/settings/roles' });
         } else if (path === '/settings/notifications') {
           items.push({ label: 'Notifications', path: '/settings/notifications' });
-        } else if (path === '/settings/enterprise') {
-          items.push({ label: 'Enterprise Center', path: '/settings/enterprise' });
+        // Enterprise Center disabled
+        // } else if (path === '/settings/enterprise') {
+        //   items.push({ label: 'Enterprise Center', path: '/settings/enterprise' });
         } else {
           const seg = path.replace('/settings/', '');
           const formatted = seg.charAt(0).toUpperCase() + seg.slice(1);

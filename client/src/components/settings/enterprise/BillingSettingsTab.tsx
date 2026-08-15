@@ -85,37 +85,46 @@ export default function BillingSettingsTab({
     },
   ];
 
+  // Enterprise Center disabled (server routes commented out)
+  // const handleSavePaymentMethod = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsSavingMethod(true);
+  //   try {
+  //     await api.post("/api/billing/payment-methods", {
+  //       phone: telebirrPhone,
+  //       autoRenew,
+  //     });
+  //     onShowToast("Telebirr payment method updated successfully!", "success");
+  //     if (onRefreshBilling) onRefreshBilling();
+  //   } catch (err: any) {
+  //     onShowToast(err.response?.data?.message || "Failed to update Telebirr payment method", "error");
+  //   } finally {
+  //     setIsSavingMethod(false);
+  //   }
+  // };
   const handleSavePaymentMethod = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSavingMethod(true);
-    try {
-      await api.post("/api/billing/payment-methods", {
-        phone: telebirrPhone,
-        autoRenew,
-      });
-      onShowToast("Telebirr payment method updated successfully!", "success");
-      if (onRefreshBilling) onRefreshBilling();
-    } catch (err: any) {
-      onShowToast(err.response?.data?.message || "Failed to update Telebirr payment method", "error");
-    } finally {
-      setIsSavingMethod(false);
-    }
+    onShowToast("Billing is currently disabled.", "info");
   };
 
-  const handleDownloadReceipt = async (inv: any) => {
-    try {
-      const res = await api.get(`/api/billing/invoices/${inv.id}/receipt`);
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(res.data, null, 2));
-      const downloadAnchor = document.createElement("a");
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `Receipt-${inv.id}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-      onShowToast(`Invoice receipt ${inv.id} downloaded successfully`, "info");
-    } catch (err) {
-      onShowToast(`Downloaded receipt for invoice ${inv.id}`, "info");
-    }
+  // Enterprise Center disabled (server routes commented out)
+  // const handleDownloadReceipt = async (inv: any) => {
+  //   try {
+  //     const res = await api.get(`/api/billing/invoices/${inv.id}/receipt`);
+  //     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(res.data, null, 2));
+  //     const downloadAnchor = document.createElement("a");
+  //     downloadAnchor.setAttribute("href", dataStr);
+  //     downloadAnchor.setAttribute("download", `Receipt-${inv.id}.json`);
+  //     document.body.appendChild(downloadAnchor);
+  //     downloadAnchor.click();
+  //     downloadAnchor.remove();
+  //     onShowToast(`Invoice receipt ${inv.id} downloaded successfully`, "info");
+  //   } catch (err) {
+  //     onShowToast(`Downloaded receipt for invoice ${inv.id}`, "info");
+  //   }
+  // };
+  const handleDownloadReceipt = async (_inv: any) => {
+    onShowToast("Billing is currently disabled.", "info");
   };
 
   const filteredInvoices = (billingData.invoices || []).filter(

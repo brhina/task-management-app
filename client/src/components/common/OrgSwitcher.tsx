@@ -1,6 +1,7 @@
 import { useState, useContext, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+// Enterprise Center disabled
+// import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
@@ -107,7 +108,8 @@ const PLAN_CARDS: Array<{
 ];
 
 function OrgSwitcher() {
-  const navigate = useNavigate();
+  // Enterprise Center disabled
+  // const navigate = useNavigate();
   const { user, updateUser, hasPermission } = useContext(UserContext);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -345,16 +347,18 @@ function OrgSwitcher() {
       });
       setIsOpen(false);
 
-      if (pendingPayment && (pendingPayment.plan === 'Pro' || pendingPayment.plan === 'Enterprise')) {
-        const qs = new URLSearchParams({
-          tab: 'billing',
-          upgrade: pendingPayment.plan,
-          cycle: pendingPayment.cycle,
-          ...(pendingPayment.phone ? { phone: pendingPayment.phone } : {}),
-        });
-        navigate(`/settings/enterprise?${qs.toString()}`);
-        return;
-      }
+      // Enterprise Center disabled — skip billing deep-link after paid org create
+      // if (pendingPayment && (pendingPayment.plan === 'Pro' || pendingPayment.plan === 'Enterprise')) {
+      //   const qs = new URLSearchParams({
+      //     tab: 'billing',
+      //     upgrade: pendingPayment.plan,
+      //     cycle: pendingPayment.cycle,
+      //     ...(pendingPayment.phone ? { phone: pendingPayment.phone } : {}),
+      //   });
+      //   navigate(`/settings/enterprise?${qs.toString()}`);
+      //   return;
+      // }
+      void pendingPayment;
 
       window.location.reload();
     } catch (error: any) {

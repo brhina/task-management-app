@@ -33,7 +33,8 @@ import MemberPerformanceDashboard from './pages/users/MemberPerformanceDashboard
 import WorkOS from './pages/settings/WorkOS';
 import RolesPermissions from './pages/settings/RolesPermissions';
 import NotificationSettings from './pages/settings/NotificationSettings';
-import EnterpriseSettings from './pages/settings/EnterpriseSettings';
+// Enterprise Center disabled
+// import EnterpriseSettings from './pages/settings/EnterpriseSettings';
 
 import Reports from './pages/reports/Reports';
 import Teams from './pages/teams/Teams';
@@ -388,6 +389,7 @@ function App() {
             </UserRouteWrapper>
           }
         />
+        {/* Enterprise Center disabled
         <Route
           path="/settings/enterprise"
           element={
@@ -398,6 +400,7 @@ function App() {
             </AdminRouteWrapper>
           }
         />
+        */}
 
         {/* Other admin pages */}
         <Route

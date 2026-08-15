@@ -113,17 +113,18 @@ export default function EnterpriseSettings() {
   const [auditTargetFilter, setAuditTargetFilter] = useState("");
   const [auditActionsList, setAuditActionsList] = useState<string[]>([]);
 
-  useEffect(() => {
-    fetchSSOConfig();
-    fetchSPMetadata();
-    fetchBilling();
-    fetchApiKeys();
-    fetchWebhooks();
-    fetchBranding();
-    fetchSessions();
-    fetchIPAllowlist();
-    fetchAuditLogs();
-  }, []);
+  // Enterprise Center disabled — all server routes are commented out on the server.
+  // useEffect(() => {
+  //   fetchSSOConfig();
+  //   fetchSPMetadata();
+  //   fetchBilling();
+  //   fetchApiKeys();
+  //   fetchWebhooks();
+  //   fetchBranding();
+  //   fetchSessions();
+  //   fetchIPAllowlist();
+  //   fetchAuditLogs();
+  // }, []);
 
   // Deep-link from workspace create: ?tab=billing&upgrade=Pro&cycle=monthly&phone=
   // Run once per upgrade query — do not re-fire when billingData object identity changes.
@@ -168,308 +169,308 @@ export default function EnterpriseSettings() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, billingData?.telebirrConfigured]);
 
-  // --- FETCHERS ---
-  const fetchSSOConfig = async () => {
-    try {
-      const res = await axiosInstance.get("/api/sso/config");
-      setSsoConfig(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // --- FETCHERS — Enterprise Center disabled (server routes commented out) ---
+  // const fetchSSOConfig = async () => {
+  //   try {
+  //     const res = await axiosInstance.get("/api/sso/config");
+  //     setSsoConfig(res.data);
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
-  const fetchSPMetadata = async () => {
-    try {
-      const res = await axiosInstance.get("/api/sso/sp-metadata");
-      setSpMetadata(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // const fetchSPMetadata = async () => {
+  //   try {
+  //     const res = await axiosInstance.get("/api/sso/sp-metadata");
+  //     setSpMetadata(res.data);
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
-  const fetchBilling = async () => {
-    try {
-      const res = await axiosInstance.get("/api/billing/metrics");
-      setBillingData(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // const fetchBilling = async () => {
+  //   try {
+  //     const res = await axiosInstance.get("/api/billing/metrics");
+  //     setBillingData(res.data);
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
-  const fetchApiKeys = async () => {
-    try {
-      const res = await axiosInstance.get("/api/api-keys");
-      setApiKeys(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // const fetchApiKeys = async () => {
+  //   try {
+  //     const res = await axiosInstance.get("/api/api-keys");
+  //     setApiKeys(res.data);
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
-  const fetchWebhooks = async () => {
-    try {
-      const res = await axiosInstance.get("/api/webhooks");
-      setWebhooks(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // const fetchWebhooks = async () => {
+  //   try {
+  //     const res = await axiosInstance.get("/api/webhooks");
+  //     setWebhooks(res.data);
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
-  const fetchBranding = async () => {
-    try {
-      const res = await axiosInstance.get("/api/branding");
-      setBranding(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // const fetchBranding = async () => {
+  //   try {
+  //     const res = await axiosInstance.get("/api/branding");
+  //     setBranding(res.data);
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
-  const fetchSessions = async () => {
-    try {
-      const res = await axiosInstance.get("/api/compliance/sessions");
-      setSessions(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // const fetchSessions = async () => {
+  //   try {
+  //     const res = await axiosInstance.get("/api/compliance/sessions");
+  //     setSessions(res.data);
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
-  const fetchIPAllowlist = async () => {
-    try {
-      const res = await axiosInstance.get("/api/compliance/ip-allowlist");
-      setIpAllowlist(res.data.ipAllowlist || []);
-      setIpAllowlistEnabled(res.data.ipAllowlistEnabled || false);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // const fetchIPAllowlist = async () => {
+  //   try {
+  //     const res = await axiosInstance.get("/api/compliance/ip-allowlist");
+  //     setIpAllowlist(res.data.ipAllowlist || []);
+  //     setIpAllowlistEnabled(res.data.ipAllowlistEnabled || false);
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
-  const fetchAuditLogs = async (page = 1) => {
-    try {
-      const params: any = { page, limit: 15 };
-      if (auditActionFilter) params.action = auditActionFilter;
-      if (auditTargetFilter) params.targetType = auditTargetFilter;
-      const res = await axiosInstance.get("/api/audit-logs", { params });
-      setAuditLogs(res.data.data || []);
-      setAuditTotal(res.data.pagination?.total || 0);
-      setAuditPage(page);
-      if (res.data.filters?.actions) {
-        setAuditActionsList(res.data.filters.actions);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // const fetchAuditLogs = async (page = 1) => {
+  //   try {
+  //     const params: any = { page, limit: 15 };
+  //     if (auditActionFilter) params.action = auditActionFilter;
+  //     if (auditTargetFilter) params.targetType = auditTargetFilter;
+  //     const res = await axiosInstance.get("/api/audit-logs", { params });
+  //     setAuditLogs(res.data.data || []);
+  //     setAuditTotal(res.data.pagination?.total || 0);
+  //     setAuditPage(page);
+  //     if (res.data.filters?.actions) {
+  //       setAuditActionsList(res.data.filters.actions);
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
-  // --- TAB HANDLERS ---
-  const handleSaveSSO = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const domains = typeof ssoConfig.domainWhitelist === "string"
-        ? ssoConfig.domainWhitelist.split(",").map((d: string) => d.trim()).filter(Boolean)
-        : ssoConfig.domainWhitelist;
-      await axiosInstance.put("/api/sso/config", { ...ssoConfig, domainWhitelist: domains });
-      showToast("SSO configuration saved successfully.", "success");
-      fetchSSOConfig();
-    } catch (err: any) {
-      showToast(err.response?.data?.message || "Failed to save SSO config", "error");
-    }
-  };
+  // --- TAB HANDLERS — Enterprise Center disabled (server routes commented out) ---
+  // const handleSaveSSO = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   try {
+  //     const domains = typeof ssoConfig.domainWhitelist === "string"
+  //       ? ssoConfig.domainWhitelist.split(",").map((d: string) => d.trim()).filter(Boolean)
+  //       : ssoConfig.domainWhitelist;
+  //     await axiosInstance.put("/api/sso/config", { ...ssoConfig, domainWhitelist: domains });
+  //     showToast("SSO configuration saved successfully.", "success");
+  //     fetchSSOConfig();
+  //   } catch (err: any) {
+  //     showToast(err.response?.data?.message || "Failed to save SSO config", "error");
+  //   }
+  // };
 
-  const handleTestSSO = async () => {
-    setIsTestingSso(true);
-    setSsoTestResult(null);
-    try {
-      const res = await axiosInstance.post("/api/sso/test-connection");
-      setSsoTestResult(res.data);
-      showToast(res.data.message, "success");
-    } catch (err: any) {
-      setSsoTestResult({
-        success: false,
-        message: err.response?.data?.message || "SSO Connection Test Failed",
-      });
-      showToast("SSO Connection Test Failed", "error");
-    } finally {
-      setIsTestingSso(false);
-    }
-  };
+  // const handleTestSSO = async () => {
+  //   setIsTestingSso(true);
+  //   setSsoTestResult(null);
+  //   try {
+  //     const res = await axiosInstance.post("/api/sso/test-connection");
+  //     setSsoTestResult(res.data);
+  //     showToast(res.data.message, "success");
+  //   } catch (err: any) {
+  //     setSsoTestResult({
+  //       success: false,
+  //       message: err.response?.data?.message || "SSO Connection Test Failed",
+  //     });
+  //     showToast("SSO Connection Test Failed", "error");
+  //   } finally {
+  //     setIsTestingSso(false);
+  //   }
+  // };
 
-  const handleOpenTelebirrModal = (plan: "Pro" | "Enterprise", cycle: "monthly" | "yearly", priceETB: number) => {
-    if (billingData && billingData.telebirrConfigured !== true) {
-      return;
-    }
-    setSelectedPlanForTelebirr(plan);
-    setSelectedCycleForTelebirr(cycle);
-    setSelectedPriceForTelebirr(priceETB);
-    setIsTelebirrModalOpen(true);
-  };
+  // const handleOpenTelebirrModal = (plan: "Pro" | "Enterprise", cycle: "monthly" | "yearly", priceETB: number) => {
+  //   if (billingData && billingData.telebirrConfigured !== true) {
+  //     return;
+  //   }
+  //   setSelectedPlanForTelebirr(plan);
+  //   setSelectedCycleForTelebirr(cycle);
+  //   setSelectedPriceForTelebirr(priceETB);
+  //   setIsTelebirrModalOpen(true);
+  // };
 
-  const handleTelebirrSuccess = async (_updatedPlan: string) => {
-    await fetchBilling();
-    await refreshOrgDetails();
-  };
+  // const handleTelebirrSuccess = async (_updatedPlan: string) => {
+  //   await fetchBilling();
+  //   await refreshOrgDetails();
+  // };
 
-  const handleCreateApiKey = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!keyName) return;
-    try {
-      const res = await axiosInstance.post("/api/api-keys", {
-        name: keyName,
-        scopes: keyScopes,
-        expirationDays: keyExpiration === "never" ? 0 : Number(keyExpiration),
-      });
-      setNewSecretKey(res.data.secretKey);
-      setKeyName("");
-      showToast("New API Key created successfully!", "success");
-      fetchApiKeys();
-    } catch (err: any) {
-      showToast(err.response?.data?.message || "Failed to create API key", "error");
-    }
-  };
+  // const handleCreateApiKey = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!keyName) return;
+  //   try {
+  //     const res = await axiosInstance.post("/api/api-keys", {
+  //       name: keyName,
+  //       scopes: keyScopes,
+  //       expirationDays: keyExpiration === "never" ? 0 : Number(keyExpiration),
+  //     });
+  //     setNewSecretKey(res.data.secretKey);
+  //     setKeyName("");
+  //     showToast("New API Key created successfully!", "success");
+  //     fetchApiKeys();
+  //   } catch (err: any) {
+  //     showToast(err.response?.data?.message || "Failed to create API key", "error");
+  //   }
+  // };
 
-  const handleRevokeApiKey = async (id: string) => {
-    if (!confirm("Are you sure you want to revoke this API Key? Any application using it will lose access immediately.")) return;
-    try {
-      await axiosInstance.delete(`/api/api-keys/${id}`);
-      showToast("API key revoked successfully.", "info");
-      fetchApiKeys();
-    } catch (err: any) {
-      showToast(err.response?.data?.message || "Failed to revoke API key", "error");
-    }
-  };
+  // const handleRevokeApiKey = async (id: string) => {
+  //   if (!confirm("Are you sure you want to revoke this API Key? Any application using it will lose access immediately.")) return;
+  //   try {
+  //     await axiosInstance.delete(`/api/api-keys/${id}`);
+  //     showToast("API key revoked successfully.", "info");
+  //     fetchApiKeys();
+  //   } catch (err: any) {
+  //     showToast(err.response?.data?.message || "Failed to revoke API key", "error");
+  //   }
+  // };
 
-  const handleCreateWebhook = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!webhookName || !webhookUrl) return;
-    try {
-      await axiosInstance.post("/api/webhooks", {
-        name: webhookName,
-        url: webhookUrl,
-        events: webhookEvents,
-      });
-      setWebhookName("");
-      setWebhookUrl("");
-      showToast("Webhook endpoint registered successfully!", "success");
-      fetchWebhooks();
-    } catch (err: any) {
-      showToast(err.response?.data?.message || "Failed to create webhook", "error");
-    }
-  };
+  // const handleCreateWebhook = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!webhookName || !webhookUrl) return;
+  //   try {
+  //     await axiosInstance.post("/api/webhooks", {
+  //       name: webhookName,
+  //       url: webhookUrl,
+  //       events: webhookEvents,
+  //     });
+  //     setWebhookName("");
+  //     setWebhookUrl("");
+  //     showToast("Webhook endpoint registered successfully!", "success");
+  //     fetchWebhooks();
+  //   } catch (err: any) {
+  //     showToast(err.response?.data?.message || "Failed to create webhook", "error");
+  //   }
+  // };
 
-  const handleDeleteWebhook = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this webhook endpoint?")) return;
-    try {
-      await axiosInstance.delete(`/api/webhooks/${id}`);
-      showToast("Webhook endpoint deleted.", "info");
-      fetchWebhooks();
-    } catch (err: any) {
-      showToast(err.response?.data?.message || "Failed to delete webhook", "error");
-    }
-  };
+  // const handleDeleteWebhook = async (id: string) => {
+  //   if (!confirm("Are you sure you want to delete this webhook endpoint?")) return;
+  //   try {
+  //     await axiosInstance.delete(`/api/webhooks/${id}`);
+  //     showToast("Webhook endpoint deleted.", "info");
+  //     fetchWebhooks();
+  //   } catch (err: any) {
+  //     showToast(err.response?.data?.message || "Failed to delete webhook", "error");
+  //   }
+  // };
 
-  const handleSaveBranding = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await axiosInstance.put("/api/branding", branding);
-      showToast("Organization branding updated.", "success");
-    } catch (err: any) {
-      showToast(err.response?.data?.message || "Failed to save branding", "error");
-    }
-  };
+  // const handleSaveBranding = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   try {
+  //     await axiosInstance.put("/api/branding", branding);
+  //     showToast("Organization branding updated.", "success");
+  //   } catch (err: any) {
+  //     showToast(err.response?.data?.message || "Failed to save branding", "error");
+  //   }
+  // };
 
-  const handleResetBranding = () => {
-    setBranding({
-      logoUrl: "",
-      customFavicon: "",
-      primaryColor: "#6366F1",
-      accentColor: "#8B5CF6",
-      customTitle: "",
-      whiteLabelEnabled: false,
-    });
-  };
+  // const handleResetBranding = () => {
+  //   setBranding({
+  //     logoUrl: "",
+  //     customFavicon: "",
+  //     primaryColor: "#6366F1",
+  //     accentColor: "#8B5CF6",
+  //     customTitle: "",
+  //     whiteLabelEnabled: false,
+  //   });
+  // };
 
-  const handleGDPRDownload = () => {
-    window.open(`${axiosInstance.defaults.baseURL}/api/compliance/export`, "_blank");
-    showToast("GDPR Data Export initiated", "info");
-  };
+  // const handleGDPRDownload = () => {
+  //   window.open(`${axiosInstance.defaults.baseURL}/api/compliance/export`, "_blank");
+  //   showToast("GDPR Data Export initiated", "info");
+  // };
 
-  const handleSetup2FA = async () => {
-    try {
-      const res = await axiosInstance.post("/api/compliance/2fa/setup");
-      setTotpData(res.data);
-    } catch (err: any) {
-      showToast(err.response?.data?.message || "Failed to setup 2FA", "error");
-    }
-  };
+  // const handleSetup2FA = async () => {
+  //   try {
+  //     const res = await axiosInstance.post("/api/compliance/2fa/setup");
+  //     setTotpData(res.data);
+  //   } catch (err: any) {
+  //     showToast(err.response?.data?.message || "Failed to setup 2FA", "error");
+  //   }
+  // };
 
-  const handleVerify2FA = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await axiosInstance.post("/api/compliance/2fa/verify", { code: totpCode });
-      showToast("Two-Factor Authentication successfully enabled!", "success");
-      setTotpData(null);
-      setTotpCode("");
-    } catch (err: any) {
-      showToast(err.response?.data?.message || "Invalid 2FA code", "error");
-    }
-  };
+  // const handleVerify2FA = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   try {
+  //     await axiosInstance.post("/api/compliance/2fa/verify", { code: totpCode });
+  //     showToast("Two-Factor Authentication successfully enabled!", "success");
+  //     setTotpData(null);
+  //     setTotpCode("");
+  //   } catch (err: any) {
+  //     showToast(err.response?.data?.message || "Invalid 2FA code", "error");
+  //   }
+  // };
 
-  const handleRevokeSession = async (id: string) => {
-    try {
-      await axiosInstance.delete(`/api/compliance/sessions/${id}`);
-      showToast("Session revoked.", "info");
-      fetchSessions();
-    } catch (err: any) {
-      showToast(err.response?.data?.message || "Failed to revoke session", "error");
-    }
-  };
+  // const handleRevokeSession = async (id: string) => {
+  //   try {
+  //     await axiosInstance.delete(`/api/compliance/sessions/${id}`);
+  //     showToast("Session revoked.", "info");
+  //     fetchSessions();
+  //   } catch (err: any) {
+  //     showToast(err.response?.data?.message || "Failed to revoke session", "error");
+  //   }
+  // };
 
-  const handleAddIPRange = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newIpInput) return;
-    const updated = [...ipAllowlist, newIpInput.trim()];
-    try {
-      await axiosInstance.put("/api/compliance/ip-allowlist", {
-        ipAllowlist: updated,
-        ipAllowlistEnabled,
-      });
-      setIpAllowlist(updated);
-      setNewIpInput("");
-      showToast("IP range added to allowlist.", "success");
-    } catch (err: any) {
-      showToast(err.response?.data?.message || "Failed to add IP range", "error");
-    }
-  };
+  // const handleAddIPRange = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!newIpInput) return;
+  //   const updated = [...ipAllowlist, newIpInput.trim()];
+  //   try {
+  //     await axiosInstance.put("/api/compliance/ip-allowlist", {
+  //       ipAllowlist: updated,
+  //       ipAllowlistEnabled,
+  //     });
+  //     setIpAllowlist(updated);
+  //     setNewIpInput("");
+  //     showToast("IP range added to allowlist.", "success");
+  //   } catch (err: any) {
+  //     showToast(err.response?.data?.message || "Failed to add IP range", "error");
+  //   }
+  // };
 
-  const handleRemoveIPRange = async (ipToRemove: string) => {
-    const updated = ipAllowlist.filter((ip) => ip !== ipToRemove);
-    try {
-      await axiosInstance.put("/api/compliance/ip-allowlist", {
-        ipAllowlist: updated,
-        ipAllowlistEnabled,
-      });
-      setIpAllowlist(updated);
-      showToast("IP range removed.", "info");
-    } catch (err: any) {
-      showToast(err.response?.data?.message || "Failed to update IP allowlist", "error");
-    }
-  };
+  // const handleRemoveIPRange = async (ipToRemove: string) => {
+  //   const updated = ipAllowlist.filter((ip) => ip !== ipToRemove);
+  //   try {
+  //     await axiosInstance.put("/api/compliance/ip-allowlist", {
+  //       ipAllowlist: updated,
+  //       ipAllowlistEnabled,
+  //     });
+  //     setIpAllowlist(updated);
+  //     showToast("IP range removed.", "info");
+  //   } catch (err: any) {
+  //     showToast(err.response?.data?.message || "Failed to update IP allowlist", "error");
+  //   }
+  // };
 
-  const handleToggleIPEnforcement = async (enabled: boolean) => {
-    try {
-      await axiosInstance.put("/api/compliance/ip-allowlist", {
-        ipAllowlist,
-        ipAllowlistEnabled: enabled,
-      });
-      setIpAllowlistEnabled(enabled);
-      showToast(`IP Allowlist enforcement ${enabled ? "enabled" : "disabled"}.`, "info");
-    } catch (err: any) {
-      showToast(err.response?.data?.message || "Failed to update IP enforcement", "error");
-    }
-  };
+  // const handleToggleIPEnforcement = async (enabled: boolean) => {
+  //   try {
+  //     await axiosInstance.put("/api/compliance/ip-allowlist", {
+  //       ipAllowlist,
+  //       ipAllowlistEnabled: enabled,
+  //     });
+  //     setIpAllowlistEnabled(enabled);
+  //     showToast(`IP Allowlist enforcement ${enabled ? "enabled" : "disabled"}.`, "info");
+  //   } catch (err: any) {
+  //     showToast(err.response?.data?.message || "Failed to update IP enforcement", "error");
+  //   }
+  // };
 
-  const getCalendarFeedUrl = () => {
-    const token = localStorage.getItem("token") || "";
-    return `${axiosInstance.defaults.baseURL}/api/integrations/calendar/ics?token=${token}`;
-  };
+  // const getCalendarFeedUrl = () => {
+  //   const token = localStorage.getItem("token") || "";
+  //   return `${axiosInstance.defaults.baseURL}/api/integrations/calendar/ics?token=${token}`;
+  // };
 
   return (
     <PageShell

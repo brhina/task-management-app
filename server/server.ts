@@ -31,19 +31,20 @@ import keyResultRoutes from "./routes/keyResultRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import teamRoutes from "./routes/teamRoutes.js";
 import roleRoutes from "./routes/roleRoutes.js";
-import auditRoutes from "./routes/auditRoutes.js";
+// Enterprise Center disabled
+// import auditRoutes from "./routes/auditRoutes.js";
 
-// Phase 9 Routes
-import ssoRoutes from "./routes/ssoRoutes.js";
-import billingRoutes from "./routes/billingRoutes.js";
-import apiKeyRoutes from "./routes/apiKeyRoutes.js";
-import integrationRoutes from "./routes/integrationRoutes.js";
-import brandingRoutes from "./routes/brandingRoutes.js";
-import complianceRoutes from "./routes/complianceRoutes.js";
-import webhookRoutes from "./routes/webhookRoutes.js";
+// Phase 9 Routes (Enterprise Center) — disabled
+// import ssoRoutes from "./routes/ssoRoutes.js";
+// import billingRoutes from "./routes/billingRoutes.js";
+// import apiKeyRoutes from "./routes/apiKeyRoutes.js";
+// import integrationRoutes from "./routes/integrationRoutes.js";
+// import brandingRoutes from "./routes/brandingRoutes.js";
+// import complianceRoutes from "./routes/complianceRoutes.js";
+// import webhookRoutes from "./routes/webhookRoutes.js";
 
-import { apiKeyAuth } from "./middleware/apiKeyAuth.js";
-import { checkIpAllowlist } from "./middleware/ipAllowlist.js";
+// import { apiKeyAuth } from "./middleware/apiKeyAuth.js";
+// import { checkIpAllowlist } from "./middleware/ipAllowlist.js";
 
 import { runLegacyOrgMigration } from "./services/legacyMigration.js";
 import { startRecurringTasksJob } from "./jobs/recurringTasks.js";
@@ -85,9 +86,9 @@ app.use(
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Global middlewares for API key auth fallback and IP allowlist enforcement
-app.use(apiKeyAuth as any);
-app.use(checkIpAllowlist as any);
+// Enterprise Center disabled — API key auth & IP allowlist
+// app.use(apiKeyAuth as any);
+// app.use(checkIpAllowlist as any);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -108,16 +109,17 @@ app.use("/api/key-results", keyResultRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/teams", teamRoutes);
 app.use("/api/roles", roleRoutes);
-app.use("/api/audit-logs", auditRoutes);
+// Enterprise Center disabled
+// app.use("/api/audit-logs", auditRoutes);
 
-// Phase 9 Route Mounts
-app.use("/api/sso", ssoRoutes);
-app.use("/api/billing", billingRoutes);
-app.use("/api/api-keys", apiKeyRoutes);
-app.use("/api/integrations", integrationRoutes);
-app.use("/api/branding", brandingRoutes);
-app.use("/api/compliance", complianceRoutes);
-app.use("/api/webhooks", webhookRoutes);
+// Phase 9 Route Mounts (Enterprise Center) — disabled
+// app.use("/api/sso", ssoRoutes);
+// app.use("/api/billing", billingRoutes);
+// app.use("/api/api-keys", apiKeyRoutes);
+// app.use("/api/integrations", integrationRoutes);
+// app.use("/api/branding", brandingRoutes);
+// app.use("/api/compliance", complianceRoutes);
+// app.use("/api/webhooks", webhookRoutes);
 
 // Enhanced Health check endpoint
 app.get("/health", (_req, res) => {

@@ -108,160 +108,25 @@ export default function TelebirrPaymentModal({
     );
   };
 
-  const waitForVerifiedPaid = async (orderId: string, attempts = 8) => {
-    for (let i = 0; i < attempts; i++) {
-      const res = await api.get(`/api/billing/telebirr/status/${orderId}`);
-      setStatus(res.data.status);
-      if (
-        res.data.verifiedPaid ||
-        (res.data.status === "Paid" &&
-          res.data.invoice?.status === "Paid" &&
-          res.data.org?.plan === targetPlan)
-      ) {
-        return res.data;
-      }
-      if (res.data.status === "Failed" || res.data.status === "Expired") {
-        throw new Error(`Payment ${res.data.status.toLowerCase()}`);
-      }
-      await new Promise((r) => setTimeout(r, 600));
-    }
-    return null;
-  };
+  // Enterprise Center disabled — billing server routes are commented out.
+  // const waitForVerifiedPaid = async (orderId: string, attempts = 8) => { ... };
+  // const startPolling = (orderId: string) => { ... };
+  const waitForVerifiedPaid = async (_orderId: string, _attempts = 8) => null;
+  const startPolling = (_orderId: string) => {}; // no-op
 
-  const startPolling = (orderId: string) => {
-    stopPolling();
-    pollRef.current = setInterval(async () => {
-      try {
-        const res = await api.get(`/api/billing/telebirr/status/${orderId}`);
-        setStatus(res.data.status);
-        if (
-          res.data.verifiedPaid ||
-          (res.data.status === "Paid" &&
-            res.data.invoice?.status === "Paid" &&
-            res.data.org?.plan === targetPlan)
-        ) {
-          handlePaid(res.data);
-        } else if (
-          res.data.status === "Failed" ||
-          res.data.status === "Expired"
-        ) {
-          stopPolling();
-          onShowToast(`Payment ${res.data.status.toLowerCase()}`, "error");
-        }
-      } catch {
-        // keep polling briefly on transient errors
-      }
-    }, 2500);
-  };
-
+  // Enterprise Center disabled — billing server routes are commented out.
+  // const handleInitiate = async (e: React.FormEvent) => { ... await api.post("/api/billing/telebirr/initiate", ...) };
+  // const handleSandboxComplete = async () => { ... await api.post("/api/billing/telebirr/sandbox/complete", ...) };
+  // const handleRefreshStatus = async () => { ... await api.get(`/api/billing/telebirr/status/${merchantOrderId}`) };
   const handleInitiate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phone || phone.trim().length < 9) {
-      onShowToast(
-        "Please enter a valid Ethiopian Telebirr mobile number",
-        "error"
-      );
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await api.post("/api/billing/telebirr/initiate", {
-        plan: targetPlan,
-        billingCycle,
-        phone: phone.trim(),
-      });
-      setMerchantOrderId(res.data.merchantOrderId);
-      setTxnRef(res.data.transactionRef);
-      setUssdCode(res.data.ussdCode);
-      setQrData(res.data.qrData || "");
-      setMode(res.data.mode === "sandbox" ? "sandbox" : "live");
-      setSandboxSimulationAllowed(res.data.sandboxSimulationAllowed === true);
-      setStatus("Pending");
-      setStep(3);
-      startPolling(res.data.merchantOrderId);
-    } catch (err: any) {
-      onShowToast(
-        err.response?.data?.message || "Failed to connect to Telebirr gateway",
-        "error"
-      );
-    } finally {
-      setLoading(false);
-    }
+    onShowToast("Billing is currently disabled.", "info");
   };
-
-  /**
-   * Sandbox: fire the same signed provider notify production uses, then
-   * poll until the server reports verifiedPaid (txn + invoice + org plan).
-   */
   const handleSandboxComplete = async () => {
-    if (!merchantOrderId) return;
-    setLoading(true);
-    try {
-      await api.post("/api/billing/telebirr/sandbox/complete", {
-        merchantOrderId,
-      });
-      const verified = await waitForVerifiedPaid(merchantOrderId);
-      if (verified) {
-        handlePaid(verified);
-      } else {
-        onShowToast(
-          "Provider callback sent but payment is not settled yet. Use Check Status.",
-          "error"
-        );
-      }
-    } catch (err: any) {
-      // Still poll — notify may have partially applied
-      try {
-        const verified = await waitForVerifiedPaid(merchantOrderId, 4);
-        if (verified) {
-          handlePaid(verified);
-          return;
-        }
-      } catch {
-        /* fall through */
-      }
-      onShowToast(
-        err.response?.data?.message || "Sandbox payment confirmation failed",
-        "error"
-      );
-    } finally {
-      setLoading(false);
-    }
+    onShowToast("Billing is currently disabled.", "info");
   };
-
   const handleRefreshStatus = async () => {
-    if (!merchantOrderId) return;
-    setLoading(true);
-    try {
-      const res = await api.get(
-        `/api/billing/telebirr/status/${merchantOrderId}`
-      );
-      setStatus(res.data.status);
-      if (
-        res.data.verifiedPaid ||
-        (res.data.status === "Paid" &&
-          res.data.invoice?.status === "Paid" &&
-          res.data.org?.plan === targetPlan)
-      ) {
-        handlePaid(res.data);
-      } else {
-        onShowToast(
-          `Payment status: ${res.data.status}` +
-            (res.data.invoice
-              ? ` · Invoice: ${res.data.invoice.status}`
-              : "") +
-            (res.data.org?.plan ? ` · Plan: ${res.data.org.plan}` : ""),
-          "info"
-        );
-      }
-    } catch (err: any) {
-      onShowToast(
-        err.response?.data?.message || "Failed to refresh payment status",
-        "error"
-      );
-    } finally {
-      setLoading(false);
-    }
+    onShowToast("Billing is currently disabled.", "info");
   };
 
   return (

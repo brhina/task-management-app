@@ -78,24 +78,25 @@ function Login() {
     }
   };
 
-  const handleSSOLogin = async () => {
-    if (!formData.email || !validateEmail(formData.email)) {
-      setFieldErrors((prev) => ({ ...prev, email: 'Enter your work email to initiate Enterprise SSO' }));
-      return;
-    }
-    setLoading(true);
-    setError('');
-    try {
-      const res = await api.post('/api/sso/login/initiate', { email: formData.email });
-      if (res.data?.redirectUrl) {
-        window.location.href = res.data.redirectUrl;
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'No active SSO integration found for this domain');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Enterprise Center disabled — SSO login
+  // const handleSSOLogin = async () => {
+  //   if (!formData.email || !validateEmail(formData.email)) {
+  //     setFieldErrors((prev) => ({ ...prev, email: 'Enter your work email to initiate Enterprise SSO' }));
+  //     return;
+  //   }
+  //   setLoading(true);
+  //   setError('');
+  //   try {
+  //     const res = await api.post('/api/sso/login/initiate', { email: formData.email });
+  //     if (res.data?.redirectUrl) {
+  //       window.location.href = res.data.redirectUrl;
+  //     }
+  //   } catch (err: any) {
+  //     setError(err.response?.data?.message || 'No active SSO integration found for this domain');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <PublicLayout>
@@ -251,6 +252,7 @@ function Login() {
                 )}
               </button>
 
+              {/* Enterprise Center disabled — SSO login
               <button
                 type="button"
                 onClick={handleSSOLogin}
@@ -260,6 +262,7 @@ function Login() {
                 <Shield className="w-3.5 h-3.5 text-primary" />
                 <span>Sign in with Enterprise SSO</span>
               </button>
+              */}
             </form>
 
             <div className="mt-4 pt-3 border-t border-gray-200 text-center">

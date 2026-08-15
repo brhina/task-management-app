@@ -16,8 +16,8 @@ import {
   Info,
   Building2,
   Zap,
-  ArrowRight,
-  ArrowLeft,
+  // ArrowRight, // Enterprise Center disabled — was used in Step 2 plan selection
+  // ArrowLeft,  // Enterprise Center disabled — was used in Step 2 plan selection
   Check,
   ChevronDown,
   ChevronUp
@@ -44,61 +44,22 @@ interface FieldErrors {
   adminInviteToken?: string;
 }
 
-type PlanType = 'Free' | 'Pro' | 'Enterprise';
+// Enterprise Center disabled — plan selection step removed from signup.
+// type PlanType = 'Free' | 'Pro' | 'Enterprise';
+//
+// interface PlanOption {
+//   id: PlanType;
+//   name: string;
+//   price: string;
+//   subtitle: string;
+//   badge?: string;
+//   isPopular?: boolean;
+//   features: string[];
+// }
 
-interface PlanOption {
-  id: PlanType;
-  name: string;
-  price: string;
-  subtitle: string;
-  badge?: string;
-  isPopular?: boolean;
-  features: string[];
-}
+// Enterprise Center disabled — plan selection removed from signup.
+// const PLAN_OPTIONS: PlanOption[] = [ ... ];
 
-const PLAN_OPTIONS: PlanOption[] = [
-  {
-    id: 'Free',
-    name: 'Free Workspace',
-    price: '0 ETB',
-    subtitle: 'Essential task management for small teams',
-    badge: 'Free Forever',
-    features: [
-      'Up to 5 Team Members',
-      '3 Active Projects',
-      '50 AI Operations / mo',
-      'Kanban & List Views',
-    ],
-  },
-  {
-    id: 'Pro',
-    name: 'Pro Workspace',
-    price: '2,500 ETB',
-    subtitle: 'Advanced collaboration & automated AI workflows',
-    badge: 'Upgrade after signup',
-    isPopular: true,
-    features: [
-      'Up to 25 Team Members',
-      '20 Active Projects',
-      '1,000 AI Operations / mo',
-      'Gantt Charts & Custom API Keys',
-      'Telebirr Express Payments',
-    ],
-  },
-  {
-    id: 'Enterprise',
-    name: 'Enterprise',
-    price: '15,000 ETB',
-    subtitle: 'Maximum security, SSO, and unlimited scale',
-    badge: 'Pay via Telebirr',
-    features: [
-      'Unlimited Members & Projects',
-      '50,000 AI Operations / mo',
-      'SSO / SAML 2.0 & Custom Branding',
-      'IP Allowlisting & Audit Logs',
-    ],
-  },
-];
 
 function SignUp() {
   const [searchParams] = useSearchParams();
@@ -112,7 +73,8 @@ function SignUp() {
     password: '',
     confirmPassword: '',
     workspaceName: '',
-    plan: 'Pro' as PlanType,
+    // Enterprise Center disabled — plan selection removed from signup.
+    // plan: 'Pro' as PlanType,
     profileImageUrl: '',
     adminInviteToken: '',
     orgInviteToken: orgInviteToken || '',
@@ -213,12 +175,15 @@ function SignUp() {
     e.preventDefault();
     if (!validateStep1()) return;
 
-    if (orgInviteToken) {
-      // Invited users join existing org directly
-      void handleFinalSubmit();
-    } else {
-      setStep(2);
-    }
+    // Enterprise Center disabled — plan selection step removed.
+    // Previously: non-invited users went to step 2 (plan selection).
+    // Now all users go directly to final submit.
+    // if (orgInviteToken) {
+    //   void handleFinalSubmit();
+    // } else {
+    //   setStep(2);
+    // }
+    void handleFinalSubmit();
   };
 
   const handleFinalSubmit = async (e?: FormEvent) => {
@@ -231,7 +196,8 @@ function SignUp() {
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password,
-        plan: formData.plan === 'Free' ? 'Free' : undefined,
+        // Enterprise Center disabled — plan always defaults to Free on signup.
+        // plan: formData.plan === 'Free' ? 'Free' : undefined,
         ...(formData.workspaceName.trim() && {
           workspaceName: formData.workspaceName.trim(),
         }),
@@ -247,13 +213,14 @@ function SignUp() {
       const response = await api.post(apiPaths.AUTH.signup, signupData);
       const { user, token, activeOrgId } = response.data;
       updateUser({ ...user, token, activeOrgId });
-      if (formData.plan === 'Pro' || formData.plan === 'Enterprise') {
-        navigate(
-          `/settings/enterprise?tab=billing&upgrade=${formData.plan}&cycle=monthly`
-        );
-      } else {
-        navigate('/dashboard');
-      }
+      // Enterprise Center disabled — always go to dashboard after signup
+      // if (formData.plan === 'Pro' || formData.plan === 'Enterprise') {
+      //   navigate(
+      //     `/settings/enterprise?tab=billing&upgrade=${formData.plan}&cycle=monthly`
+      //   );
+      // } else {
+      navigate('/dashboard');
+      // }
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || err.message || 'An error occurred during registration';
@@ -276,12 +243,12 @@ function SignUp() {
           <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight leading-tight">
             Launch Your Team’s <br />
             <span className="bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">
-              Workspace & Subscription
+              Workspace Today
             </span>
           </h1>
 
           <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-            Create your organization workspace in seconds. Select a subscription plan, invite team members, and scale projects with integrated AI intelligence.
+            Create your organization workspace in seconds. Invite team members and scale projects with integrated AI intelligence.
           </p>
 
           <div className="space-y-3 pt-1">
@@ -302,9 +269,9 @@ function SignUp() {
                 <Zap className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-slate-800">Flexible Subscription Tiers</h4>
+                <h4 className="text-xs font-bold text-slate-800">AI-Powered Task Management</h4>
                 <p className="text-[11px] text-slate-600 mt-0.5">
-                  Start on Free. Pro and Enterprise activate only after Telebirr payment confirmation in Enterprise Settings.
+                  Smart automation, deadline tracking, and collaborative workflows designed to keep your team moving fast.
                 </p>
               </div>
             </div>
@@ -329,18 +296,16 @@ function SignUp() {
             {/* Header & Stepper */}
             <div className="text-center mb-4">
               <h2 className="text-xl font-bold text-slate-800 tracking-tight">
-                {orgInviteToken ? 'Join Your Team Workspace' : step === 1 ? 'Create Your Account & Workspace' : 'Choose Your Subscription Plan'}
+                {orgInviteToken ? 'Join Your Team Workspace' : 'Create Your Account & Workspace'}
               </h2>
               <p className="text-[11px] text-slate-500 mt-0.5">
                 {orgInviteToken
                   ? 'Complete your profile to accept invitation'
-                  : step === 1
-                  ? 'Step 1 of 2: Account & Workspace Info'
-                  : 'Step 2 of 2: Select Subscription Plan'}
+                  : 'Fill in your details to get started'}
               </p>
 
-              {/* Progress Bar (Only for non-invited registration) */}
-              {!orgInviteToken && (
+              {/* Progress Bar — Enterprise Center disabled (single-step signup) */}
+              {/* {!orgInviteToken && (
                 <div className="flex items-center justify-center gap-2 mt-3 max-w-xs mx-auto">
                   <div
                     className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
@@ -353,7 +318,7 @@ function SignUp() {
                     }`}
                   />
                 </div>
-              )}
+              )} */}
             </div>
 
             {/* Invite Token Banner */}
@@ -643,16 +608,16 @@ function SignUp() {
                     )
                   ) : (
                     <>
-                      <span>Next: Select Subscription Plan</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <Check className="w-4 h-4" />
+                      <span>Create Account &amp; Launch Workspace</span>
                     </>
                   )}
                 </button>
               </form>
             )}
 
-            {/* STEP 2: Subscription Plan Selection */}
-            {step === 2 && !orgInviteToken && (
+            {/* STEP 2: Subscription Plan Selection — Enterprise Center disabled */}
+            {/* {step === 2 && !orgInviteToken && (
               <form onSubmit={handleFinalSubmit} className="space-y-4">
                 <div className="grid gap-3">
                   {PLAN_OPTIONS.map((p) => {
@@ -667,90 +632,14 @@ function SignUp() {
                             : 'border-gray-200 hover:border-gray-300 bg-white'
                         }`}
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-2.5">
-                            <div
-                              className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${
-                                isSelected
-                                  ? 'border-primary bg-primary text-white'
-                                  : 'border-slate-300 bg-white'
-                              }`}
-                            >
-                              {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h4 className="text-xs font-bold text-slate-800">{p.name}</h4>
-                                {p.badge && (
-                                  <span
-                                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                                      p.isPopular
-                                        ? 'bg-primary text-white'
-                                        : 'bg-slate-100 text-slate-600'
-                                    }`}
-                                  >
-                                    {p.badge}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-[11px] text-slate-500 mt-0.5">{p.subtitle}</p>
-                            </div>
-                          </div>
-
-                          <div className="text-right shrink-0">
-                            <span className="text-sm font-extrabold text-slate-800">{p.price}</span>
-                            <span className="text-[10px] text-slate-400 block">/ month</span>
-                          </div>
-                        </div>
-
-                        {/* Features List */}
-                        <div className="mt-2.5 pt-2.5 border-t border-gray-100/80 grid grid-cols-2 gap-1.5">
-                          {p.features.map((feat, idx) => (
-                            <div key={idx} className="flex items-center gap-1.5 text-[11px] text-slate-600">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
-                              <span>{feat}</span>
-                            </div>
-                          ))}
-                        </div>
+                        ... plan cards ...
                       </div>
                     );
                   })}
                 </div>
-
-                <div className="flex items-center gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    className="btn-secondary py-2.5 px-4 rounded-xl flex items-center gap-1 text-xs font-semibold"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    <span>Back</span>
-                  </button>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="btn-primary flex-1 py-2.5 rounded-xl flex justify-center items-center gap-2 text-xs font-semibold shadow-md disabled:opacity-60"
-                  >
-                    {loading ? (
-                      <>
-                        <LoadingSpinner size="sm" text="" className="text-white" />
-                        <span>Setting Up Your Workspace...</span>
-                      </>
-                    ) : (
-                      <>
-                        <ArrowRight className="w-4 h-4" />
-                        <span>
-                          {formData.plan === 'Free'
-                            ? 'Create Free Workspace & Launch'
-                            : `Create Workspace & Pay for ${formData.plan}`}
-                        </span>
-                      </>
-                    )}
-                  </button>
-                </div>
+                ... back / submit buttons ...
               </form>
-            )}
+            )} */}
 
             {/* Footer */}
             <div className="mt-4 pt-3 border-t border-gray-200 text-center">

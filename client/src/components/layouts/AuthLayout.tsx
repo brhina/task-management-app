@@ -21,7 +21,8 @@ import {
   Menu,
   X,
   Sparkles,
-  ShieldCheck,
+  // Enterprise Center disabled
+  // ShieldCheck,
 } from 'lucide-react';
 
 const NavIcons: Record<string, ReactNode> = {
@@ -38,7 +39,8 @@ const NavIcons: Record<string, ReactNode> = {
   teams: <UsersRound className="w-5 h-5" />,
   roles: <Shield className="w-5 h-5" />,
   ai: <Sparkles className="w-5 h-5" />,
-  enterprise: <ShieldCheck className="w-5 h-5" />,
+  // Enterprise Center disabled
+  // enterprise: <ShieldCheck className="w-5 h-5" />,
 };
 
 interface NavLink {
@@ -86,7 +88,8 @@ function AuthLayout({ children }: { children: ReactNode }) {
       }
       links.push(
         { name: 'Notifications', path: '/settings/notifications', icon: NavIcons.notifications },
-        { name: 'Enterprise Center', path: '/settings/enterprise', icon: NavIcons.enterprise }
+        // Enterprise Center disabled
+        // { name: 'Enterprise Center', path: '/settings/enterprise', icon: NavIcons.enterprise }
       );
       return links;
     }
@@ -250,27 +253,27 @@ function AuthLayout({ children }: { children: ReactNode }) {
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                   Workspace
                 </span>
-                <Link
-                  to="/settings/enterprise"
-                  className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-extrabold px-2 py-0.5 rounded-md hover:bg-primary/20 transition-colors"
-                  title="Manage Enterprise Tier & Billing"
+                {/* Enterprise Center disabled — plan badge is display-only */}
+                <span
+                  className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-extrabold px-2 py-0.5 rounded-md"
+                  title="Current plan"
                 >
                   {activePlan || 'Free'}
-                </Link>
+                </span>
               </div>
               <OrgSwitcher />
             </div>
           ) : (
             <div className="flex justify-center py-1">
-              <Link
-                to="/settings/enterprise"
-                className="h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors"
+              {/* Enterprise Center disabled — plan badge is display-only */}
+              <span
+                className="h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center"
                 title={`Workspace (${activePlan || 'Free'})`}
               >
                 <span className="text-sm font-bold text-primary">
                   {activePlan ? activePlan[0] : 'F'}
                 </span>
-              </Link>
+              </span>
             </div>
           )}
         </div>

@@ -49,24 +49,26 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
     const activeOrgId = user?.activeOrgId;
     if (!activeOrgId) return;
     try {
-      const [brandingRes, billingRes, orgsRes] = await Promise.all([
-        api.get("/api/branding").catch(() => null),
-        api.get("/api/billing/metrics").catch(() => null),
-        api.get(apiPaths.ORG_MEMBERSHIP.MY_ORGS).catch(() => null),
-      ]);
-      if (brandingRes?.data) setActiveOrgBranding(brandingRes.data);
-      if (billingRes?.data?.plan) setActivePlan(billingRes.data.plan);
-      if (billingRes?.data?.currency) setCurrency(billingRes.data.currency);
+      // Enterprise Center disabled — skip branding/billing APIs
+      // const [brandingRes, billingRes, orgsRes] = await Promise.all([
+      //   api.get("/api/branding").catch(() => null),
+      //   api.get("/api/billing/metrics").catch(() => null),
+      //   api.get(apiPaths.ORG_MEMBERSHIP.MY_ORGS).catch(() => null),
+      // ]);
+      const orgsRes = await api.get(apiPaths.ORG_MEMBERSHIP.MY_ORGS).catch(() => null);
+      // if (brandingRes?.data) setActiveOrgBranding(brandingRes.data);
+      // if (billingRes?.data?.plan) setActivePlan(billingRes.data.plan);
+      // if (billingRes?.data?.currency) setCurrency(billingRes.data.currency);
 
       // Only write user when org plan/list actually changed — avoids effect loops
       if (Array.isArray(orgsRes?.data)) {
         const nextOrgs = orgsRes.data as OrgMembership[];
-        const nextPlan = billingRes?.data?.plan as string | undefined;
+        // const nextPlan = billingRes?.data?.plan as string | undefined;
         setUser((prev) => {
           if (!prev) return prev;
           const mapped = nextOrgs.map((o) =>
             o._id === activeOrgId || o.orgId === activeOrgId
-              ? { ...o, plan: nextPlan || o.plan }
+              ? { ...o /* , plan: nextPlan || o.plan */ }
               : o
           );
           const prevKey = JSON.stringify(
