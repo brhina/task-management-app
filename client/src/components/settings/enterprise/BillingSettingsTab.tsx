@@ -143,6 +143,32 @@ export default function BillingSettingsTab({
               <p className="text-slate-500 text-xs mt-0.5">
                 Manage your organization's subscription tier, usage quotas, and Telebirr payment integration.
               </p>
+              {(billingData.subscriptionStatus || billingData.currentPeriodEnd) && (
+                <p className="text-[11px] text-slate-600 mt-1.5">
+                  Status:{" "}
+                  <span className="font-semibold capitalize">
+                    {billingData.subscriptionStatus || "none"}
+                  </span>
+                  {billingData.currentPeriodEnd && (
+                    <>
+                      {" "}
+                      · Period ends{" "}
+                      <span className="font-semibold">
+                        {new Date(billingData.currentPeriodEnd).toLocaleDateString()}
+                      </span>
+                    </>
+                  )}
+                  {billingData.telebirrMode && (
+                    <>
+                      {" "}
+                      · Gateway:{" "}
+                      <span className="font-semibold uppercase">
+                        {billingData.telebirrMode}
+                      </span>
+                    </>
+                  )}
+                </p>
+              )}
             </div>
           </div>
 
@@ -480,7 +506,15 @@ export default function BillingSettingsTab({
                     <td className="py-3 font-mono text-slate-600">{inv.telebirrReference}</td>
                     <td className="py-3 font-bold text-slate-900">{inv.amount}</td>
                     <td className="py-3">
-                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                          inv.status === "Paid"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : inv.status === "Pending"
+                              ? "bg-amber-50 text-amber-800 border-amber-200"
+                              : "bg-slate-100 text-slate-600 border-slate-200"
+                        }`}
+                      >
                         {inv.status}
                       </span>
                     </td>

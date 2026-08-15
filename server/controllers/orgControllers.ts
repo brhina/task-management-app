@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import Organization from "../models/Organization.js";
 import OrgMembership from "../models/OrgMembership.js";
 import User from "../models/User.js";
-import Invoice from "../models/Invoice.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
 import { slugify, shortRandomId } from "../utils/slugUtils.js";
 import {
@@ -43,39 +42,71 @@ export const createOrg = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const { name, plan = "Free", billingCycle = "monthly", telebirrPhone, templateId } = req.body;
+    const {
+      name,
+      plan = "Free",
+      billingCycle = "monthly",
+      telebirrPhone,
+      templateId,
+    } = req.body;
 
     if (!name || !name.trim()) {
       res.status(400).json({ message: "Organization name is required" });
       return;
     }
 
-    const validPlan = ["Free", "Pro", "Enterprise"].includes(plan) ? plan : "Free";
-    const limits = PLAN_LIMITS[validPlan] || PLAN_LIMITS.Free;
+    const requestedPlan = ["Free", "Pro", "Enterprise"].includes(plan)
+      ? plan
+      : "Free";
+    const wantsPaid = requestedPlan === "Pro" || requestedPlan === "Enterprise";
+    const cycle = ["monthly", "yearly"].includes(billingCycle)
+      ? billingCycle
+      : "monthly";
 
-    // Enforce 1 Free organization workspace limit per user
-    if (validPlan === "Free") {
-      const userFreeOrgCount = await Organization.countDocuments({
+    // Count settled Free workspaces only (exclude unpaid paid-intent orgs)
+    const userFreeOrgCount = await Organization.countDocuments({
+      createdBy: req.user._id,
+      plan: "Free",
+      $nor: [{ pendingPlan: "Pro" }, { pendingPlan: "Enterprise" }],
+    });
+
+    if (!wantsPaid && userFreeOrgCount >= 1) {
+      res.status(403).json({
+        message:
+          "Limit reached: Accounts are limited to 1 Free organization workspace. Select Pro or Enterprise and complete Telebirr payment to create additional workspaces.",
+        upgradeRequired: true,
+        userFreeOrgCount,
+      });
+      return;
+    }
+
+    if (wantsPaid) {
+      const unpaidPending = await Organization.countDocuments({
         createdBy: req.user._id,
         plan: "Free",
+        pendingPlan: { $in: ["Pro", "Enterprise"] },
       });
-      if (userFreeOrgCount >= 1) {
+      if (unpaidPending >= 1) {
         res.status(403).json({
           message:
-            "Limit reached: Accounts are limited to 1 Free organization workspace. Please upgrade to a Pro or Enterprise plan to create additional workspaces.",
-          upgradeRequired: true,
-          userFreeOrgCount,
+            "You already have a workspace awaiting Telebirr payment. Complete or cancel that upgrade before creating another paid workspace.",
+          paymentRequired: true,
         });
         return;
       }
     }
 
-    // Check workspace template compatibility with plan limits
+    // Template limits: paid intent checked against target plan; Free against Free
+    const limitsForTemplate =
+      PLAN_LIMITS[wantsPaid ? requestedPlan : "Free"] || PLAN_LIMITS.Free;
     if (templateId) {
       const templateSeed = getWorkspaceTemplate(templateId);
-      if (templateSeed && templateSeed.projects.length > limits.maxProjects) {
+      if (
+        templateSeed &&
+        templateSeed.projects.length > limitsForTemplate.maxProjects
+      ) {
         res.status(400).json({
-          message: `Selected template '${templateSeed.name}' requires ${templateSeed.projects.length} projects, which exceeds your ${validPlan} plan limit of ${limits.maxProjects} projects. Please upgrade your subscription tier.`,
+          message: `Selected template '${templateSeed.name}' requires ${templateSeed.projects.length} projects, which exceeds the ${wantsPaid ? requestedPlan : "Free"} plan limit of ${limitsForTemplate.maxProjects} projects.`,
           upgradeRequired: true,
         });
         return;
@@ -93,9 +124,11 @@ export const createOrg = async (
     const org = await Organization.create({
       name: name.trim(),
       slug,
-      plan: validPlan,
-      billingCycle: ["monthly", "yearly"].includes(billingCycle) ? billingCycle : "monthly",
+      plan: "Free",
+      billingCycle: cycle,
       telebirrPhone: telebirrPhone || "",
+      subscriptionStatus: "none",
+      ...(wantsPaid ? { pendingPlan: requestedPlan as "Pro" | "Enterprise" } : {}),
       createdBy: req.user._id,
     });
 
@@ -105,33 +138,6 @@ export const createOrg = async (
       role: "OrgAdmin",
       status: "Active",
     });
-
-    // Create initial invoice record for paid subscriptions
-    if (validPlan !== "Free") {
-      const amount = billingCycle === "yearly" ? limits.priceETBYearly : limits.priceETBMonthly;
-      await Invoice.create({
-        orgId: org._id,
-        invoiceNumber: `INV-ETB-${Math.floor(10000 + Math.random() * 90000)}`,
-        plan: validPlan,
-        billingCycle: org.billingCycle,
-        amount,
-        currency: "ETB",
-        paymentMethod: "Telebirr",
-        telebirrReference: `TB-${Math.floor(100000 + Math.random() * 900000)}`,
-        telebirrPhone: telebirrPhone || "+251911000000",
-        status: "Paid",
-        billingDate: new Date(),
-        dueDate: new Date(),
-        items: [
-          {
-            description: `${validPlan} Plan Workspace Subscription (${org.billingCycle === "yearly" ? "Annual" : "Monthly"})`,
-            unitPrice: amount,
-            quantity: 1,
-            total: amount,
-          },
-        ],
-      });
-    }
 
     let appliedTemplate: string | null = null;
     if (templateId) {
@@ -148,7 +154,12 @@ export const createOrg = async (
       "org.created",
       "Organization",
       org._id,
-      { name: org.name, plan: org.plan, templateId: appliedTemplate },
+      {
+        name: org.name,
+        plan: org.plan,
+        requestedPlan,
+        templateId: appliedTemplate,
+      },
     );
 
     res.status(201).json({
@@ -159,6 +170,15 @@ export const createOrg = async (
       billingCycle: org.billingCycle,
       role: "OrgAdmin",
       templateId: appliedTemplate,
+      ...(wantsPaid
+        ? {
+            requiresPayment: {
+              plan: requestedPlan,
+              billingCycle: cycle,
+              telebirrPhone: telebirrPhone || "",
+            },
+          }
+        : {}),
     });
   } catch (error: any) {
     console.error("Create org error:", error.message);
@@ -215,7 +235,7 @@ export const updateOrg = async (
 ): Promise<void> => {
   try {
     const { orgId } = req.params;
-    const { name, plan } = req.body;
+    const { name } = req.body;
 
     const membership = await OrgMembership.findOne({
       orgId,
@@ -251,9 +271,7 @@ export const updateOrg = async (
       org.slug = slug;
     }
 
-    if (plan) {
-      org.plan = plan;
-    }
+    // Plan changes only via verified Telebirr billing — ignore body.plan
 
     await org.save();
     auditAsync(req, "org.updated", "Organization", org._id, {

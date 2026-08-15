@@ -18,6 +18,7 @@ export interface IInvoice {
   telebirrReference?: string;
   telebirrPhone?: string;
   status: "Paid" | "Pending" | "Failed" | "Refunded";
+  paymentTransactionId?: mongoose.Types.ObjectId;
   billingDate: Date;
   dueDate: Date;
   items: IInvoiceItem[];
@@ -75,7 +76,12 @@ const invoiceSchema = new mongoose.Schema<IInvoiceDocument>(
     status: {
       type: String,
       enum: ["Paid", "Pending", "Failed", "Refunded"],
-      default: "Paid",
+      default: "Pending",
+    },
+    paymentTransactionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PaymentTransaction",
+      index: true,
     },
     billingDate: {
       type: Date,

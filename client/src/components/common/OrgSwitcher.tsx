@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
 import api from '../../utils/axios';
 import { apiPaths } from '../../utils/apiPaths';
@@ -106,6 +107,7 @@ const PLAN_CARDS: Array<{
 ];
 
 function OrgSwitcher() {
+  const navigate = useNavigate();
   const { user, updateUser, hasPermission } = useContext(UserContext);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -278,6 +280,14 @@ function OrgSwitcher() {
       return;
     }
 
+    if (createModal.plan !== 'Free' && createModal.telebirrPhone.trim().length < 9) {
+      setCreateModal((prev) => ({
+        ...prev,
+        error: 'Enter a valid Telebirr mobile number to continue with paid plans.',
+      }));
+      return;
+    }
+
     setCreateModal((prev) => ({ ...prev, loading: true, error: '' }));
 
     try {
@@ -289,6 +299,9 @@ function OrgSwitcher() {
         telebirrPhone: createModal.telebirrPhone,
       });
       const newOrg = response.data;
+      const requiresPayment = newOrg.requiresPayment as
+        | { plan: PlanTier; billingCycle: BillingCycle; telebirrPhone?: string }
+        | undefined;
 
       const updatedOrgs = [
         ...orgs,
@@ -311,6 +324,14 @@ function OrgSwitcher() {
         });
       }
 
+      const pendingPayment = requiresPayment
+        ? {
+            plan: requiresPayment.plan,
+            cycle: requiresPayment.billingCycle,
+            phone: requiresPayment.telebirrPhone || createModal.telebirrPhone,
+          }
+        : null;
+
       setCreateModal({
         isOpen: false,
         step: 'details',
@@ -323,6 +344,18 @@ function OrgSwitcher() {
         error: '',
       });
       setIsOpen(false);
+
+      if (pendingPayment && (pendingPayment.plan === 'Pro' || pendingPayment.plan === 'Enterprise')) {
+        const qs = new URLSearchParams({
+          tab: 'billing',
+          upgrade: pendingPayment.plan,
+          cycle: pendingPayment.cycle,
+          ...(pendingPayment.phone ? { phone: pendingPayment.phone } : {}),
+        });
+        navigate(`/settings/enterprise?${qs.toString()}`);
+        return;
+      }
+
       window.location.reload();
     } catch (error: any) {
       setCreateModal((prev) => ({
@@ -846,8 +879,9 @@ function OrgSwitcher() {
                             <span>Telebirr Express Payment Details</span>
                           </div>
                           <p className="text-xs text-slate-600">
-                            Enter your Telebirr mobile number to initiate automatic verification for your{' '}
-                            <span className="font-semibold text-slate-800">{createModal.plan}</span> plan.
+                            Workspace starts on Free. After creation you will complete Telebirr
+                            payment to activate{" "}
+                            <span className="font-semibold text-slate-800">{createModal.plan}</span>.
                           </p>
                           <input
                             type="text"

@@ -30,6 +30,11 @@ export interface IOrganization {
   telebirrPhone?: string;
   telebirrAutoRenew?: boolean;
   currency?: string;
+  subscriptionStatus?: "active" | "past_due" | "canceled" | "none";
+  currentPeriodStart?: Date;
+  currentPeriodEnd?: Date;
+  /** Set when workspace was created with paid intent; cleared after Telebirr confirm */
+  pendingPlan?: "Pro" | "Enterprise" | null;
 }
 
 export interface IOrganizationDocument
@@ -83,6 +88,17 @@ const organizationSchema = new mongoose.Schema<IOrganizationDocument>(
     telebirrPhone: { type: String, default: "" },
     telebirrAutoRenew: { type: Boolean, default: true },
     currency: { type: String, default: "ETB" },
+    subscriptionStatus: {
+      type: String,
+      enum: ["active", "past_due", "canceled", "none"],
+      default: "none",
+    },
+    currentPeriodStart: { type: Date },
+    currentPeriodEnd: { type: Date },
+    pendingPlan: {
+      type: String,
+      enum: ["Pro", "Enterprise"],
+    },
   },
   { timestamps: true },
 );

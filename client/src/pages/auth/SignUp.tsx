@@ -75,7 +75,7 @@ const PLAN_OPTIONS: PlanOption[] = [
     name: 'Pro Workspace',
     price: '2,500 ETB',
     subtitle: 'Advanced collaboration & automated AI workflows',
-    badge: '14-Day Free Trial',
+    badge: 'Upgrade after signup',
     isPopular: true,
     features: [
       'Up to 25 Team Members',
@@ -90,7 +90,7 @@ const PLAN_OPTIONS: PlanOption[] = [
     name: 'Enterprise',
     price: '15,000 ETB',
     subtitle: 'Maximum security, SSO, and unlimited scale',
-    badge: 'Enterprise SLA',
+    badge: 'Pay via Telebirr',
     features: [
       'Unlimited Members & Projects',
       '50,000 AI Operations / mo',
@@ -231,10 +231,10 @@ function SignUp() {
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password,
+        plan: formData.plan === 'Free' ? 'Free' : undefined,
         ...(formData.workspaceName.trim() && {
           workspaceName: formData.workspaceName.trim(),
         }),
-        plan: formData.plan,
         ...(formData.profileImageUrl.trim() && {
           profileImageUrl: formData.profileImageUrl.trim(),
         }),
@@ -247,7 +247,13 @@ function SignUp() {
       const response = await api.post(apiPaths.AUTH.signup, signupData);
       const { user, token, activeOrgId } = response.data;
       updateUser({ ...user, token, activeOrgId });
-      navigate('/dashboard');
+      if (formData.plan === 'Pro' || formData.plan === 'Enterprise') {
+        navigate(
+          `/settings/enterprise?tab=billing&upgrade=${formData.plan}&cycle=monthly`
+        );
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || err.message || 'An error occurred during registration';
@@ -298,7 +304,7 @@ function SignUp() {
               <div>
                 <h4 className="text-xs font-bold text-slate-800">Flexible Subscription Tiers</h4>
                 <p className="text-[11px] text-slate-600 mt-0.5">
-                  Start on our Free plan or unlock Pro features with a 14-day free trial. Pay seamlessly via Telebirr.
+                  Start on Free. Pro and Enterprise activate only after Telebirr payment confirmation in Enterprise Settings.
                 </p>
               </div>
             </div>
@@ -734,7 +740,11 @@ function SignUp() {
                     ) : (
                       <>
                         <ArrowRight className="w-4 h-4" />
-                        <span>Create {formData.plan} Workspace & Launch</span>
+                        <span>
+                          {formData.plan === 'Free'
+                            ? 'Create Free Workspace & Launch'
+                            : `Create Workspace & Pay for ${formData.plan}`}
+                        </span>
                       </>
                     )}
                   </button>

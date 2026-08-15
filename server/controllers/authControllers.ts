@@ -14,7 +14,6 @@ async function ensureDefaultOrgForUser(params: {
   userId: string;
   displayName: string;
   workspaceName?: string;
-  plan?: "Free" | "Pro" | "Enterprise";
 }): Promise<{ orgId: string; membershipRole: string }> {
   const existingMembership = await OrgMembership.findOne({
     userId: params.userId,
@@ -39,10 +38,12 @@ async function ensureDefaultOrgForUser(params: {
     slug = `${baseSlug}-${shortRandomId(4)}`;
   }
 
+  // Paid plans activate only after verified Telebirr payment — signup always starts Free
   const org = await Organization.create({
     name,
     slug,
-    plan: params.plan || "Free",
+    plan: "Free",
+    subscriptionStatus: "none",
     createdBy: params.userId,
   });
 
@@ -69,7 +70,6 @@ export const registerUser = async (
     orgId: joinOrgId,
     orgInviteToken,
     workspaceName,
-    plan,
   } = req.body;
   try {
     const existingUser = await User.findOne({ email });
@@ -165,7 +165,6 @@ export const registerUser = async (
           userId: String(newUser._id),
           displayName: newUser.name || newUser.email,
           workspaceName,
-          plan: plan as "Free" | "Pro" | "Enterprise" | undefined,
         });
         orgId = result.orgId;
         membershipRole = result.membershipRole;

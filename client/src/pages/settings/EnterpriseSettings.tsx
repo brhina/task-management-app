@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import PageShell from "../../components/common/PageShell";
 import StatCard from "../../components/common/StatCard";
 import NavTabs from "../../components/common/NavTabs";
@@ -23,7 +24,13 @@ import BrandingSettingsTab from "../../components/settings/enterprise/BrandingSe
 import ComplianceSecurityTab from "../../components/settings/enterprise/ComplianceSecurityTab";
 import AuditLogsTab from "../../components/settings/enterprise/AuditLogsTab";
 
+const PLAN_PRICES: Record<string, { monthly: number; yearly: number }> = {
+  Pro: { monthly: 2500, yearly: 24000 },
+  Enterprise: { monthly: 15000, yearly: 144000 },
+};
+
 export default function EnterpriseSettings() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<"sso" | "billing" | "apikeys" | "branding" | "security" | "audit">("sso");
 
   // Notification Toast State
@@ -63,6 +70,7 @@ export default function EnterpriseSettings() {
   const [selectedPlanForTelebirr, setSelectedPlanForTelebirr] = useState<"Pro" | "Enterprise">("Pro");
   const [selectedCycleForTelebirr, setSelectedCycleForTelebirr] = useState<"monthly" | "yearly">("monthly");
   const [selectedPriceForTelebirr, setSelectedPriceForTelebirr] = useState<number>(2500);
+  const [telebirrInitialPhone, setTelebirrInitialPhone] = useState<string>("");
 
   // --- TAB 3: API Keys & Webhooks State ---
   const [apiKeys, setApiKeys] = useState<any[]>([]);
@@ -114,6 +122,33 @@ export default function EnterpriseSettings() {
     fetchIPAllowlist();
     fetchAuditLogs();
   }, []);
+
+  // Deep-link from workspace create: ?tab=billing&upgrade=Pro&cycle=monthly&phone=
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    const upgrade = searchParams.get("upgrade");
+    const cycle = searchParams.get("cycle");
+    const phone = searchParams.get("phone");
+
+    if (tab === "billing") {
+      setActiveTab("billing");
+    }
+
+    if (upgrade === "Pro" || upgrade === "Enterprise") {
+      const billingCycle = cycle === "yearly" ? "yearly" : "monthly";
+      const price =
+        PLAN_PRICES[upgrade][
+          billingCycle === "yearly" ? "yearly" : "monthly"
+        ];
+      setActiveTab("billing");
+      setSelectedPlanForTelebirr(upgrade);
+      setSelectedCycleForTelebirr(billingCycle);
+      setSelectedPriceForTelebirr(price);
+      if (phone) setTelebirrInitialPhone(phone);
+      setIsTelebirrModalOpen(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   // --- FETCHERS ---
   const fetchSSOConfig = async () => {
@@ -612,6 +647,7 @@ export default function EnterpriseSettings() {
         targetPlan={selectedPlanForTelebirr}
         billingCycle={selectedCycleForTelebirr}
         priceETB={selectedPriceForTelebirr}
+        initialPhone={telebirrInitialPhone || billingData?.telebirrPaymentMethod?.phone}
         onSuccess={handleTelebirrSuccess}
         onShowToast={showToast}
       />
