@@ -148,19 +148,9 @@ app.get("/health", (_req, res) => {
   });
 });
 
-if (process.env.NODE_ENV === "production") {
-  const frontendPath = path.join(__dirname, "../client/dist");
-  app.use(express.static(frontendPath));
-
-  app.get("/*", (req, res, next) => {
-    if (req.path.startsWith("/api")) {
-      return next();
-    }
-    res.sendFile(path.join(frontendPath, "index.html"));
-  });
-} else {
-  app.get("/", (_req, res) => res.send("✅ Task Manager API is running..."));
-}
+// The client (React SPA) is deployed separately as a Render Static Site.
+// This server is API-only — it does not serve any static frontend files.
+app.get("/", (_req, res) => res.send("✅ Task Manager API is running..."));
 
 // Register Global Error Handler
 app.use(errorHandler as any);
