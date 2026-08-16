@@ -1,209 +1,229 @@
-# Production Deployment Guide
+# Deployment Guide — Render
 
-This guide covers the **decoupled** deployment model for the Task Management Application: the **server** (Express API) and the **client** (React SPA) are built and deployed as separate containers.
+This guide walks you through deploying the **Task Management App** on [Render](https://render.com), with the **server** (Express API) and **client** (React/Vite SPA) deployed as two separate services.
 
----
-
-## Project Structure
-
-```
-task-management-app/
-├── server/           ← Express API
-│   ├── Dockerfile    ← Server image
-│   └── .dockerignore
-├── client/           ← React / Vite SPA
-│   ├── Dockerfile    ← Client image (Nginx)
-│   ├── nginx.conf    ← SPA routing + caching config
-│   └── .dockerignore
-├── docker-compose.yml        ← Local/dev stack (4 services)
-└── docker-compose.prod.yml   ← Production stack (4 services)
-```
-
----
-
-## 🚀 Strategy 1: Docker Compose (Self-Hosted VPS)
-
-Ideal for a single VPS (Ubuntu/Debian). Runs the API, Nginx SPA, MongoDB, and Redis with health-checks and persistent volumes.
-
-### Development / Local
-
-```bash
-docker-compose up -d --build
-# API  →  http://localhost:3001
-# App  →  http://localhost
-```
-
-### Production
-
-1. **Copy and configure environment variables**:
-
-   ```bash
-   cp .env.example .env
-   nano .env
-   ```
-
-   Set at minimum: `NODE_ENV=production`, `JWT_SECRET`, `MONGO_URI`, `REDIS_URL`, `CLIENT_URL`, `VITE_API_BASE_URL`.
-
-2. **Launch the production stack**:
-
-   ```bash
-   docker-compose -f docker-compose.prod.yml up -d --build
-   ```
-
-3. **Verify health**:
-
-   ```bash
-   docker-compose -f docker-compose.prod.yml ps
-   curl http://localhost:3001/health
-   ```
-
-4. **Add Nginx reverse proxy + SSL** (optional, if you want a single domain):
-
-   Install Nginx & Certbot on the host:
-
-   ```bash
-   sudo apt update && sudo apt install -y nginx certbot python3-certbot-nginx
-   ```
-
-   Sample `/etc/nginx/sites-available/taskmanager`:
-
-   ```nginx
-   server {
-       listen 80;
-       server_name app.yourdomain.com;
-       return 301 https://$host$request_uri;
-   }
-
-   server {
-       listen 443 ssl http2;
-       server_name app.yourdomain.com;
-
-       ssl_certificate /etc/letsencrypt/live/app.yourdomain.com/fullchain.pem;
-       ssl_certificate_key /etc/letsencrypt/live/app.yourdomain.com/privkey.pem;
-
-       # Frontend SPA
-       location / {
-           proxy_pass http://localhost:80;
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto $scheme;
-       }
-
-       # API (optional — expose API on same domain under /api)
-       location /api/ {
-           proxy_pass http://localhost:3001;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection 'upgrade';
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto $scheme;
-           client_max_body_size 50M;
-       }
-   }
-   ```
-
-   Enable and add SSL:
-
-   ```bash
-   sudo ln -s /etc/nginx/sites-available/taskmanager /etc/nginx/sites-enabled/
-   sudo certbot --nginx -d app.yourdomain.com
-   sudo systemctl reload nginx
-   ```
-
----
-
-## 🚀 Strategy 2: Build & Push Images Separately (CI/CD)
-
-Build each image independently and push to a container registry (Docker Hub, GHCR, ECR, etc.).
-
-```bash
-# Build
-docker build -t ghcr.io/yourorg/task-manager-server:latest ./server
-docker build \
-  --build-arg VITE_API_BASE_URL=https://api.yourdomain.com \
-  -t ghcr.io/yourorg/task-manager-client:latest ./client
-
-# Push
-docker push ghcr.io/yourorg/task-manager-server:latest
-docker push ghcr.io/yourorg/task-manager-client:latest
-```
-
-Or use the root npm shortcuts:
-
-```bash
-npm run docker:build          # builds both images locally
-npm run docker:run:server     # runs the API on port 3001
-npm run docker:run:client     # runs the SPA on port 80
-```
-
----
-
-## 🚀 Strategy 3: Managed Platforms (Fully Decoupled)
-
-Deploy each service to the platform that suits it best.
-
-| Part | Platform Options | Key Setting |
+| Service | Render Type | Free Tier |
 |---|---|---|
-| **Server (API)** | Render, Railway, Fly.io, AWS App Runner | Set all env vars via platform dashboard |
-| **Client (SPA)** | Vercel, Netlify, Cloudflare Pages, or any static host | `VITE_API_BASE_URL=https://api.yourdomain.com` at build time |
-| **MongoDB** | MongoDB Atlas | Use connection string in `MONGO_URI` |
-| **Redis** | Upstash, Redis Cloud, AWS ElastiCache | Use connection string in `REDIS_URL` |
-
-#### Server — Render example
-
-1. Create a new **Web Service** pointing to the `server/` directory.
-2. Set **Dockerfile** path to `server/Dockerfile`.
-3. Add environment variables (`MONGO_URI`, `REDIS_URL`, `JWT_SECRET`, `CLIENT_URL`, …).
-
-#### Client — Vercel / Netlify example
-
-1. Connect the repository and set the **root directory** to `client/`.
-2. Build command: `npm run build`
-3. Output directory: `dist`
-4. Environment variable: `VITE_API_BASE_URL=https://api.yourdomain.com`
+| **Server** (Express API) | Web Service — Docker | ✅ Yes (spins down after inactivity) |
+| **Client** (React SPA) | Static Site | ✅ Yes (always on) |
+| **MongoDB** | External — [MongoDB Atlas](https://cloud.mongodb.com) | ✅ Free M0 cluster |
+| **Redis** | External — [Upstash](https://upstash.com) | ✅ Free tier |
 
 ---
 
-## 🔑 Environment Variables Reference
+## Prerequisites
 
-| Variable | Required | Example | Purpose |
-|---|---|---|---|
-| `NODE_ENV` | Yes | `production` | Enables production optimizations |
-| `PORT` | Yes | `3001` | API HTTP port |
-| `MONGO_URI` | Yes | `mongodb+srv://…` | MongoDB connection |
-| `REDIS_URL` | Yes | `rediss://…` | Redis connection |
-| `JWT_SECRET` | Yes | *(64-byte hex)* | JWT signing secret |
-| `ADMIN_INVITE_TOKEN` | Yes | *(random string)* | Admin registration token |
-| `CLIENT_URL` | Yes | `https://app.yourdomain.com` | CORS origin & email links |
-| `VITE_API_BASE_URL` | Yes (client build) | `https://api.yourdomain.com` | API endpoint baked into the SPA |
-| `AWS_S3_BUCKET` | Optional | `my-uploads-bucket` | S3 bucket for file uploads |
-| `SMTP_HOST` | Optional | `smtp.mailtrap.io` | SMTP host for emails |
+Before deploying, have the following ready:
 
----
-
-## 🔒 Security Checklist
-
-- [ ] Generate a strong `JWT_SECRET`: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`
-- [ ] Configure MongoDB Atlas IP allow-listing.
-- [ ] Enforce HTTPS/SSL on both the client domain and the API domain.
-- [ ] Set up daily automated database backups.
-- [ ] Verify the health endpoint: `curl https://api.yourdomain.com/health`
-
----
-
-## 📊 Backup
-
-### MongoDB
+- [ ] A [Render](https://render.com) account connected to your GitHub repo.
+- [ ] A **MongoDB Atlas** cluster with a connection string (`MONGO_URI`).
+- [ ] An **Upstash Redis** instance with a TLS connection URL (`REDIS_URL`).
+- [ ] A strong `JWT_SECRET` (generate one below).
+- [ ] An `ADMIN_INVITE_TOKEN` for the first admin registration.
 
 ```bash
-mongodump --uri="mongodb+srv://<user>:<password>@cluster.mongodb.net/taskmanager" --out=./backups/$(date +%F)
+# Generate a secure JWT_SECRET
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
 
-### Uploads Volume
+---
+
+## Part 1 — Deploy the Server (Express API)
+
+The server is deployed as a **Render Web Service** using the `server/Dockerfile`.
+
+### Step 1 — Create the Web Service
+
+1. Go to [dashboard.render.com](https://dashboard.render.com) → **New** → **Web Service**.
+2. Connect your GitHub repository.
+3. Fill in the service settings:
+
+| Field | Value |
+|---|---|
+| **Name** | `task-manager-server` (or your choice) |
+| **Region** | Closest to your users |
+| **Branch** | `main` |
+| **Root Directory** | `server` |
+| **Runtime** | **Docker** |
+| **Dockerfile Path** | `./Dockerfile` |
+| **Instance Type** | Free (or paid for always-on) |
+
+> **Note**: Setting **Root Directory** to `server` makes the build context the `server/` folder, so `./Dockerfile` resolves to `server/Dockerfile`.
+
+### Step 2 — Set Environment Variables
+
+In the **Environment** tab of your Web Service, add the following variables:
+
+#### Required
+
+| Variable | Example Value | Description |
+|---|---|---|
+| `NODE_ENV` | `production` | Enables production optimizations |
+| `PORT` | `3001` | Express listen port (Render also injects its own `PORT`) |
+| `MONGO_URI` | `mongodb+srv://user:pass@cluster.mongodb.net/taskmanager?retryWrites=true&w=majority` | MongoDB Atlas connection string |
+| `REDIS_URL` | `rediss://default:password@host:port` | Upstash / Redis Cloud TLS URL |
+| `JWT_SECRET` | *(64-byte hex string)* | JWT signing secret |
+| `ADMIN_INVITE_TOKEN` | *(random string)* | Token required to register the first admin |
+| `CLIENT_URL` | `https://your-client.onrender.com` | Your client's Render URL (add after Part 2) |
+
+> **Tip**: You won't know `CLIENT_URL` until after you deploy the client. Add a placeholder first, then update it once Part 2 is done.
+
+#### Optional
+
+| Variable | Description |
+|---|---|
+| `MONGODB_AI_DB` | AI/RAG database name (default: `taskmanager_ai`) |
+| `AWS_S3_BUCKET` | S3 bucket name for file uploads |
+| `AWS_ACCESS_KEY_ID` | AWS access key |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret key |
+| `AWS_REGION` | AWS region (e.g. `us-east-1`) |
+| `AWS_S3_PUBLIC_URL` | Public CDN URL for S3 objects |
+| `SMTP_HOST` | SMTP server host (e.g. `smtp.sendgrid.net`) |
+| `SMTP_PORT` | SMTP port (e.g. `587`) |
+| `SMTP_USER` | SMTP username |
+| `SMTP_PASS` | SMTP password |
+| `SMTP_FROM` | Sender address (e.g. `"App <no-reply@yourdomain.com>"`) |
+| `SMTP_SECURE` | `true` for SSL/TLS port 465 |
+| `OPENAI_API_KEY` | OpenAI key for AI features |
+| `OPENROUTER_API_KEY` | OpenRouter key (alternative LLM) |
+| `TELEBIRR_MODE` | `live` or `sandbox` |
+| `TELEBIRR_APP_ID` | Telebirr app ID |
+| `TELEBIRR_APP_KEY` | Telebirr app key |
+| `TELEBIRR_SHORT_CODE` | Telebirr short code |
+| `TELEBIRR_NOTIFY_SECRET` | Telebirr webhook secret |
+| `SERVER_PUBLIC_URL` | Public URL of this API service (needed for Telebirr callbacks) |
+
+### Step 3 — Deploy
+
+Click **Create Web Service**. Render will:
+
+1. Pull your repo and build `server/Dockerfile`.
+2. Start the container running `node --import tsx server.ts`.
+3. Assign a URL like `https://task-manager-server.onrender.com`.
+
+### Step 4 — Verify the Server
 
 ```bash
-tar -czf ./backups/uploads-$(date +%F).tar.gz uploads/
+curl https://task-manager-server.onrender.com/health
+# Expected: {"status":"ok", ...}
 ```
+
+> **Free tier note**: The free Web Service spins down after 15 minutes of inactivity and has a ~30s cold-start delay on the next request. Upgrade to a paid instance for always-on behaviour, or use [UptimeRobot](https://uptimerobot.com) to ping `/health` every 5 minutes to keep it warm.
+
+---
+
+## Part 2 — Deploy the Client (React SPA)
+
+The client is deployed as a **Render Static Site** — Render runs `npm run build` and serves the `dist/` folder from its global CDN. No Docker needed.
+
+### Step 1 — Create the Static Site
+
+1. Go to [dashboard.render.com](https://dashboard.render.com) → **New** → **Static Site**.
+2. Connect the same GitHub repository.
+3. Fill in the site settings:
+
+| Field | Value |
+|---|---|
+| **Name** | `task-manager-client` (or your choice) |
+| **Branch** | `main` |
+| **Root Directory** | `client` |
+| **Build Command** | `npm install && npm run build` |
+| **Publish Directory** | `dist` |
+
+### Step 2 — Set Environment Variables
+
+In the **Environment** tab of the Static Site, add:
+
+| Variable | Value | Description |
+|---|---|---|
+| `VITE_API_BASE_URL` | `https://task-manager-server.onrender.com` | The server URL from Part 1 — **baked into the JS bundle at build time** |
+
+> **Important**: This variable is embedded into the built JavaScript by Vite. If you change the server URL later, you must **redeploy** the static site to pick up the new value.
+
+### Step 3 — Configure SPA Routing (Rewrite Rule)
+
+React Router needs every path to serve `index.html`. In the **Redirects/Rewrites** tab of the Static Site, add:
+
+| Source | Destination | Type |
+|---|---|---|
+| `/*` | `/index.html` | **Rewrite** |
+
+> Without this rule, navigating directly to any route other than `/` (e.g. `/tasks`) will return a 404 from the CDN.
+
+### Step 4 — Deploy
+
+Click **Create Static Site**. Render will:
+
+1. `cd client && npm install && npm run build`
+2. Serve the `dist/` folder from its CDN edge nodes.
+3. Assign a URL like `https://task-manager-client.onrender.com`.
+
+---
+
+## Part 3 — Wire the Two Services Together
+
+After both services are running:
+
+1. **Copy the client URL** (e.g. `https://task-manager-client.onrender.com`).
+2. Go to the **Server** Web Service → **Environment** tab and set:
+   ```
+   CLIENT_URL=https://task-manager-client.onrender.com
+   ```
+3. Click **Save Changes** — Render redeploys the server automatically with the updated CORS origin.
+
+---
+
+## Part 4 — Custom Domains (Optional)
+
+Both Render services support custom domains on paid plans.
+
+### Server API domain
+
+1. Server → **Settings** → **Custom Domain** → Add `api.yourdomain.com`.
+2. Add a `CNAME` record in your DNS: `api.yourdomain.com` → `<render-service>.onrender.com`.
+3. Update `VITE_API_BASE_URL` in the Static Site environment to `https://api.yourdomain.com` and redeploy the client.
+
+### Client domain
+
+1. Static Site → **Settings** → **Custom Domain** → Add `app.yourdomain.com`.
+2. Add a `CNAME` in your DNS: `app.yourdomain.com` → `<render-site>.onrender.com`.
+3. Update `CLIENT_URL` on the server to `https://app.yourdomain.com` and redeploy the server.
+
+---
+
+## Security Checklist
+
+- [ ] `JWT_SECRET` is a random 64-byte hex string — **never** reuse a dev secret in production.
+- [ ] `ADMIN_INVITE_TOKEN` is a strong random string.
+- [ ] `CLIENT_URL` on the server exactly matches the client's origin (no trailing slash).
+- [ ] MongoDB Atlas IP allowlisting is configured (allowlist Render's egress IPs or `0.0.0.0/0` temporarily to test).
+- [ ] All environment variables are set via the Render dashboard — **never** commit `.env` files.
+- [ ] Verify the health endpoint after every deploy:
+  ```bash
+  curl https://your-server.onrender.com/health
+  ```
+
+---
+
+## Redeployment
+
+Render automatically redeploys both services on every push to `main`.
+
+To redeploy manually:
+- Open the service → **Manual Deploy** → **Deploy latest commit**.
+
+To update environment variables without a code change:
+- Edit the variable in the Render dashboard → **Save Changes** → Render triggers a redeploy automatically.
+
+---
+
+## Troubleshooting
+
+| Issue | Likely Cause | Fix |
+|---|---|---|
+| `CORS` errors in browser | `CLIENT_URL` mismatch on server | Ensure `CLIENT_URL` exactly matches the client origin (no trailing slash) |
+| White screen / 404 on page refresh | Missing SPA rewrite rule | Add `/* → /index.html` (Rewrite) in the Static Site Redirects/Rewrites tab |
+| API calls hitting wrong URL | Stale `VITE_API_BASE_URL` in bundle | Vite bakes env vars at build time — redeploy the static site after changing `VITE_API_BASE_URL` |
+| Cold start / ~30s delay | Free tier spin-down | Upgrade to paid, or ping `/health` every 5 min with UptimeRobot |
+| `MongoNetworkError` | Atlas IP allowlist | Allowlist Render egress IPs or use `0.0.0.0/0` (with strong auth) to confirm |
+| Redis `ECONNREFUSED` | Wrong `REDIS_URL` format | Upstash TLS URL must start with `rediss://` (double `s`) |
