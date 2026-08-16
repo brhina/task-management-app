@@ -472,6 +472,28 @@ export default function EnterpriseSettings() {
   //   return `${axiosInstance.defaults.baseURL}/api/integrations/calendar/ics?token=${token}`;
   // };
 
+  // --- NO-OP STUBS — Enterprise Center disabled; keep JSX props type-safe ---
+  const handleSaveSSO = async (_e: React.FormEvent) => {};
+  const handleTestSSO = async () => {};
+  const handleOpenTelebirrModal = (_plan: "Pro" | "Enterprise", _cycle: "monthly" | "yearly", _priceETB: number) => {};
+  const handleTelebirrSuccess = async (_updatedPlan: string) => {};
+  const fetchBilling = async () => {};
+  const handleCreateApiKey = async (_e: React.FormEvent) => {};
+  const handleRevokeApiKey = async (_id: string) => {};
+  const handleCreateWebhook = async (_e: React.FormEvent) => {};
+  const handleDeleteWebhook = async (_id: string) => {};
+  const getCalendarFeedUrl = () => "";
+  const handleSaveBranding = async (_e: React.FormEvent) => {};
+  const handleResetBranding = () => {};
+  const handleAddIPRange = async (_e: React.FormEvent) => {};
+  const handleRemoveIPRange = async (_ip: string) => {};
+  const handleToggleIPEnforcement = async (_enabled: boolean) => {};
+  const handleGDPRDownload = () => {};
+  const handleSetup2FA = async () => {};
+  const handleVerify2FA = async (_e: React.FormEvent) => {};
+  const handleRevokeSession = async (_id: string) => {};
+  const fetchAuditLogs = async (_page?: number) => {};
+
   return (
     <PageShell
       title={
