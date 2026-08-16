@@ -1,6 +1,14 @@
-export const BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ??
-  (import.meta.env.MODE === 'production' ? '' : 'http://localhost:3001');
+const _apiBase = import.meta.env.VITE_API_BASE_URL as string | undefined;
+
+if (!_apiBase && import.meta.env.MODE === 'production') {
+  console.error(
+    '[Config] VITE_API_BASE_URL is not set. ' +
+    'All API requests will fail. ' +
+    'Set this environment variable in your Render Static Site settings and redeploy.'
+  );
+}
+
+export const BASE_URL = _apiBase ?? (import.meta.env.MODE === 'production' ? '' : 'http://localhost:3001');
 
 export const apiPaths = {
   AUTH: {

@@ -6,9 +6,8 @@ export const getAbsoluteImageUrl = (imageUrl: string | null | undefined): string
   }
 
   const baseUrl =
-    import.meta.env.MODE === 'production'
-      ? 'https://task-management-app-ma8h.onrender.com'
-      : 'http://localhost:3001';
+    (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
+    (import.meta.env.MODE === 'production' ? '' : 'http://localhost:3001');
 
   return `${baseUrl}${imageUrl}`;
 };
