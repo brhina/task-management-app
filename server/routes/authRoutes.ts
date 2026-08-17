@@ -17,6 +17,10 @@ import {
   loginSchema,
   updateProfileSchema,
 } from "../middleware/validate.js";
+import {
+  saveUploadedFile,
+  getPublicAssetUrl,
+} from "../services/fileStorage.js";
 
 const router = express.Router();
 
@@ -35,19 +39,20 @@ router.post(
   "/upload-image",
   protect,
   upload.single("image"),
-  (req: AuthRequest, res: Response) => {
+  async (req: AuthRequest, res: Response) => {
     if (!req.file) {
       res.status(400).json({ message: "No file uploaded" });
       return;
     }
 
-    const baseUrl =
-      process.env.NODE_ENV === "production"
-        ? process.env.CLIENT_URL || `${req.protocol}://${req.get("host")}`
-        : `${req.protocol}://${req.get("host")}`;
-
-    const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
-    res.status(200).json({ imageUrl });
+    try {
+      const saved = await saveUploadedFile(req.file, "profiles");
+      const imageUrl = getPublicAssetUrl(saved.url, req);
+      res.status(200).json({ imageUrl });
+    } catch (err) {
+      console.error("Profile image upload failed:", err);
+      res.status(500).json({ message: "Failed to upload image" });
+    }
   },
 );
 

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { normalizeAssetUrl } from "../services/fileStorage.js";
 
 export interface IUser {
   name: string;
@@ -52,6 +53,15 @@ const userSchema = new mongoose.Schema<IUserDocument>(
 );
 
 userSchema.index({ name: "text", email: "text" });
+
+userSchema.set("toJSON", {
+  transform(_doc, ret) {
+    if (ret.profileImageUrl) {
+      ret.profileImageUrl = normalizeAssetUrl(ret.profileImageUrl);
+    }
+    return ret;
+  },
+});
 
 const User = mongoose.model<IUserDocument>("User", userSchema);
 

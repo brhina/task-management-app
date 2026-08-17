@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
+import type { Request } from "express";
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -25,7 +26,44 @@ export async function ensureUploadsDir(): Promise<void> {
   await fs.mkdir(LOCAL_UPLOADS, { recursive: true });
 }
 
-export async function saveUploadedFile(file: Express.Multer.File): Promise<{
+function getApiBaseUrl(req?: Request): string {
+  if (process.env.SERVER_PUBLIC_URL) {
+    return process.env.SERVER_PUBLIC_URL.replace(/\/$/, "");
+  }
+  if (req) {
+    return `${req.protocol}://${req.get("host")}`;
+  }
+  return "";
+}
+
+export function getPublicAssetUrl(relativePath: string, req?: Request): string {
+  if (relativePath.startsWith("http://") || relativePath.startsWith("https://")) {
+    return relativePath;
+  }
+  const base = getApiBaseUrl(req);
+  const pathPart = relativePath.startsWith("/") ? relativePath : `/${relativePath}`;
+  return base ? `${base}${pathPart}` : pathPart;
+}
+
+export function normalizeAssetUrl(url: string): string {
+  if (!url) return url;
+
+  const uploadsMatch = url.match(/\/uploads\/[^/?#]+/);
+  if (!uploadsMatch) return url;
+
+  const uploadsPath = uploadsMatch[0];
+  const apiBase = getApiBaseUrl();
+  if (apiBase) {
+    return `${apiBase}${uploadsPath}`;
+  }
+
+  return uploadsPath;
+}
+
+export async function saveUploadedFile(
+  file: Express.Multer.File,
+  folder = "tasks",
+): Promise<{
   url: string;
   name: string;
   mimeType: string;
@@ -34,7 +72,7 @@ export async function saveUploadedFile(file: Express.Multer.File): Promise<{
   await ensureUploadsDir();
 
   if (useS3()) {
-    const key = `tasks/${Date.now()}-${file.originalname.replace(/\s+/g, "_")}`;
+    const key = `${folder}/${Date.now()}-${file.originalname.replace(/\s+/g, "_")}`;
     const client = getS3Client();
     const body = file.buffer ?? (await fs.readFile(file.path));
     await client.send(
@@ -84,8 +122,13 @@ export async function deleteStoredFile(url: string): Promise<void> {
       return;
     }
 
-    if (url.startsWith("/uploads/")) {
-      const filename = path.basename(url);
+    const uploadsPath = url.includes("/uploads/")
+      ? url.slice(url.indexOf("/uploads/"))
+      : url.startsWith("/uploads/")
+        ? url
+        : null;
+    if (uploadsPath) {
+      const filename = path.basename(uploadsPath);
       await fs.unlink(path.join(LOCAL_UPLOADS, filename)).catch(() => undefined);
     }
   } catch (err) {
